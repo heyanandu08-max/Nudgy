@@ -62,3 +62,14 @@ targets. Items needing Windows/macOS hardware are marked `[~]` in PLAN.md.
 Screenshots are held in memory only, on both sides; the backend never writes request
 bodies to disk or logs, and logs metadata only (sizes, tokens, latency). Walkthrough
 sharing uploads step screenshots only if the author explicitly opts in per walkthrough.
+
+## D12 — Overlay click-through toggled from Rust by cursor position
+OS-level click-through is all-or-nothing per window, so the overlay registers its small
+interactive regions (CSS px) via `set_interactive_regions`; the 60 Hz cursor loop turns
+click-through off only while the cursor is inside one. Overlays are separate pages
+(`overlay.html`) so the heavy settings/dashboard bundle never loads per monitor.
+
+## D13 — Cross-target verification from Linux
+`cargo check --target x86_64-pc-windows-msvc` and `--target aarch64-apple-darwin` (with clang)
+work in the dev container, so all `cfg(target_os)` code is at least type-checked against the real
+Windows and macOS APIs before it reaches hardware testing (`scripts/check_targets.sh`).

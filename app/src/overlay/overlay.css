@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* The overlay window is transparent: nothing may paint a background. */
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  user-select: none;
+}
+
+.overlay-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.companion-anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: opacity 200ms ease;
+  will-change: transform;
+}
+.companion-anchor--hidden {
+  opacity: 0;
+}
+
+.companion {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.25));
+}
+.companion svg {
+  animation: nudgy-bounce 2.4s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+.companion__eyes {
+  animation: nudgy-blink 4.2s infinite;
+  transform-origin: 50% 42%;
+}
+
+.companion--listening svg {
+  animation: nudgy-bounce 0.9s ease-in-out infinite;
+}
+.companion__listen-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid #f97316;
+  animation: nudgy-ping 1.1s ease-out infinite;
+}
+
+.companion--thinking .companion__pupil {
+  transform: translate(1.5px, -2px);
+}
+.companion__dots {
+  position: absolute;
+  left: 34px;
+  top: -6px;
+  display: flex;
+  gap: 3px;
+}
+.companion__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #f97316;
+  animation: nudgy-dot 1s ease-in-out infinite;
+}
+.companion__dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.companion__dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.companion--talking .companion__mouth {
+  animation: nudgy-talk 0.28s ease-in-out infinite alternate;
+  transform-origin: 50% 65%;
+}
+
+.companion--pointing svg {
+  animation: nudgy-nudge 0.5s ease-in-out 3;
+}
+
+.pointer {
+  position: absolute;
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  transform-origin: 14px 14px;
+  will-change: transform;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.35));
+}
+.pointer svg {
+  transform: translateX(-12px); /* tip of the arrow sits on the target point */
+}
+.pointer--arrived svg {
+  animation: nudgy-tap 0.6s ease-in-out 3;
+}
+
+.highlight-ring {
+  position: absolute;
+  border-radius: 10px;
+  border: 3px solid #f97316;
+  box-shadow: 0 0 0 4px rgb(249 115 22 / 0.25);
+  animation: nudgy-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes nudgy-bounce {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-3px) scale(1.03, 0.97); }
+}
+@keyframes nudgy-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes nudgy-ping {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes nudgy-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes nudgy-talk {
+  from { transform: scaleY(0.6); }
+  to { transform: scaleY(1.6); }
+}
+@keyframes nudgy-nudge {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  40% { transform: translateX(4px) rotate(8deg); }
+}
+@keyframes nudgy-tap {
+  0%, 100% { transform: translateX(-12px); }
+  50% { transform: translateX(-4px); }
+}
+@keyframes nudgy-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgb(249 115 22 / 0.25); }
+  50% { box-shadow: 0 0 0 10px rgb(249 115 22 / 0.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion svg,
+  .companion__eyes,
+  .companion__listen-ring,
+  .highlight-ring,
+  .pointer--arrived svg {
+    animation: none;
+  }
+}

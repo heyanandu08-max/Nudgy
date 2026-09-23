@@ -15,3 +15,19 @@ Windows/macOS hardware. Record OS version, scaling and monitor setup for each ru
 | Change every setting, Save, quit, relaunch → values persisted | | |
 | Backend running → green badge with version; stop backend → red within 15 s; "Check again" works | | |
 | Voice list populates from the backend | | |
+
+## Phase 2 — Overlay + companion
+Trigger pointing from the tray (**Debug → Point at screen center**) or launch with
+`NUDGY_DEBUG_POINT=1` (fires ~4 s after start on the monitor under the cursor).
+
+| Check | Win 100% | Win 125% | Win 150% | Win dual (mixed DPI) | Mac Retina | Mac + external |
+|-------|----------|----------|----------|----------------------|------------|----------------|
+| Companion follows the cursor with slight lag, bounces and blinks | | | | | | |
+| Companion moves to the other monitor when the cursor does | | | | | | |
+| Clicks and scrolls pass through the overlay to apps underneath | | | | | | |
+| Overlay does not appear in the taskbar / Alt-Tab / Mission Control | | | | | | |
+| Debug point: arrow flies on an upward arc, tip lands on the exact center pixel | | | | | | |
+| Highlight ring is centered on the target and pulses, fades after ~6 s | | | | | | |
+| Monitor with negative coordinates (left of / above primary) | | | | | | |
+| Plug/unplug a monitor → overlays rebuilt within ~2 s | | | | | | |
+| Change scaling while running → overlays rebuilt, pointing still exact | | | | | | |

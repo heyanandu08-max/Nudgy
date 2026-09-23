@@ -1,7 +1,13 @@
+#[allow(dead_code)] // screenshot/AX conversions are wired up in Phase 3
+mod geometry;
+mod overlay;
 mod settings;
 mod tray;
 
-use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow, WindowEvent};
+
+use geometry::{MonitorInfo, Rect};
+use overlay::OverlayState;
 
 use settings::{Settings, SettingsStore};
 
@@ -22,6 +28,24 @@ fn save_settings(
     Ok(saved)
 }
 
+/// Overlay UI reports its clickable regions (CSS px) so the cursor loop can turn
+/// click-through off only while the cursor is over them.
+#[tauri::command]
+fn set_interactive_regions(window: WebviewWindow, state: State<'_, OverlayState>, rects: Vec<Rect>) {
+    state.set_interactive(window.label(), rects);
+}
+
+#[tauri::command]
+fn get_monitor_for_overlay(window: WebviewWindow, state: State<'_, OverlayState>) -> Option<MonitorInfo> {
+    let idx: usize = window.label().strip_prefix("overlay-")?.parse().ok()?;
+    state.monitors().get(idx).cloned()
+}
+
+#[tauri::command]
+fn debug_point_at_screen_center(app: AppHandle) -> Result<(), String> {
+    overlay::point_at_screen_center(&app)
+}
+
 pub fn run() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
@@ -35,6 +59,19 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             tray::create(app.handle())?;
+            overlay::init(app.handle())?;
+
+            // Manual/CI testing aid: NUDGY_DEBUG_POINT=1 fires "Point at screen center"
+            // shortly after launch, without needing the tray.
+            if std::env::var_os("NUDGY_DEBUG_POINT").is_some() {
+                let h = app.handle().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(4));
+                    if let Err(e) = overlay::point_at_screen_center(&h) {
+                        log::error!("debug point failed: {e}");
+                    }
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -46,7 +83,13 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![get_settings, save_settings])
+        .invoke_handler(tauri::generate_handler![
+            get_settings,
+            save_settings,
+            set_interactive_regions,
+            get_monitor_for_overlay,
+            debug_point_at_screen_center,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");
 }

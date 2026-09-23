@@ -45,3 +45,9 @@ Linux needs the Tauri system deps (webkit2gtk-4.1, gtk3, libsoup-3, appindicator
 
 ## Secrets
 **Never commit secrets.** Keys live in the git-ignored `.env`; `.env.example` documents every variable with a blank/placeholder value.
+
+## Cross-platform checks from Linux
+`scripts/check_targets.sh` type-checks the Rust crate for Windows and macOS (needs the two rustup
+targets + clang). Run it after touching any `cfg(target_os)` code.
+Visual check on Linux: `Xvfb :42 -ac &`, then `DISPLAY=:42 NUDGY_DEBUG_POINT=1 ./target/debug/nudgy`
+with `npx vite` serving the frontend, and screenshot with `xwd -root | convert xwd:- shot.png`.

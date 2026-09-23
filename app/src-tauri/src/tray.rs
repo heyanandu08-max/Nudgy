@@ -1,6 +1,6 @@
 //! System tray (Windows) / menu bar (macOS) icon: Open, Pause, Settings, Quit.
 
-use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
@@ -10,6 +10,7 @@ const OPEN: &str = "open";
 const PAUSE: &str = "pause";
 const SETTINGS: &str = "settings";
 const QUIT: &str = "quit";
+const DEBUG_POINT_CENTER: &str = "debug-point-center";
 
 /// Tray labels. The webview UI uses react-i18next; the native tray menu is built
 /// before any webview exists, so it keeps its own small table (English only for v1).
@@ -18,6 +19,8 @@ struct Labels {
     pause: &'static str,
     settings: &'static str,
     quit: &'static str,
+    debug: &'static str,
+    debug_point_center: &'static str,
     tooltip: &'static str,
 }
 
@@ -27,6 +30,8 @@ fn labels(_language: &str) -> Labels {
         pause: "Pause",
         settings: "Settings…",
         quit: "Quit Nudgy",
+        debug: "Debug",
+        debug_point_center: "Point at screen center",
         tooltip: "Nudgy",
     }
 }
@@ -40,7 +45,10 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let settings_item = MenuItem::with_id(app, SETTINGS, l.settings, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, QUIT, l.quit, true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
-    let menu = Menu::with_items(app, &[&open, &pause, &settings_item, &sep, &quit])?;
+    let point_center = MenuItem::with_id(app, DEBUG_POINT_CENTER, l.debug_point_center, true, None::<&str>)?;
+    let debug = Submenu::with_items(app, l.debug, true, &[&point_center])?;
+    let sep2 = PredefinedMenuItem::separator(app)?;
+    let menu = Menu::with_items(app, &[&open, &pause, &settings_item, &sep, &debug, &sep2, &quit])?;
 
     app.manage(PauseItem(pause.clone()));
     TrayIconBuilder::with_id("main")
@@ -51,6 +59,11 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .on_menu_event(move |app, event| match event.id().as_ref() {
             OPEN | SETTINGS => show_main(app),
             PAUSE => toggle_pause(app),
+            DEBUG_POINT_CENTER => {
+                if let Err(e) = crate::overlay::point_at_screen_center(app) {
+                    log::error!("debug point failed: {e}");
+                }
+            }
             QUIT => app.exit(0),
             _ => {}
         })

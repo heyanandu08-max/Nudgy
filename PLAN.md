@@ -143,13 +143,15 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   (verified on Linux/Xvfb + unit tests; Windows/macOS tray per `TESTING.md`)
 
 ### Phase 2 — Overlay + companion
-- [ ] One transparent, borderless, always-on-top, click-through overlay per monitor
-- [ ] Cursor position polling in Rust → emitted to the overlay of the monitor under it
-- [ ] Companion character (idle/listening/thinking/talking; bounce, blink, nudge)
-- [ ] Pointer arc animation + highlight ring around a bbox
-- [ ] `geometry.rs` with unit tests (DPI 100/125/150%, Retina, dual monitor, negative offsets, macOS flip)
-- [ ] Debug menu: "Point at screen center"
-- [ ] **Done when:** debug pointing lands precisely at all scalings / monitor setups
+- [x] One transparent, borderless, always-on-top, click-through overlay per monitor (rebuilt on layout change)
+- [x] Cursor position polling in Rust → emitted to the overlay of the monitor under it
+- [x] Companion character (idle/listening/thinking/talking/pointing; bounce, blink, nudge)
+- [x] Pointer arc animation + highlight ring around a bbox
+- [x] `geometry.rs` with unit tests (DPI 100/125/150%, Retina, dual monitor, negative offsets, macOS flip)
+- [x] Debug menu: "Point at screen center" (tray → Debug; or `NUDGY_DEBUG_POINT=1`)
+- [~] **Done when:** debug pointing lands precisely at all scalings / monitor setups
+  (verified pixel-exact on Linux/Xvfb 1600×900 via screenshot; code type-checks for Windows + macOS;
+  real-hardware matrix in `TESTING.md`)
 
 ### Phase 3 — Talk mode
 - [ ] Global push-to-talk hotkey (hold) + double-tap → text input
