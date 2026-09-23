@@ -52,7 +52,13 @@ class AnthropicLLM:
         self.effort = effort
 
     async def stream(
-        self, *, system: str, messages: list[Message], max_tokens: int, usage: Usage
+        self,
+        *,
+        system: str,
+        messages: list[Message],
+        max_tokens: int,
+        usage: Usage,
+        effort: str | None = None,
     ) -> AsyncIterator[str]:
         kwargs: dict = {
             "model": self.model,
@@ -66,8 +72,8 @@ class AnthropicLLM:
             kwargs["thinking"] = {"type": "disabled"}
         elif self.thinking == "adaptive":
             kwargs["thinking"] = {"type": "adaptive"}
-        if self.effort:
-            kwargs["output_config"] = {"effort": self.effort}
+        if effort or self.effort:
+            kwargs["output_config"] = {"effort": effort or self.effort}
         try:
             async with self.client.messages.stream(**kwargs) as stream:
                 async for text in stream.text_stream:

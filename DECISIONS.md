@@ -100,3 +100,19 @@ verification (Phase 4) can use higher effort because they are not on the push-to
 Deepgram, Whisper, ElevenLabs and OpenAI TTS adapters are tested against mocked transports
 (request shape, auth header, error mapping). No vendor keys exist in the dev container, so the
 first real call happens during hardware testing; endpoint details may need adjustment then.
+
+## D19 — Lesson state machine in TypeScript, capabilities in Rust
+The tutor's control flow (hint escalation, quiet-period auto-checks, skip/show-me/stop) is a
+pure TS class with injected dependencies, unit-tested with a fake clock; it is hosted by the
+hidden main window. Rust exposes the capabilities it needs as commands: capture + verify,
+point (live element-tree match first, backend `locate` fallback), speak, activity, store.
+
+## D20 — When lessons capture the screen
+Only at three moments, each user-initiated: planning (once), verifying a step (after the
+learner acts or says "done"), and locating a target when the element tree has no match.
+Pointing at the start of a step uses the element tree only (no pixels).
+
+## D21 — Automatic checks stay quiet at first
+After input activity plus 1.5 s of quiet, the step is checked automatically. The first
+automatic failure is silent (the learner may be mid-action); a second one, or any failed
+explicit "done", produces the next hint level.

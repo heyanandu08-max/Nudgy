@@ -12,12 +12,11 @@ import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
-from pydantic import ValidationError
-
 from app.providers.base import ImagePart, Message, ProviderError, Usage, collect
 from app.providers.registry import Providers
-from app.schemas.ask import AskContext, ElementTarget, PointTarget, TalkResponse
-from app.services.json_parse import SentenceChunker, StringFieldExtractor, extract_json_object
+from app.schemas.ask import TALK_SCHEMA, AskContext, ElementTarget, PointTarget, TalkResponse
+from app.services.json_parse import SentenceChunker, StringFieldExtractor
+from app.services.llm_json import parse_model, repair_messages
 from app.services.prompts import load_prompt
 
 log = logging.getLogger("nudgy.ask")
@@ -50,10 +49,25 @@ class Timings:
         self.marks.setdefault(name, round((time.perf_counter() - self.start) * 1000))
 
 
+def lesson_context(ctx: AskContext) -> str:
+    if not ctx.lesson:
+        return ""
+    lsn = ctx.lesson
+    return (
+        f'- A lesson is running: "{lsn.title}", step {lsn.step_index + 1} of {lsn.step_count}: '
+        f'"{lsn.instruction}". If the user says they did it or are done, intent is "done". '
+        'If they want to skip this step, "skip". If they ask for more explanation or to be shown, '
+        '"show_me" — and explain the current step in more depth, pointing at what to use. '
+        'If they want to quit the lesson, "stop_lesson". Other questions: answer normally '
+        "with intent null."
+    )
+
+
 def system_prompt(ctx: AskContext) -> str:
     return load_prompt("talk").render(
         length_instruction=LENGTH[ctx.response_length],
         language=LANGUAGE_NAMES.get(ctx.language, ctx.language),
+        lesson_context=lesson_context(ctx),
     )
 
 
@@ -115,13 +129,7 @@ def validate_target(resp: TalkResponse, ctx: AskContext) -> dict | None:
 
 
 def parse_talk(raw: str) -> TalkResponse | None:
-    obj = extract_json_object(raw)
-    if obj is None:
-        return None
-    try:
-        return TalkResponse.model_validate(obj)
-    except ValidationError:
-        return None
+    return parse_model(raw, TalkResponse)
 
 
 async def run_ask(inp: AskInput, providers: Providers) -> AsyncIterator[Event]:
@@ -192,12 +200,7 @@ async def _produce(inp: AskInput, p: Providers, out: asyncio.Queue[Event | None]
         resp = parse_talk(raw)
         if resp is None:
             log.warning("talk JSON invalid; retrying once (len=%d)", len(raw))
-            repair = messages + [
-                Message(role="assistant", parts=[raw or "(empty)"]),
-                Message(
-                    role="user", parts=[load_prompt("repair_json").render(previous=raw[:4000])]
-                ),
-            ]
+            repair = repair_messages(messages, raw, TALK_SCHEMA)
             raw2 = await collect(
                 p.llm, system=system, messages=repair, max_tokens=MAX_TOKENS, usage=usage
             )
@@ -224,7 +227,18 @@ async def _produce(inp: AskInput, p: Providers, out: asyncio.Queue[Event | None]
             sentences.put_nowait(None)
             await tts_task
         t.mark("total_ms")
-        put(("done", {"speech": resp.speech, "timings": t.marks, "usage": _usage(usage)}))
+        put(
+            (
+                "done",
+                {
+                    "speech": resp.speech,
+                    "intent": resp.intent,
+                    "lesson_goal": resp.lesson_goal,
+                    "timings": t.marks,
+                    "usage": _usage(usage),
+                },
+            )
+        )
     except ProviderError as e:
         log.warning("ask failed: %s (%s)", e.code, e)
         put(

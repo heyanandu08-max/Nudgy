@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 ActionHint = Literal["click", "type", "drag", "look"]
+Intent = Literal["start_lesson", "done", "skip", "show_me", "stop_lesson"]
 
 
 class Box(BaseModel):
@@ -38,6 +39,13 @@ class Turn(BaseModel):
     text: str = Field(max_length=4000)
 
 
+class LessonContext(BaseModel):
+    title: str = Field(max_length=200)
+    step_index: int = Field(ge=0)
+    step_count: int = Field(ge=1)
+    instruction: str = Field(max_length=600)
+
+
 class AskContext(BaseModel):
     elements: list[UiElement] = Field(default_factory=list, max_length=400)
     screenshot: ScreenshotInfo | None = None
@@ -48,6 +56,7 @@ class AskContext(BaseModel):
     voice_enabled: bool = True
     voice_id: str | None = Field(default=None, max_length=64)
     text: str | None = Field(default=None, max_length=2000)  # typed question (no audio)
+    lesson: LessonContext | None = None  # set while a tutor-mode lesson is running
 
     @field_validator("history")
     @classmethod
@@ -70,3 +79,13 @@ class TalkResponse(BaseModel):
     speech: str
     target: ElementTarget | PointTarget | None = None
     action_hint: ActionHint | None = None
+    intent: Intent | None = None
+    lesson_goal: str | None = Field(default=None, max_length=500)
+
+
+TALK_SCHEMA = (
+    '{"speech": "<what you say>", "target": {"element_id": "e12"} | {"x": 812, "y": 64} | null, '
+    '"action_hint": "click" | "type" | "drag" | "look" | null, '
+    '"intent": null | "start_lesson" | "done" | "skip" | "show_me" | "stop_lesson", '
+    '"lesson_goal": null | "<goal>"}'
+)

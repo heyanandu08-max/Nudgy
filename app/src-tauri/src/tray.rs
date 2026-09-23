@@ -70,7 +70,14 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
-            OPEN | SETTINGS => show_main(app),
+            OPEN => {
+                show_main(app);
+                let _ = app.emit_to("main", "navigate", "home");
+            }
+            SETTINGS => {
+                show_main(app);
+                let _ = app.emit_to("main", "navigate", "settings");
+            }
             PAUSE => toggle_pause(app),
             DEBUG_POINT_CENTER => {
                 if let Err(e) = crate::overlay::point_at_screen_center(app) {

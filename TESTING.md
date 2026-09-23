@@ -51,3 +51,17 @@ and listen to the clips.
 | Backend stopped → "can't reach my server" caption | | |
 | Password field focused → caption says screen was skipped; answer still arrives | | |
 | macOS without Accessibility permission → still answers (points by pixel) | | |
+
+## Phase 4 — Tutor mode
+| Check | Win | Mac |
+|-------|-----|-----|
+| Home → "Add up a column and format it as currency in Excel" starts a lesson; panel appears on the cursor's monitor | | |
+| Hold hotkey: "teach me to make a bulleted list in Word" starts a lesson | | |
+| Each step is spoken, captioned, and the pointer lands on the right control | | |
+| Doing the step (click/typing, then pausing ~1.5 s) advances without saying anything | | |
+| Wrong action → quiet the first time, then hint 1 (verbal) → 2 (points) → 3 (points + why) | | |
+| "Show me" explains + points; "Skip" moves on; "Stop" ends and says goodbye | | |
+| Saying "done" / "skip" / "show me" by voice works like the buttons | | |
+| Panel buttons are clickable; everything else on screen stays click-through | | |
+| Completed lesson appears in the local DB (`nudgy.db`: lessons, lesson_steps, mistakes) | | |
+| macOS without Accessibility permission: activity detection off → learner uses Done | – | |

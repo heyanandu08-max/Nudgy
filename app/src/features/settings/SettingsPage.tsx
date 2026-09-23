@@ -54,7 +54,7 @@ export function SettingsPage() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-lg space-y-5 p-6">
+    <form onSubmit={onSubmit} className="mx-auto max-w-2xl space-y-5 p-6">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{t("settings.title")}</h1>
         <HealthBadge health={health} onRetry={check} />

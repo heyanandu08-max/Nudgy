@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { emit } from "@tauri-apps/api/event";
+import type { TutorView } from "../features/tutor/types";
 import { AudioQueue, htmlAudioPlayer, type Clip } from "../lib/audioQueue";
 import { errorKey } from "../lib/errors";
 import { follow, type Vec } from "../lib/motion";
 import type { Settings } from "../lib/settings";
 import { CaptionBubble } from "./CaptionBubble";
+import { LessonPanel } from "./LessonPanel";
 import { Companion } from "./Companion";
 import { Pointer } from "./Pointer";
 import { useOverlay, type CompanionMode, type Rect } from "./store";
@@ -15,6 +18,8 @@ const OFFSET = { x: 22, y: 22 };
 const CAPTION_LINGER_MS = 6000;
 /** Flip the caption to the left of the companion when this close to the right edge. */
 const CAPTION_FLIP_PX = 360;
+/** …and above it when this close to the bottom edge. */
+const CAPTION_FLIP_Y_PX = 200;
 
 interface PointPayload {
   rect: Rect;
@@ -31,6 +36,10 @@ export function OverlayApp() {
   const audio = useRef<AudioQueue | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const answerDone = useRef(false);
+  const [lesson, setLesson] = useState<TutorView | null>(null);
+  /** Whether this monitor shows the lesson panel (the one under the cursor at start). */
+  const [ownsLesson, setOwnsLesson] = useState(false);
+  const lessonRef = useRef<TutorView | null>(null);
 
   useEffect(() => {
     const st = useOverlay.getState;
@@ -88,7 +97,26 @@ export function OverlayApp() {
       }),
       listen("ask-notice", () => st().setNotice("caption.withheld")),
       listen<Settings>("settings-changed", (e) => st().setPaused(e.payload.paused)),
+      listen<{ text: string; clips: Clip[] }>("lesson-say", (e) => {
+        answerDone.current = false;
+        clearTimeout(hideTimer.current);
+        audio.current?.reset();
+        st().startCaption("");
+        st().appendSpeech(e.payload.text);
+        e.payload.clips.forEach((c) => audio.current?.push(c));
+        answerDone.current = true;
+        if (!e.payload.clips.length) scheduleHide();
+      }),
+      listen<TutorView>("lesson-state", (e) => {
+        const v = e.payload;
+        const first = lessonRef.current === null;
+        lessonRef.current = v;
+        setLesson(v);
+        if (v.phase === "planning" || (first && v.phase !== "idle")) setOwnsLesson(st().active);
+        if (v.phase === "idle") setOwnsLesson(false);
+      }),
     ];
+    void emit("lesson-state-request");
     return () => {
       subs.forEach((p) => p.then((off) => off()));
       audio.current?.reset();
@@ -109,12 +137,20 @@ export function OverlayApp() {
       if (el) {
         el.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px)`;
         el.dataset.flip = pos.current.x > window.innerWidth - CAPTION_FLIP_PX ? "left" : "right";
+        el.dataset.flipY = pos.current.y > window.innerHeight - CAPTION_FLIP_Y_PX ? "up" : "down";
       }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  const showPanel = ownsLesson && !!lesson && lesson.phase !== "idle" && !s.paused;
+  useEffect(() => {
+    if (lesson?.phase !== "finished" && lesson?.phase !== "failed") return;
+    const id = setTimeout(() => setOwnsLesson(false), CAPTION_LINGER_MS);
+    return () => clearTimeout(id);
+  }, [lesson?.phase]);
 
   const shownMode: CompanionMode = s.target ? "pointing" : s.mode;
   const visible = s.active && !s.paused;
@@ -125,6 +161,7 @@ export function OverlayApp() {
         <Companion mode={shownMode} />
         {s.caption && <CaptionBubble caption={s.caption} />}
       </div>
+      {showPanel && lesson && <LessonPanel view={lesson} />}
       {s.target && !s.paused && (
         <Pointer key={s.target.seq} target={s.target} from={pointerFrom} onDone={s.clearTarget} />
       )}

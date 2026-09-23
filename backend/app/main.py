@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.config import get_settings
-from app.routers import ask, client_config, health
+from app.routers import ask, client_config, health, lessons
 
 
 def create_app() -> FastAPI:
@@ -21,6 +21,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(client_config.router)
     app.include_router(ask.router)
+    app.include_router(lessons.router)
     return app
 
 

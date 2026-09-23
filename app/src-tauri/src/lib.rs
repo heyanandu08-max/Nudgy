@@ -1,13 +1,18 @@
+mod activity;
 mod ask;
 mod audio;
 mod auth;
+mod backend;
 mod capture;
 mod geometry;
 mod hotkey;
+mod lesson;
+mod matcher;
 mod overlay;
 mod privacy;
 mod settings;
 mod sse;
+mod store;
 mod tray;
 mod uitree;
 
@@ -80,6 +85,17 @@ fn last_timings(state: State<'_, ask::AskState>) -> Option<serde_json::Value> {
     state.last_timings.lock().unwrap().clone()
 }
 
+/// Webview errors land in the app log (webviews have no console in release builds).
+#[tauri::command]
+fn ui_log(window: WebviewWindow, level: String, message: String) {
+    let msg: String = message.chars().take(2000).collect();
+    match level.as_str() {
+        "error" => log::error!("[{}] {msg}", window.label()),
+        "warn" => log::warn!("[{}] {msg}", window.label()),
+        _ => log::info!("[{}] {msg}", window.label()),
+    }
+}
+
 #[tauri::command]
 fn forget_conversation(state: State<'_, ask::AskState>) {
     state.clear_history()
@@ -96,6 +112,10 @@ pub fn run() {
             app.manage(auth::AuthStore::load(&app.path().app_data_dir()?));
             app.manage(ask::AskState::default());
             app.manage(hotkey::HotkeyState::default());
+            app.manage(lesson::LessonState::default());
+            let db = app.path().app_data_dir()?.join("nudgy.db");
+            app.manage(store::Store::open(&db).map_err(|e| format!("open {}: {e}", db.display()))?);
+            activity::init(app.handle());
 
             // Menu-bar-only app on macOS (no Dock icon); the settings window still opens.
             #[cfg(target_os = "macos")]
@@ -140,6 +160,17 @@ pub fn run() {
             cancel_text_ask,
             last_timings,
             forget_conversation,
+            ui_log,
+            lesson::lesson_plan,
+            lesson::lesson_begin_step,
+            lesson::lesson_verify,
+            lesson::lesson_point,
+            lesson::speak,
+            lesson::lesson_set_context,
+            lesson::activity_watch,
+            lesson::lesson_record_start,
+            lesson::lesson_record_step,
+            lesson::lesson_record_finish,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");

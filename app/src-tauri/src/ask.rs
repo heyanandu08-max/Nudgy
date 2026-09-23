@@ -45,6 +45,8 @@ pub struct AskState {
     generation: AtomicU64,
     pub last_timings: Mutex<Option<Value>>,
     client: Mutex<Option<reqwest::Client>>,
+    /// Current lesson step (title, step_index, step_count, instruction) while tutoring.
+    lesson: Mutex<Option<Value>>,
 }
 
 impl AskState {
@@ -77,6 +79,14 @@ impl AskState {
         while h.len() > HISTORY_MESSAGES {
             h.pop_front();
         }
+    }
+
+    pub fn set_lesson(&self, lesson: Option<Value>) {
+        *self.lesson.lock().unwrap() = lesson;
+    }
+
+    pub fn lesson(&self) -> Option<Value> {
+        self.lesson.lock().unwrap().clone()
     }
 
     pub fn clear_history(&self) {
@@ -151,6 +161,7 @@ pub fn prepare(
     history: &[Turn],
     settings: &Settings,
     text: Option<&str>,
+    lesson: Option<&Value>,
 ) -> Prepared {
     let meta = captured
         .screenshot
@@ -201,6 +212,9 @@ pub fn prepare(
     if let Some(t) = text {
         context["text"] = json!(t);
     }
+    if let Some(l) = lesson {
+        context["lesson"] = l.clone();
+    }
     Prepared {
         context,
         targets,
@@ -250,7 +264,14 @@ pub async fn run<R: Runtime>(
     set_companion(&app, &label, "thinking");
 
     let settings = app.state::<SettingsStore>().get();
-    let prepared = prepare(&captured, &state.history(), &settings, text.as_deref());
+    let lesson = state.lesson();
+    let prepared = prepare(
+        &captured,
+        &state.history(),
+        &settings,
+        text.as_deref(),
+        lesson.as_ref(),
+    );
     if let Some(reason) = captured.withheld {
         emit(
             &app,
@@ -366,6 +387,15 @@ pub async fn run<R: Runtime>(
                         "ask-done",
                         json!({"speech": speech, "timings": timings}),
                     );
+                    // Spoken lesson commands ("teach me…", "done", "skip"…) go to the tutor.
+                    if !data["intent"].is_null() {
+                        log::info!("intent {} → tutor", data["intent"]);
+                        let _ = app.emit_to(
+                            "main",
+                            "ask-intent",
+                            json!({"intent": data["intent"], "lesson_goal": data["lesson_goal"]}),
+                        );
+                    }
                 }
                 "error" => {
                     emit(&app, &label, "ask-error", data.clone());
@@ -433,7 +463,7 @@ mod tests {
             vec![el("Other monitor", 100.0), el("Bold", 1920.0 + 200.0)],
             true,
         );
-        let p = prepare(&c, &[], &Settings::default(), None);
+        let p = prepare(&c, &[], &Settings::default(), None, None);
         let els = p.context["elements"].as_array().unwrap();
         assert_eq!(els.len(), 1);
         assert_eq!(els[0]["id"], "e1");
@@ -461,6 +491,7 @@ mod tests {
             }],
             &Settings::default(),
             Some("make it bold"),
+            None,
         );
         assert!(p.context.get("screenshot").is_none());
         assert_eq!(p.context["text"], "make it bold");
@@ -470,7 +501,7 @@ mod tests {
     #[test]
     fn resolves_element_and_pixel_targets_to_screen_space() {
         let c = captured(vec![el("Bold", 2120.0)], true);
-        let p = prepare(&c, &[], &Settings::default(), None);
+        let p = prepare(&c, &[], &Settings::default(), None, None);
         let (r, ring) = resolve_target(&json!({"element_id": "e1"}), &p, &c.monitor).unwrap();
         assert_eq!((r, ring), (Rect::new(2120.0, 100.0, 40.0, 20.0), true));
         let (r, ring) = resolve_target(&json!({"x": 640, "y": 360}), &p, &c.monitor).unwrap();

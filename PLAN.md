@@ -168,11 +168,17 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   real vendors and real apps need keys + Windows/macOS — see `TESTING.md`)
 
 ### Phase 4 — Tutor mode
-- [ ] `/v1/lessons/plan` (`prompts/lesson_plan.md`) and `/v1/verify` (`prompts/verify_step.md`)
-- [ ] Lesson runner state machine: instruct → wait for activity/"done" → verify → praise | hint 1/2/3; "show me", "skip"
-- [ ] Input activity detection (mouse/keyboard) without recording content
-- [ ] Local SQLite: skills, lessons, steps, attempts, mistakes, durations
-- [ ] **Done when:** 5-step Excel lesson (SUM + currency) runs with verification and hints
+- [x] `/v1/lessons/plan` (`prompts/lesson_plan.md`), `/v1/lessons/verify` (`prompts/verify_step.md`),
+      `/v1/lessons/locate` (`prompts/locate.md`), `/v1/speak`; talk prompt v2 returns lesson intents
+- [x] Lesson runner state machine (`app/src/features/tutor/tutor.ts`, 8 unit tests): instruct →
+      wait for activity/"done" → verify → praise | hint 1 verbal / 2 point / 3 point + why; "show me", "skip", "stop"
+- [x] Input activity detection (device_query; reports *that* input happened, never what)
+- [x] Local SQLite (rusqlite, migrations): skills, lessons, steps, attempts, hints, mistakes, durations
+- [x] Overlay lesson panel (progress, Done / Show me / Skip / Stop) with click-through carve-out
+- [x] Start from Home tab, suggestions, or by saying "teach me…"
+- [~] **Done when:** 5-step Excel lesson (SUM + currency) runs with verification and hints
+  (ran end to end on Linux/Xvfb with fake providers: typed "teach me…", clicked Done through all
+  5 steps with a hint on each, lesson + steps + mistakes recorded in SQLite; real Excel run pending)
 
 ### Phase 5 — Learning memory
 - [ ] Skills dashboard (per-app cards, % progress, recent lessons, weak spots)

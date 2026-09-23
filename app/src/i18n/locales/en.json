@@ -4,7 +4,10 @@
     "tagline": "Your buddy next to the cursor."
   },
   "nav": {
-    "settings": "Settings"
+    "home": "Home",
+    "settings": "Settings",
+    "walkthroughs": "Walkthroughs",
+    "privacy": "Privacy"
   },
   "settings": {
     "title": "Settings",
@@ -52,5 +55,45 @@
   "askBox": {
     "placeholder": "Ask Nudgy anything… (Enter to send, Esc to close)",
     "label": "Your question"
+  },
+  "tutor": {
+    "startTitle": "Learn something new",
+    "startHelp": "Tell Nudgy what you want to learn. It will plan a short hands-on lesson and watch you do each step.",
+    "goalPlaceholder": "e.g. Add up a column and format it as currency in Excel",
+    "start": "Start lesson",
+    "orSay": "Or hold your hotkey and say \"teach me…\"",
+    "suggestions": [
+      "Add up a column and format it as currency in Excel",
+      "Change the font and size in Notepad",
+      "Open a new incognito window in Chrome",
+      "Cut a clip in DaVinci Resolve"
+    ],
+    "panel": {
+      "step": "Step {{current}} of {{total}}",
+      "planning": "Planning your lesson…",
+      "checking": "Checking…",
+      "done": "Done",
+      "showMe": "Show me",
+      "skip": "Skip",
+      "stop": "Stop",
+      "finished": "Lesson complete!",
+      "failed": "Couldn't plan that lesson"
+    },
+    "say": {
+      "planning": "Great, give me a moment to plan this.",
+      "planFailed": "Sorry, I couldn't put that lesson together. Could you try describing it differently?",
+      "firstStep": "Let's start.",
+      "stuck": "If you're stuck, say skip and we'll move on.",
+      "verifyFailed": "I couldn't check that just now. Say done when you're ready and I'll look again.",
+      "stopped": "Okay, we'll stop here. Nice effort!",
+      "finished": "You did it! That's the whole lesson: {{title}}.",
+      "praise": [
+        "Nice work!",
+        "Exactly right!",
+        "Perfect, you've got it.",
+        "Great, that's it!",
+        "Spot on!"
+      ]
+    }
   }
 }

@@ -43,9 +43,16 @@ class LLMProvider(Protocol):
     name: str
 
     def stream(
-        self, *, system: str, messages: list[Message], max_tokens: int, usage: Usage
+        self,
+        *,
+        system: str,
+        messages: list[Message],
+        max_tokens: int,
+        usage: Usage,
+        effort: str | None = None,
     ) -> AsyncIterator[str]:
-        """Yields text deltas. Fills `usage` once the stream finishes."""
+        """Yields text deltas. Fills `usage` once the stream finishes. `effort` overrides the
+        provider's default reasoning effort for this call (ignored by providers without one)."""
         ...
 
 

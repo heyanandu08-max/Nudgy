@@ -178,7 +178,7 @@ fn on_event<R: Runtime>(app: &AppHandle<R>, event: ShortcutEvent) {
 }
 
 /// Overlay label for the monitor currently under the cursor.
-fn companion_label<R: Runtime>(app: &AppHandle<R>) -> String {
+pub fn companion_label<R: Runtime>(app: &AppHandle<R>) -> String {
     let state = app.state::<crate::overlay::OverlayState>();
     let monitors = state.monitors();
     app.cursor_position()
