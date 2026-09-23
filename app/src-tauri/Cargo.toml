@@ -1,0 +1,23 @@
+[package]
+name = "nudgy"
+version = "0.1.0"
+description = "Nudgy — an AI tutor that lives next to your cursor"
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "nudgy_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+env_logger = "0.11"
+
+[dev-dependencies]
+tempfile = "3"

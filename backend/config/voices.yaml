@@ -1,0 +1,9 @@
+# Voices offered in Settings, per TTS provider. `id` is passed to the provider.
+elevenlabs:
+  - { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel" }
+  - { id: "pNInz6obpgDQGcFmaJgB", name: "Adam" }
+openai_tts:
+  - { id: "alloy", name: "Alloy" }
+  - { id: "nova", name: "Nova" }
+fake:
+  - { id: "fake", name: "Test voice" }

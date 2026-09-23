@@ -1,0 +1,34 @@
+{
+  "app": {
+    "name": "Nudgy",
+    "tagline": "Your buddy next to the cursor."
+  },
+  "nav": {
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "backendUrl": "Backend URL",
+    "backendUrlHelp": "Where Nudgy's server runs. Leave the default unless you host your own.",
+    "voiceEnabled": "Speak answers out loud",
+    "voice": "Voice",
+    "voiceUnavailable": "Voices load when the backend is reachable.",
+    "hotkey": "Push-to-talk hotkey",
+    "hotkeyHelp": "Hold to talk, release to send. Example: Ctrl+Alt+Space",
+    "responseLength": "Answer length",
+    "responseLengthBrief": "Brief",
+    "responseLengthDetailed": "Detailed",
+    "language": "Language",
+    "save": "Save",
+    "saved": "Saved",
+    "saveFailed": "Couldn't save settings: {{error}}",
+    "paused": "Nudgy is paused"
+  },
+  "health": {
+    "label": "Backend",
+    "checking": "Checking…",
+    "ok": "Connected (v{{version}})",
+    "down": "Can't reach the backend",
+    "retry": "Check again"
+  }
+}

@@ -1,0 +1,6 @@
+# Languages offered in Settings. `default: true` marks the fallback.
+# Only English is polished in v1; others are listed as they get translated.
+languages:
+  - code: en
+    name: English
+    default: true

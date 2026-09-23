@@ -132,14 +132,15 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
 - [x] `.gitignore`, `.env.example`
 
 ### Phase 1 — Skeleton
-- [ ] Scaffold Tauri v2 + React + Vite + TS + Tailwind in `app/`
-- [ ] Tray / menu-bar icon with Open, Pause, Settings, Quit; app starts hidden in tray
-- [ ] Settings model (Rust, persisted JSON in app config dir) + Tauri commands get/set
-- [ ] Settings UI: backend URL, voice on/off, voice choice, hotkey, response length, language
-- [ ] i18n via `react-i18next`, `en.json` only; language list from backend config
-- [ ] FastAPI backend: `/health`, `/v1/config` (languages, voices), config via env, pytest
-- [ ] Health indicator in settings (green/red)
-- [ ] **Done when:** app starts in tray, settings persist, health check shows green
+- [x] Scaffold Tauri v2 + React + Vite + TS + Tailwind in `app/`
+- [~] Tray / menu-bar icon with Open, Pause, Settings, Quit; app starts hidden in tray
+- [x] Settings model (Rust, persisted JSON in app config dir) + Tauri commands get/set
+- [x] Settings UI: backend URL, voice on/off, voice choice, hotkey, response length, language
+- [x] i18n via `react-i18next`, `en.json` only; language list from backend config
+- [x] FastAPI backend: `/health`, `/v1/config` (languages, voices), config via env, pytest
+- [x] Health indicator in settings (green/red)
+- [~] **Done when:** app starts in tray, settings persist, health check shows green
+  (verified on Linux/Xvfb + unit tests; Windows/macOS tray per `TESTING.md`)
 
 ### Phase 2 — Overlay + companion
 - [ ] One transparent, borderless, always-on-top, click-through overlay per monitor
