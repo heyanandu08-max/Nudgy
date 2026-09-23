@@ -45,14 +45,27 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let settings_item = MenuItem::with_id(app, SETTINGS, l.settings, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, QUIT, l.quit, true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
-    let point_center = MenuItem::with_id(app, DEBUG_POINT_CENTER, l.debug_point_center, true, None::<&str>)?;
+    let point_center = MenuItem::with_id(
+        app,
+        DEBUG_POINT_CENTER,
+        l.debug_point_center,
+        true,
+        None::<&str>,
+    )?;
     let debug = Submenu::with_items(app, l.debug, true, &[&point_center])?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let menu = Menu::with_items(app, &[&open, &pause, &settings_item, &sep, &debug, &sep2, &quit])?;
+    let menu = Menu::with_items(
+        app,
+        &[&open, &pause, &settings_item, &sep, &debug, &sep2, &quit],
+    )?;
 
     app.manage(PauseItem(pause.clone()));
     TrayIconBuilder::with_id("main")
-        .icon(app.default_window_icon().cloned().expect("bundle icon missing"))
+        .icon(
+            app.default_window_icon()
+                .cloned()
+                .expect("bundle icon missing"),
+        )
         .tooltip(l.tooltip)
         .menu(&menu)
         .show_menu_on_left_click(true)

@@ -73,3 +73,30 @@ click-through off only while the cursor is inside one. Overlays are separate pag
 `cargo check --target x86_64-pc-windows-msvc` and `--target aarch64-apple-darwin` (with clang)
 work in the dev container, so all `cfg(target_os)` code is at least type-checked against the real
 Windows and macOS APIs before it reaches hardware testing (`scripts/check_targets.sh`).
+
+## D14 — Native TLS for the desktop HTTP client
+`reqwest` uses `native-tls` (SChannel on Windows, Security.framework on macOS): it honours the
+OS certificate store — important behind corporate TLS-inspecting proxies — and avoids a C
+toolchain per target (the rustls/aws-lc default broke cross-target checks).
+
+## D15 — Capture on key-down, send on key-up
+The screenshot and UI tree are captured on a worker thread as soon as the hotkey goes down,
+in parallel with the user speaking, which removes ~0.3–0.8 s from the critical path. A short tap
+(<250 ms) discards everything. The typed-question path captures on the second tap, before the
+text box takes focus, so the tree describes the user's app rather than Nudgy's box.
+
+## D16 — Speech streamed from partial JSON, TTS per sentence
+The talk prompt puts `"speech"` first; the backend decodes that string incrementally from the
+streaming JSON, forwards caption deltas immediately, and synthesizes each finished sentence
+while the model is still writing. Audio clips carry a `seq` and the overlay plays them in order.
+The target arrives when the JSON completes. Invalid JSON → one repair request → speech-only.
+
+## D17 — LLM defaults tuned for latency
+`claude-sonnet-5` with thinking disabled and `effort: low` for talk mode (both env-configurable:
+`NUDGY_LLM_THINKING`, `NUDGY_LLM_EFFORT`). Answers are 2–4 spoken sentences; lessons and step
+verification (Phase 4) can use higher effort because they are not on the push-to-talk path.
+
+## D18 — Vendor HTTP adapters verified by contract tests only
+Deepgram, Whisper, ElevenLabs and OpenAI TTS adapters are tested against mocked transports
+(request shape, auth header, error mapping). No vendor keys exist in the dev container, so the
+first real call happens during hardware testing; endpoint details may need adjustment then.

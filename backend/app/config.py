@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import yaml
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -25,6 +26,14 @@ class Settings(BaseSettings):
     stt_provider: str = "fake"
     tts_provider: str = "fake"
     llm_model: str = "claude-sonnet-5"
+    llm_thinking: str = "disabled"  # disabled | adaptive
+    llm_effort: str = "low"  # low | medium | high | "" (provider default)
+
+    # Vendor keys use their conventional names (no NUDGY_ prefix).
+    anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")
+    deepgram_api_key: str | None = Field(default=None, validation_alias="DEEPGRAM_API_KEY")
+    elevenlabs_api_key: str | None = Field(default=None, validation_alias="ELEVENLABS_API_KEY")
+    openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
 
     @property
     def cors_origin_list(self) -> list[str]:

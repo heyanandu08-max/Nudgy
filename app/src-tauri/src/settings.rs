@@ -27,6 +27,8 @@ pub struct Settings {
     pub response_length: ResponseLength,
     pub language: String,
     pub paused: bool,
+    /// Apps/window titles never captured (password managers, banking…).
+    pub blocklist: Vec<String>,
 }
 
 impl Default for Settings {
@@ -39,6 +41,10 @@ impl Default for Settings {
             response_length: ResponseLength::Brief,
             language: "en".into(),
             paused: false,
+            blocklist: crate::privacy::DEFAULT_BLOCKLIST
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
         }
     }
 }
@@ -79,7 +85,10 @@ impl SettingsStore {
                 }
             })
             .unwrap_or_default();
-        Self { path, current: Mutex::new(current) }
+        Self {
+            path,
+            current: Mutex::new(current),
+        }
     }
 
     pub fn get(&self) -> Settings {
@@ -121,12 +130,13 @@ mod tests {
     fn round_trips_through_disk() {
         let dir = tempfile::tempdir().unwrap();
         let store = SettingsStore::load(dir.path());
-        store.update(|s| {
-            s.voice_enabled = false;
-            s.response_length = ResponseLength::Detailed;
-            s.voice_id = Some("nova".into());
-        })
-        .unwrap();
+        store
+            .update(|s| {
+                s.voice_enabled = false;
+                s.response_length = ResponseLength::Detailed;
+                s.voice_id = Some("nova".into());
+            })
+            .unwrap();
         let reloaded = SettingsStore::load(dir.path()).get();
         assert!(!reloaded.voice_enabled);
         assert_eq!(reloaded.response_length, ResponseLength::Detailed);
@@ -143,7 +153,11 @@ mod tests {
     #[test]
     fn unknown_and_missing_fields_are_tolerated() {
         let dir = tempfile::tempdir().unwrap();
-        fs::write(dir.path().join(FILE_NAME), r#"{"language":"en","future":1}"#).unwrap();
+        fs::write(
+            dir.path().join(FILE_NAME),
+            r#"{"language":"en","future":1}"#,
+        )
+        .unwrap();
         let s = SettingsStore::load(dir.path()).get();
         assert_eq!(s.hotkey, Settings::default().hotkey);
     }
@@ -152,7 +166,10 @@ mod tests {
     fn rejects_invalid_settings() {
         let dir = tempfile::tempdir().unwrap();
         let store = SettingsStore::load(dir.path());
-        let bad = Settings { backend_url: "ftp://x".into(), ..Settings::default() };
+        let bad = Settings {
+            backend_url: "ftp://x".into(),
+            ..Settings::default()
+        };
         assert!(store.set(bad).is_err());
         assert_eq!(store.get(), Settings::default());
     }

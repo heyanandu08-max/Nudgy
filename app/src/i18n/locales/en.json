@@ -30,5 +30,27 @@
     "ok": "Connected (v{{version}})",
     "down": "Can't reach the backend",
     "retry": "Check again"
+  },
+  "caption": {
+    "you": "You",
+    "withheld": "I skipped looking at your screen here to keep it private."
+  },
+  "errors": {
+    "no_speech": "I didn't catch that. Hold the hotkey while you talk.",
+    "no_microphone": "I can't hear you — no microphone is available. Check your mic permission.",
+    "backend_unreachable": "I can't reach my server right now. Are you online?",
+    "backend_error": "My server had a hiccup. Please try again.",
+    "auth_required": "Please sign in to keep asking.",
+    "limit_reached": "You've used this month's free questions. Upgrade to keep going!",
+    "stt": "I couldn't transcribe that. Mind trying again?",
+    "llm": "My brain is a bit busy right now. Please try again in a moment.",
+    "llm_refused": "I can't help with that one.",
+    "tts": "My voice isn't working right now, so I'll just show captions.",
+    "internal": "Something went wrong on our side.",
+    "generic": "Something went wrong."
+  },
+  "askBox": {
+    "placeholder": "Ask Nudgy anything… (Enter to send, Esc to close)",
+    "label": "Your question"
   }
 }

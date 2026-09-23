@@ -19,6 +19,8 @@ use crate::geometry::{self, MonitorInfo, Point, Rect};
 
 const POLL: Duration = Duration::from_millis(16);
 const MONITOR_RESCAN: Duration = Duration::from_secs(2);
+/// Re-send the cursor even when still, so overlays that (re)load catch up.
+const CURSOR_REFRESH: Duration = Duration::from_millis(500);
 
 pub fn label_for(monitor_index: usize) -> String {
     format!("overlay-{monitor_index}")
@@ -42,7 +44,10 @@ impl OverlayState {
     }
 
     pub fn set_interactive(&self, label: &str, rects: Vec<Rect>) {
-        self.interactive.lock().unwrap().insert(label.to_string(), rects);
+        self.interactive
+            .lock()
+            .unwrap()
+            .insert(label.to_string(), rects);
     }
 }
 
@@ -74,7 +79,12 @@ pub fn read_monitors<R: Runtime>(app: &AppHandle<R>) -> Vec<MonitorInfo> {
             let size = m.size();
             MonitorInfo {
                 id: format!("{i}:{}", m.name().map(String::as_str).unwrap_or("display")),
-                bounds: Rect::new(pos.x as f64, pos.y as f64, size.width as f64, size.height as f64),
+                bounds: Rect::new(
+                    pos.x as f64,
+                    pos.y as f64,
+                    size.width as f64,
+                    size.height as f64,
+                ),
                 scale_factor: m.scale_factor(),
                 is_primary: primary == Some(*pos),
             }
@@ -100,7 +110,10 @@ fn rebuild<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 
     // Close overlays for monitors that disappeared.
     for (label, w) in app.webview_windows() {
-        if let Some(idx) = label.strip_prefix("overlay-").and_then(|s| s.parse::<usize>().ok()) {
+        if let Some(idx) = label
+            .strip_prefix("overlay-")
+            .and_then(|s| s.parse::<usize>().ok())
+        {
             if idx >= monitors.len() {
                 let _ = w.close();
             }
@@ -152,6 +165,7 @@ fn cursor_loop<R: Runtime>(app: AppHandle<R>) {
     let mut last_label: Option<String> = None;
     let mut ignoring: HashMap<String, bool> = HashMap::new();
     let mut last_scan = Instant::now();
+    let mut last_emit = Instant::now();
 
     loop {
         thread::sleep(POLL);
@@ -172,12 +186,15 @@ fn cursor_loop<R: Runtime>(app: AppHandle<R>) {
             }
         }
 
-        let Ok(pos) = app.cursor_position() else { continue };
+        let Ok(pos) = app.cursor_position() else {
+            continue;
+        };
         let p = Point::new(pos.x, pos.y);
-        if last == Some(p) {
+        if last == Some(p) && last_emit.elapsed() < CURSOR_REFRESH {
             continue;
         }
         last = Some(p);
+        last_emit = Instant::now();
 
         let state = app.state::<OverlayState>();
         let monitors = state.monitors();
@@ -201,7 +218,14 @@ fn cursor_loop<R: Runtime>(app: AppHandle<R>) {
             }
             last_label = Some(label.clone());
         }
-        let _ = app.emit_to(label.as_str(), "cursor", CursorEvent { x: local.x, y: local.y });
+        let _ = app.emit_to(
+            label.as_str(),
+            "cursor",
+            CursorEvent {
+                x: local.x,
+                y: local.y,
+            },
+        );
 
         // Click-through everywhere except over registered interactive regions.
         let over_control = state
@@ -231,9 +255,16 @@ pub fn point_at<R: Runtime>(
     let state = app.state::<OverlayState>();
     let monitors = state.monitors();
     let m = geometry::monitor_at(rect.center(), &monitors).ok_or("no monitors")?;
-    let label = state.label_for_monitor(&m.id).ok_or("no overlay for monitor")?;
-    let event = PointEvent { rect: geometry::screen_to_overlay(&rect, m), action_hint, highlight };
-    app.emit_to(label.as_str(), "point", event).map_err(|e| e.to_string())
+    let label = state
+        .label_for_monitor(&m.id)
+        .ok_or("no overlay for monitor")?;
+    let event = PointEvent {
+        rect: geometry::screen_to_overlay(&rect, m),
+        action_hint,
+        highlight,
+    };
+    app.emit_to(label.as_str(), "point", event)
+        .map_err(|e| e.to_string())
 }
 
 /// Debug helper: point at the centre of the monitor under the cursor.
@@ -244,5 +275,10 @@ pub fn point_at_screen_center<R: Runtime>(app: &AppHandle<R>) -> Result<(), Stri
     let m = geometry::monitor_at(Point::new(cursor.x, cursor.y), &monitors).ok_or("no monitors")?;
     let c = m.bounds.center();
     let size = 48.0 * m.scale_factor;
-    point_at(app, Rect::new(c.x - size / 2.0, c.y - size / 2.0, size, size), Some("look".into()), true)
+    point_at(
+        app,
+        Rect::new(c.x - size / 2.0, c.y - size / 2.0, size, size),
+        Some("look".into()),
+        true,
+    )
 }

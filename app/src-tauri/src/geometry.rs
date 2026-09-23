@@ -94,9 +94,9 @@ pub struct ScreenshotMeta {
 /// edge pixel or in a gap between monitors of different heights).
 pub fn monitor_at(p: Point, monitors: &[MonitorInfo]) -> Option<&MonitorInfo> {
     monitors.iter().find(|m| m.bounds.contains(p)).or_else(|| {
-        monitors.iter().min_by(|a, b| {
-            dist2_to_rect(p, &a.bounds).total_cmp(&dist2_to_rect(p, &b.bounds))
-        })
+        monitors
+            .iter()
+            .min_by(|a, b| dist2_to_rect(p, &a.bounds).total_cmp(&dist2_to_rect(p, &b.bounds)))
     })
 }
 
@@ -126,13 +126,23 @@ pub fn screenshot_to_screen(p: Point, shot: &ScreenshotMeta) -> Point {
 pub fn screen_to_screenshot(r: &Rect, shot: &ScreenshotMeta) -> Rect {
     let kx = shot.width as f64 / shot.source.w;
     let ky = shot.height as f64 / shot.source.h;
-    Rect::new((r.x - shot.source.x) * kx, (r.y - shot.source.y) * ky, r.w * kx, r.h * ky)
+    Rect::new(
+        (r.x - shot.source.x) * kx,
+        (r.y - shot.source.y) * ky,
+        r.w * kx,
+        r.h * ky,
+    )
 }
 
 /// Screen space → CSS pixels inside the overlay window that covers `monitor`.
 pub fn screen_to_overlay(r: &Rect, monitor: &MonitorInfo) -> Rect {
     let s = monitor.scale_factor;
-    Rect::new((r.x - monitor.bounds.x) / s, (r.y - monitor.bounds.y) / s, r.w / s, r.h / s)
+    Rect::new(
+        (r.x - monitor.bounds.x) / s,
+        (r.y - monitor.bounds.y) / s,
+        r.w / s,
+        r.h / s,
+    )
 }
 
 pub fn screen_point_to_overlay(p: Point, monitor: &MonitorInfo) -> Point {
@@ -161,6 +171,14 @@ pub fn mac_ax_to_screen(r: &Rect, monitors: &[MonitorInfo]) -> Rect {
     }
 }
 
+/// Screen-space point → macOS AX/Quartz points (inverse of [`mac_ax_to_screen`]).
+pub fn screen_to_mac_ax(p: Point, monitors: &[MonitorInfo]) -> Point {
+    match monitor_at(p, monitors) {
+        Some(m) => Point::new(p.x / m.scale_factor, p.y / m.scale_factor),
+        None => p,
+    }
+}
+
 /// Cocoa rect (points, bottom-left origin of primary display) → AX/Quartz (top-left).
 pub fn cocoa_to_ax(r: &Rect, primary_height_points: f64) -> Rect {
     Rect::new(r.x, primary_height_points - r.y - r.h, r.w, r.h)
@@ -171,11 +189,19 @@ mod tests {
     use super::*;
 
     fn mon(id: &str, x: f64, y: f64, w: f64, h: f64, s: f64, primary: bool) -> MonitorInfo {
-        MonitorInfo { id: id.into(), bounds: Rect::new(x, y, w, h), scale_factor: s, is_primary: primary }
+        MonitorInfo {
+            id: id.into(),
+            bounds: Rect::new(x, y, w, h),
+            scale_factor: s,
+            is_primary: primary,
+        }
     }
 
     fn approx(a: Point, b: Point) {
-        assert!((a.x - b.x).abs() < 0.51 && (a.y - b.y).abs() < 0.51, "{a:?} != {b:?}");
+        assert!(
+            (a.x - b.x).abs() < 0.51 && (a.y - b.y).abs() < 0.51,
+            "{a:?} != {b:?}"
+        );
     }
 
     fn approx_rect(a: Rect, b: Rect) {
@@ -196,7 +222,11 @@ mod tests {
     fn dpi_100_percent_round_trip() {
         let m = mon("0", 0.0, 0.0, 1920.0, 1080.0, 1.0, true);
         let (w, h) = screenshot_size(1920, 1080, 1280);
-        let shot = ScreenshotMeta { source: m.bounds, width: w, height: h };
+        let shot = ScreenshotMeta {
+            source: m.bounds,
+            width: w,
+            height: h,
+        };
         let p = screenshot_to_screen(Point::new(640.0, 360.0), &shot);
         approx(p, Point::new(960.0, 540.0));
         approx(screen_point_to_overlay(p, &m), Point::new(960.0, 540.0));
@@ -206,7 +236,11 @@ mod tests {
     fn dpi_125_percent() {
         // 1920x1080 physical at 125% → 1536x864 CSS px overlay.
         let m = mon("0", 0.0, 0.0, 1920.0, 1080.0, 1.25, true);
-        let shot = ScreenshotMeta { source: m.bounds, width: 1280, height: 720 };
+        let shot = ScreenshotMeta {
+            source: m.bounds,
+            width: 1280,
+            height: 720,
+        };
         let p = screenshot_to_screen(Point::new(1280.0, 720.0), &shot);
         approx(p, Point::new(1920.0, 1080.0));
         approx(screen_point_to_overlay(p, &m), Point::new(1536.0, 864.0));
@@ -217,7 +251,11 @@ mod tests {
     #[test]
     fn dpi_150_percent() {
         let m = mon("0", 0.0, 0.0, 2880.0, 1620.0, 1.5, true);
-        let shot = ScreenshotMeta { source: m.bounds, width: 1280, height: 720 };
+        let shot = ScreenshotMeta {
+            source: m.bounds,
+            width: 1280,
+            height: 720,
+        };
         let p = screenshot_to_screen(Point::new(100.0, 100.0), &shot);
         approx(p, Point::new(225.0, 225.0));
         approx(screen_point_to_overlay(p, &m), Point::new(150.0, 150.0));
@@ -240,11 +278,24 @@ mod tests {
         let ms = [left.clone(), right.clone()];
         let p = Point::new(2000.0, 100.0);
         assert_eq!(monitor_at(p, &ms).unwrap().id, "1");
-        approx(screen_point_to_overlay(p, &right), Point::new(80.0 / 1.5, 100.0 / 1.5));
+        approx(
+            screen_point_to_overlay(p, &right),
+            Point::new(80.0 / 1.5, 100.0 / 1.5),
+        );
 
-        let shot = ScreenshotMeta { source: right.bounds, width: 1280, height: 720 };
-        approx(screenshot_to_screen(Point::new(0.0, 0.0), &shot), Point::new(1920.0, 0.0));
-        approx(screenshot_to_screen(Point::new(640.0, 360.0), &shot), Point::new(3360.0, 810.0));
+        let shot = ScreenshotMeta {
+            source: right.bounds,
+            width: 1280,
+            height: 720,
+        };
+        approx(
+            screenshot_to_screen(Point::new(0.0, 0.0), &shot),
+            Point::new(1920.0, 0.0),
+        );
+        approx(
+            screenshot_to_screen(Point::new(640.0, 360.0), &shot),
+            Point::new(3360.0, 810.0),
+        );
     }
 
     #[test]
@@ -255,9 +306,19 @@ mod tests {
         let p = Point::new(-1280.0, 0.0);
         assert_eq!(monitor_at(p, &ms).unwrap().id, "1");
         approx(screen_point_to_overlay(p, &left), Point::new(1280.0, 360.0));
-        let shot = ScreenshotMeta { source: left.bounds, width: 1280, height: 720 };
-        approx(screenshot_to_screen(Point::new(0.0, 0.0), &shot), Point::new(-2560.0, -360.0));
-        approx(screenshot_to_screen(Point::new(640.0, 180.0), &shot), Point::new(-1280.0, 0.0));
+        let shot = ScreenshotMeta {
+            source: left.bounds,
+            width: 1280,
+            height: 720,
+        };
+        approx(
+            screenshot_to_screen(Point::new(0.0, 0.0), &shot),
+            Point::new(-2560.0, -360.0),
+        );
+        approx(
+            screenshot_to_screen(Point::new(640.0, 180.0), &shot),
+            Point::new(-1280.0, 0.0),
+        );
         let back = screen_to_screenshot(&Rect::new(-1280.0, 0.0, 20.0, 20.0), &shot);
         approx_rect(back, Rect::new(640.0, 180.0, 10.0, 10.0));
     }
@@ -291,10 +352,24 @@ mod tests {
         let ax = Rect::new(-1000.0, -500.0, 50.0, 30.0);
         let screen = mac_ax_to_screen(&ax, &ms);
         approx_rect(screen, ax); // 1x monitor: points == pixels
-        approx_rect(screen_to_overlay(&screen, &ext), Rect::new(920.0, 580.0, 50.0, 30.0));
+        approx_rect(
+            screen_to_overlay(&screen, &ext),
+            Rect::new(920.0, 580.0, 50.0, 30.0),
+        );
 
         let on_primary = mac_ax_to_screen(&Rect::new(10.0, 10.0, 10.0, 10.0), &ms);
         approx_rect(on_primary, Rect::new(20.0, 20.0, 20.0, 20.0));
+    }
+
+    #[test]
+    fn screen_to_mac_ax_inverts_mac_ax_to_screen() {
+        let primary = mon("0", 0.0, 0.0, 3024.0, 1964.0, 2.0, true);
+        let ext = mon("1", 3024.0, 0.0, 1920.0, 1080.0, 1.0, false);
+        let ms = [primary, ext];
+        for ax in [Point::new(100.0, 50.0), Point::new(3100.0, 500.0)] {
+            let screen = mac_ax_to_screen(&Rect::new(ax.x, ax.y, 0.0, 0.0), &ms);
+            approx(screen_to_mac_ax(Point::new(screen.x, screen.y), &ms), ax);
+        }
     }
 
     #[test]

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { AskBox } from "./features/ask/AskBox";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import type { Settings } from "./lib/settings";
 import { useSettings } from "./stores/settings";
@@ -18,6 +19,7 @@ export default function App() {
     };
   }, [load, replace]);
 
+  if (window.location.hash === "#ask") return <AskBox />;
   if (!loaded) return null;
   return <SettingsPage />;
 }

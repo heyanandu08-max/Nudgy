@@ -155,3 +155,41 @@ body,
     animation: none;
   }
 }
+
+.caption {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  width: max-content;
+  max-width: 320px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgb(15 23 42 / 0.88);
+  color: #f8fafc;
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+  animation: nudgy-caption-in 160ms ease-out;
+}
+.companion-anchor[data-flip="left"] .caption {
+  left: auto;
+  right: 6px;
+}
+.caption p {
+  margin: 0;
+}
+.caption__you {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 4px !important;
+}
+.caption__label {
+  font-weight: 600;
+}
+.caption__notice {
+  color: #fdba74;
+  margin-top: 4px !important;
+}
+@keyframes nudgy-caption-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}

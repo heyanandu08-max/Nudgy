@@ -31,3 +31,23 @@ Trigger pointing from the tray (**Debug → Point at screen center**) or launch 
 | Monitor with negative coordinates (left of / above primary) | | | | | | |
 | Plug/unplug a monitor → overlays rebuilt within ~2 s | | | | | | |
 | Change scaling while running → overlays rebuilt, pointing still exact | | | | | | |
+
+## Phase 3 — Talk mode
+Backend with real keys in `.env` (`NUDGY_LLM_PROVIDER=anthropic`, `NUDGY_STT_PROVIDER=deepgram`,
+`NUDGY_TTS_PROVIDER=elevenlabs`). First run `python scripts/smoke_test.py --save-audio /tmp/nudgy`
+and listen to the clips.
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| Hold hotkey → companion shows "listening" ring; release → "thinking" dots | | |
+| Tap once quickly → nothing is sent | | |
+| Double-tap → text box under the cursor; Enter sends, Esc closes | | |
+| Notepad / TextEdit: "How do I change the font?" → points at Format/Font menu, speaks correct steps | | |
+| Chrome: "How do I open a new incognito window?" → points at the ⋮ menu | | |
+| Excel: "How do I make this bold?" → points at the Bold button | | |
+| Captions stream while speaking; audio sentences play in order without gaps > 0.5 s | | |
+| First audio within ~2.5 s of release (Debug panel timings) | | |
+| No mic / mic denied → friendly caption, no crash | | |
+| Backend stopped → "can't reach my server" caption | | |
+| Password field focused → caption says screen was skipped; answer still arrives | | |
+| macOS without Accessibility permission → still answers (points by pixel) | | |

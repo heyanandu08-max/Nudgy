@@ -4,6 +4,7 @@
   "description": "Capabilities for the main window and the per-monitor overlays",
   "windows": [
     "main",
+    "ask",
     "overlay-*"
   ],
   "permissions": [

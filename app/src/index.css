@@ -22,3 +22,7 @@ body {
     @apply bg-slate-900 text-slate-100;
   }
 }
+
+body.ask-box {
+  background: transparent;
+}

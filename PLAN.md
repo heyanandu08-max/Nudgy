@@ -154,15 +154,18 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   real-hardware matrix in `TESTING.md`)
 
 ### Phase 3 — Talk mode
-- [ ] Global push-to-talk hotkey (hold) + double-tap → text input
-- [ ] Mic capture (cpal) → WAV; screenshot (xcap) → JPEG ≤1280px @80%
-- [ ] UI tree: `UiTree` trait; Windows UIA impl; macOS AX impl; cap 300, prune
-- [ ] Backend provider interfaces + registry; Anthropic, Deepgram, Whisper, ElevenLabs, OpenAI TTS, fakes
-- [ ] `/v1/ask` pipeline with SSE, JSON parse → repair retry → speech-only fallback
-- [ ] `prompts/talk.md`
-- [ ] Overlay: captions, audio playback, pointer to target
-- [ ] `scripts/smoke_test.py` against saved screenshot + audio
-- [ ] **Done when:** "how do I change the font?" works in Notepad/TextEdit, Chrome, Excel
+- [x] Global push-to-talk hotkey (hold) + double-tap → text input (decision logic unit-tested)
+- [x] Mic capture (cpal) → 16 kHz WAV; screenshot (xcap) → JPEG ≤1280px @80% (captured on key-down)
+- [~] UI tree: Windows UIA impl (cached `find_all`), macOS AX impl (depth-first walk), Linux stub; cap 300, prune
+  (both type-check against the real target APIs; need hardware runs)
+- [x] Backend provider interfaces + registry; Anthropic, Deepgram, Whisper, ElevenLabs, OpenAI TTS, fakes
+- [x] `/v1/ask` pipeline with SSE, per-sentence TTS, JSON parse → repair retry → speech-only fallback
+- [x] `prompts/talk.md` (+ `repair_json.md`)
+- [x] Overlay: live captions, ordered audio playback, pointer to target, friendly error captions
+- [x] `scripts/smoke_test.py` against saved screenshot + audio (`scripts/fixtures/`)
+- [~] **Done when:** "how do I change the font?" works in Notepad/TextEdit, Chrome, Excel
+  (verified end to end on Linux/Xvfb with typed input + fake providers, and via the smoke test;
+  real vendors and real apps need keys + Windows/macOS — see `TESTING.md`)
 
 ### Phase 4 — Tutor mode
 - [ ] `/v1/lessons/plan` (`prompts/lesson_plan.md`) and `/v1/verify` (`prompts/verify_step.md`)

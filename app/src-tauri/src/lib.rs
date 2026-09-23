@@ -1,8 +1,15 @@
-#[allow(dead_code)] // screenshot/AX conversions are wired up in Phase 3
+mod ask;
+mod audio;
+mod auth;
+mod capture;
 mod geometry;
+mod hotkey;
 mod overlay;
+mod privacy;
 mod settings;
+mod sse;
 mod tray;
+mod uitree;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow, WindowEvent};
 
@@ -22,7 +29,12 @@ fn save_settings(
     store: State<'_, SettingsStore>,
     settings: Settings,
 ) -> Result<Settings, String> {
+    hotkey::validate(&settings.hotkey)?;
+    let previous = store.get();
     let saved = store.set(settings)?;
+    if saved.hotkey != previous.hotkey {
+        hotkey::register(&app, &saved.hotkey)?;
+    }
     tray::sync_pause(&app, saved.paused);
     let _ = app.emit("settings-changed", &saved);
     Ok(saved)
@@ -31,12 +43,19 @@ fn save_settings(
 /// Overlay UI reports its clickable regions (CSS px) so the cursor loop can turn
 /// click-through off only while the cursor is over them.
 #[tauri::command]
-fn set_interactive_regions(window: WebviewWindow, state: State<'_, OverlayState>, rects: Vec<Rect>) {
+fn set_interactive_regions(
+    window: WebviewWindow,
+    state: State<'_, OverlayState>,
+    rects: Vec<Rect>,
+) {
     state.set_interactive(window.label(), rects);
 }
 
 #[tauri::command]
-fn get_monitor_for_overlay(window: WebviewWindow, state: State<'_, OverlayState>) -> Option<MonitorInfo> {
+fn get_monitor_for_overlay(
+    window: WebviewWindow,
+    state: State<'_, OverlayState>,
+) -> Option<MonitorInfo> {
     let idx: usize = window.label().strip_prefix("overlay-")?.parse().ok()?;
     state.monitors().get(idx).cloned()
 }
@@ -46,13 +65,37 @@ fn debug_point_at_screen_center(app: AppHandle) -> Result<(), String> {
     overlay::point_at_screen_center(&app)
 }
 
+#[tauri::command]
+fn ask_text(app: AppHandle, text: String) -> Result<(), String> {
+    hotkey::submit_text(&app, text)
+}
+
+#[tauri::command]
+fn cancel_text_ask(app: AppHandle) {
+    hotkey::cancel_text(&app)
+}
+
+#[tauri::command]
+fn last_timings(state: State<'_, ask::AskState>) -> Option<serde_json::Value> {
+    state.last_timings.lock().unwrap().clone()
+}
+
+#[tauri::command]
+fn forget_conversation(state: State<'_, ask::AskState>) {
+    state.clear_history()
+}
+
 pub fn run() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             app.manage(SettingsStore::load(&dir));
+            app.manage(auth::AuthStore::load(&app.path().app_data_dir()?));
+            app.manage(ask::AskState::default());
+            app.manage(hotkey::HotkeyState::default());
 
             // Menu-bar-only app on macOS (no Dock icon); the settings window still opens.
             #[cfg(target_os = "macos")]
@@ -60,6 +103,10 @@ pub fn run() {
 
             tray::create(app.handle())?;
             overlay::init(app.handle())?;
+            let accelerator = app.state::<SettingsStore>().get().hotkey;
+            if let Err(e) = hotkey::register(app.handle(), &accelerator) {
+                log::error!("could not register hotkey {accelerator}: {e}");
+            }
 
             // Manual/CI testing aid: NUDGY_DEBUG_POINT=1 fires "Point at screen center"
             // shortly after launch, without needing the tray.
@@ -89,6 +136,10 @@ pub fn run() {
             set_interactive_regions,
             get_monitor_for_overlay,
             debug_point_at_screen_center,
+            ask_text,
+            cancel_text_ask,
+            last_timings,
+            forget_conversation,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");
