@@ -93,7 +93,37 @@
         "Perfect, you've got it.",
         "Great, that's it!",
         "Spot on!"
-      ]
+      ],
+      "quizIntro": "Quick review! Let's see if you still remember this one."
     }
+  },
+  "review": {
+    "nudgeTitle": "Quick review?",
+    "nudgeBody": "Can you still {{skill}}? It takes about a minute.",
+    "nudgeMore": "{{count}} skills are due for a refresher.",
+    "start": "Let's do it",
+    "later": "Later"
+  },
+  "dashboard": {
+    "skills": "Your skills",
+    "noSkills": "No skills yet — finish a lesson and it shows up here.",
+    "progress": "{{value}}% mastered",
+    "lessons_one": "{{count}} lesson",
+    "lessons_other": "{{count}} lessons",
+    "due": "Review due",
+    "dueOn": "Next review {{date}}",
+    "review": "Review now",
+    "practice": "Practice",
+    "recent": "Recent lessons",
+    "noRecent": "Nothing yet.",
+    "status": {
+      "completed": "Completed",
+      "abandoned": "Stopped",
+      "active": "In progress"
+    },
+    "stepsHints": "{{passed}}/{{total}} steps · {{hints}} hints",
+    "weak": "Weak spots",
+    "noWeak": "No weak spots yet. Nice!",
+    "weakDetail": "{{hints}} hints, {{skips}} skips"
   }
 }

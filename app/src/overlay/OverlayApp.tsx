@@ -8,9 +8,14 @@ import { follow, type Vec } from "../lib/motion";
 import type { Settings } from "../lib/settings";
 import { CaptionBubble } from "./CaptionBubble";
 import { LessonPanel } from "./LessonPanel";
+import { ReviewNudge, type Nudge } from "./ReviewNudge";
 import { Companion } from "./Companion";
 import { Pointer } from "./Pointer";
 import { useOverlay, type CompanionMode, type Rect } from "./store";
+
+const ACTIVE_PHASES = ["planning", "instructing", "waiting", "verifying"];
+/** Cursor positions are re-sent every 500 ms, so one second always includes one. */
+const CLAIM_WINDOW_MS = 1000;
 
 /** Where the companion sits relative to the cursor (CSS px). */
 const OFFSET = { x: 22, y: 22 };
@@ -40,6 +45,9 @@ export function OverlayApp() {
   /** Whether this monitor shows the lesson panel (the one under the cursor at start). */
   const [ownsLesson, setOwnsLesson] = useState(false);
   const lessonRef = useRef<TutorView | null>(null);
+  /** A lesson started before this overlay heard where the cursor is: claim on first sight. */
+  const claimUntil = useRef(0);
+  const [nudge, setNudge] = useState<Nudge | null>(null);
 
   useEffect(() => {
     const st = useOverlay.getState;
@@ -59,6 +67,10 @@ export function OverlayApp() {
       listen<Vec>("cursor", (e) => {
         cursor.current = e.payload;
         st().setActive(true);
+        if (claimUntil.current > Date.now()) {
+          claimUntil.current = 0;
+          setOwnsLesson(true);
+        }
       }),
       listen("cursor-left", () => st().setActive(false)),
       listen<CompanionMode>("companion-state", (e) => {
@@ -107,12 +119,17 @@ export function OverlayApp() {
         answerDone.current = true;
         if (!e.payload.clips.length) scheduleHide();
       }),
+      listen<Nudge>("review-nudge", (e) => setNudge(e.payload)),
       listen<TutorView>("lesson-state", (e) => {
         const v = e.payload;
-        const first = lessonRef.current === null;
+        const wasActive = !!lessonRef.current && ACTIVE_PHASES.includes(lessonRef.current.phase);
         lessonRef.current = v;
         setLesson(v);
-        if (v.phase === "planning" || (first && v.phase !== "idle")) setOwnsLesson(st().active);
+        // Claim the panel when a lesson (or review) starts, or on reload mid-lesson.
+        if (!wasActive && ACTIVE_PHASES.includes(v.phase)) {
+          setOwnsLesson(st().active);
+          if (!st().active) claimUntil.current = Date.now() + CLAIM_WINDOW_MS;
+        }
         if (v.phase === "idle") setOwnsLesson(false);
       }),
     ];
@@ -162,6 +179,7 @@ export function OverlayApp() {
         {s.caption && <CaptionBubble caption={s.caption} />}
       </div>
       {showPanel && lesson && <LessonPanel view={lesson} />}
+      {nudge && !s.paused && !showPanel && <ReviewNudge nudge={nudge} onClose={() => setNudge(null)} />}
       {s.target && !s.paused && (
         <Pointer key={s.target.seq} target={s.target} from={pointerFrom} onDone={s.clearTarget} />
       )}

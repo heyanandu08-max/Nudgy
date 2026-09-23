@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import i18n from "../../i18n";
 import { Tutor } from "./tutor";
 import type { LessonPlan, TutorCommand, TutorView } from "./types";
@@ -50,6 +51,9 @@ export function getTutor(): Tutor {
       get planning() {
         return t("tutor.say.planning");
       },
+      get quizIntro() {
+        return t("tutor.say.quizIntro");
+      },
       get planFailed() {
         return t("tutor.say.planFailed");
       },
@@ -80,7 +84,21 @@ export function getTutor(): Tutor {
     else if (intent === "stop_lesson") void tutor?.command("stop");
     else if (intent === "done" || intent === "skip" || intent === "show_me") void tutor?.command(intent);
   });
+  void listen<string>("review-start", (e) => void startReview(e.payload));
   // An overlay that (re)loads asks for the current state.
   void listen("lesson-state-request", () => tutor && void emit("lesson-state", tutor.view));
   return tutor;
+}
+
+export async function startReview(skillId: string): Promise<void> {
+  hideMainWindow();
+  const plan = await invoke<LessonPlan>("review_plan", { skillId });
+  await getTutor().startReview(plan, `review:${skillId}`);
+}
+
+/** Lessons happen in the learner's app, so get the main window out of the way. */
+export function hideMainWindow(): void {
+  void getCurrentWindow()
+    .hide()
+    .catch(() => {});
 }

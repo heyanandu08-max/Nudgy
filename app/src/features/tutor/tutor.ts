@@ -26,6 +26,7 @@ export interface TutorDeps {
 
 export interface TutorText {
   planning: string;
+  quizIntro: string;
   planFailed: string;
   firstStep: string;
   stuck: string;
@@ -61,6 +62,8 @@ export class Tutor {
   private praiseIdx = 0;
   /** "done" said while the instruction was still being given. */
   private pendingDone = false;
+  /** Review quiz: steps are not pointed at until the learner asks for help. */
+  private quiz = false;
 
   constructor(private deps: TutorDeps) {}
 
@@ -102,7 +105,18 @@ export class Tutor {
       return;
     }
     if (gen !== this.gen) return;
+    await this.run(plan, goal, false);
+  }
+
+  /** Replays a stored plan as a "can you still do this?" review quiz. */
+  async startReview(plan: LessonPlan, goal: string): Promise<void> {
+    if (this.active) await this.stop(false);
+    await this.run(plan, goal, true);
+  }
+
+  private async run(plan: LessonPlan, goal: string, quiz: boolean): Promise<void> {
     this.plan = plan;
+    this.quiz = quiz;
     this.lessonId = await this.deps.recordStart(plan, goal);
     await this.deps.watchActivity(true);
     await this.enterStep(0);
@@ -119,10 +133,11 @@ export class Tutor {
     await this.deps.setContext({ title: plan.title, step_index: index, step_count: plan.steps.length, instruction: step.instruction });
     await this.deps.beginStep();
     if (gen !== this.gen) return;
-    const prefix = index === 0 ? `${this.deps.text.firstStep} ` : "";
+    const intro = this.quiz ? this.deps.text.quizIntro : this.deps.text.firstStep;
+    const prefix = index === 0 ? `${intro} ` : "";
     await this.deps.say(prefix + step.instruction);
     if (gen !== this.gen) return;
-    await this.deps.point(step).catch(() => false);
+    if (!this.quiz) await this.deps.point(step).catch(() => false);
     if (gen !== this.gen) return;
     this.set("waiting");
     if (this.pendingDone) {

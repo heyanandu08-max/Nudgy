@@ -65,3 +65,14 @@ and listen to the clips.
 | Panel buttons are clickable; everything else on screen stays click-through | | |
 | Completed lesson appears in the local DB (`nudgy.db`: lessons, lesson_steps, mistakes) | | |
 | macOS without Accessibility permission: activity detection off → learner uses Done | – | |
+
+## Phase 5 — Learning memory
+| Check | Win | Mac |
+|-------|-----|-----|
+| After a lesson, Home shows the skill card (app, name, % mastered, lessons) and the lesson under Recent | | |
+| Steps that needed hints/skips show under Weak spots | | |
+| Set a review due (or wait a day) → within ~10 min a "Quick review?" card appears bottom-right | | |
+| No card while a full-screen video/game/slideshow is in front | | |
+| "Later" hides it for 4 h; ignoring it auto-snoozes | | |
+| "Let's do it" / "Review now" runs the quiz: no pointing until you ask or fail twice | | |
+| Finishing the review updates % mastered and the next review date | | |

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getTutor, subscribeTutor } from "./host";
+import { getTutor, hideMainWindow, subscribeTutor } from "./host";
 import type { TutorView } from "./types";
 
 export function StartLesson() {
@@ -13,6 +13,7 @@ export function StartLesson() {
 
   const start = (g: string) => {
     if (!g.trim()) return;
+    hideMainWindow();
     void getTutor().start(g.trim());
     setGoal("");
   };

@@ -116,3 +116,13 @@ Pointing at the start of a step uses the element tree only (no pixels).
 After input activity plus 1.5 s of quiet, the step is checked automatically. The first
 automatic failure is silent (the learner may be mid-action); a second one, or any failed
 explicit "done", produces the next hint level.
+
+## D22 — Reviews replay the learner's own lesson as a quiz
+A due review reuses the stored plan of the skill's latest lesson (no LLM planning call), with
+pointing withheld until hint level 2 — so it measures recall. Its outcome is graded like any
+lesson and feeds SM-2. Mastery on cards = 25% per successful repetition (≥10% once completed).
+
+## D23 — Nudges are companion toasts, not OS notifications
+A small card near the corner of the cursor's monitor, driven by the Rust scheduler, keeps the
+tone gentle and on-brand, needs no notification permission, and can be suppressed precisely
+(full-screen check through UIA/AX right before showing).

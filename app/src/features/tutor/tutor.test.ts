@@ -47,6 +47,7 @@ function harness(verdicts: VerifyResult[] = []) {
     },
     text: {
       planning: "planning",
+      quizIntro: "Quick review!",
       planFailed: "plan failed",
       firstStep: "Let's start.",
       stuck: "Say skip if stuck.",
@@ -197,5 +198,20 @@ describe("Tutor", () => {
     await started;
     await flush();
     expect(h.verifyCalls).toEqual([1]);
+  });
+
+  it("review quiz replays a stored plan without pointing until help is needed", async () => {
+    const h = harness([{ passed: false, hint: "h1" }, { passed: false, hint: "h2" }]);
+    let planned = false;
+    h.deps.plan = async () => ((planned = true), PLAN);
+    const t = new Tutor(h.deps);
+    await t.startReview(PLAN, "review:excel.sum");
+    expect(planned).toBe(false);
+    expect(h.said[0]).toBe("Quick review! Do step 1.");
+    expect(h.pointed).toEqual([]);
+    await t.command("done");
+    expect(h.pointed).toEqual([]); // hint 1 is verbal
+    await t.command("done");
+    expect(h.pointed).toEqual(["Do step 1."]); // hint 2 points
   });
 });

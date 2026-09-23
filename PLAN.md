@@ -181,9 +181,14 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   5 steps with a hint on each, lesson + steps + mistakes recorded in SQLite; real Excel run pending)
 
 ### Phase 5 — Learning memory
-- [ ] Skills dashboard (per-app cards, % progress, recent lessons, weak spots)
-- [ ] SM-2 scheduler + micro-quiz notifications, suppressed over full-screen apps
-- [ ] **Done when:** lessons update dashboard + schedule; a due review can be run
+- [x] Skills dashboard (per-app cards with % mastery, lesson count, due badge; recent lessons; weak spots)
+- [x] SM-2 scheduler (`store/reviews.rs`): lessons graded 0–5 from hints/skips/abandonment
+- [x] Review nudges: companion toast every ≤4 h when a skill is due; never while paused, in a lesson,
+      snoozed, or over a full-screen app (UIA/AX check); "Later" snoozes 4 h, ignoring auto-snoozes
+- [x] Review = quiz replay of the stored plan (no pointing until hint level 2)
+- [~] **Done when:** lessons update dashboard + schedule; a due review can be run
+  (verified on Linux/Xvfb: completed lesson → skill card + review due → "Review now" replays the plan
+  without planning or locating; full-screen suppression needs hardware)
 
 ### Phase 6 — Record & Replay
 - [ ] Recorder: clicks/keys + element info + per-step screenshot + notes (local only)

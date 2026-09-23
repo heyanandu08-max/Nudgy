@@ -1,32 +1,17 @@
-import { useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useRef } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import type { TutorCommand, TutorView } from "../features/tutor/types";
+import { useInteractiveRegion } from "./interactive";
 
 /**
- * Bottom-center lesson HUD. It's the only clickable part of the overlay, so it registers
- * its rectangle with Rust, which turns click-through off while the cursor is over it.
+ * Bottom-center lesson HUD. Registers itself as a clickable region of the overlay.
  */
 export function LessonPanel({ view }: { view: TutorView }) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const report = () => {
-      const r = el.getBoundingClientRect();
-      void invoke("set_interactive_regions", { rects: [{ x: r.x, y: r.y, w: r.width, h: r.height }] });
-    };
-    report();
-    const ro = new ResizeObserver(report);
-    ro.observe(el);
-    return () => {
-      ro.disconnect();
-      void invoke("set_interactive_regions", { rects: [] });
-    };
-  }, []);
+  useInteractiveRegion("lesson-panel", ref);
 
   const send = (cmd: TutorCommand) => void emit("lesson-command", cmd);
   const busy = view.phase === "planning" || view.phase === "verifying";

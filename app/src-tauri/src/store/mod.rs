@@ -7,7 +7,11 @@ use std::sync::Mutex;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
+mod dashboard;
+pub mod reviews;
 mod schema;
+
+pub use dashboard::Dashboard;
 
 pub struct Store {
     conn: Mutex<Connection>,

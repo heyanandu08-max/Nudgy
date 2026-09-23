@@ -8,6 +8,7 @@ mod geometry;
 mod hotkey;
 mod lesson;
 mod matcher;
+mod nudges;
 mod overlay;
 mod privacy;
 mod settings;
@@ -116,6 +117,7 @@ pub fn run() {
             let db = app.path().app_data_dir()?.join("nudgy.db");
             app.manage(store::Store::open(&db).map_err(|e| format!("open {}: {e}", db.display()))?);
             activity::init(app.handle());
+            nudges::init(app.handle());
 
             // Menu-bar-only app on macOS (no Dock icon); the settings window still opens.
             #[cfg(target_os = "macos")]
@@ -126,6 +128,10 @@ pub fn run() {
             let accelerator = app.state::<SettingsStore>().get().hotkey;
             if let Err(e) = hotkey::register(app.handle(), &accelerator) {
                 log::error!("could not register hotkey {accelerator}: {e}");
+            }
+
+            if std::env::var_os("NUDGY_SHOW_MAIN").is_some() {
+                tray::show_main(app.handle());
             }
 
             // Manual/CI testing aid: NUDGY_DEBUG_POINT=1 fires "Point at screen center"
@@ -171,6 +177,9 @@ pub fn run() {
             lesson::lesson_record_start,
             lesson::lesson_record_step,
             lesson::lesson_record_finish,
+            lesson::dashboard,
+            lesson::review_plan,
+            lesson::review_snooze,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");

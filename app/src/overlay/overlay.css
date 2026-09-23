@@ -269,3 +269,48 @@ body,
   opacity: 0.5;
   cursor: default;
 }
+
+.review-nudge {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 300px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgb(15 23 42 / 0.92);
+  color: #f8fafc;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
+  pointer-events: auto;
+  animation: nudgy-caption-in 200ms ease-out;
+}
+.review-nudge p {
+  margin: 0 0 6px;
+}
+.review-nudge__title {
+  font-weight: 600;
+  color: #fdba74;
+}
+.review-nudge__more {
+  color: #94a3b8;
+  font-size: 12px;
+}
+.review-nudge__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.review-nudge__actions button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgb(148 163 184 / 0.4);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.review-nudge__actions button.primary {
+  background: #f97316;
+  border-color: #f97316;
+  color: #fff;
+}

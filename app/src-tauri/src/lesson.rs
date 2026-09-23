@@ -229,7 +229,7 @@ pub fn lesson_record_step(
     store.lesson_step(&lesson_id, &result, now())
 }
 
-/// Finishes a lesson and returns its skill id. Phase 5 hooks the review schedule in here.
+/// Finishes a lesson, grades it into the skill's SM-2 schedule, returns the skill id.
 #[tauri::command]
 pub fn lesson_record_finish(
     app: AppHandle,
@@ -238,6 +238,28 @@ pub fn lesson_record_finish(
     status: String,
 ) -> Result<String, String> {
     let skill = store.lesson_finish(&lesson_id, &status, now())?;
+    if let Err(e) = store.schedule_after_lesson(&lesson_id, &skill, now()) {
+        log::warn!("could not schedule review for {skill}: {e}");
+    }
     let _ = app.emit("progress-changed", &skill);
     Ok(skill)
+}
+
+#[tauri::command]
+pub fn dashboard(store: State<'_, Store>) -> Result<crate::store::Dashboard, String> {
+    store.dashboard(now())
+}
+
+/// The plan to replay as a review quiz for `skill_id`.
+#[tauri::command]
+pub fn review_plan(store: State<'_, Store>, skill_id: String) -> Result<Value, String> {
+    let json = store
+        .latest_plan_for_skill(&skill_id)?
+        .ok_or("no lesson for this skill yet")?;
+    serde_json::from_str(&json).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn review_snooze(state: State<'_, crate::nudges::NudgeState>) {
+    state.snooze(now(), crate::nudges::SNOOZE_SECS);
 }
