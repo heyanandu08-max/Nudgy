@@ -88,6 +88,8 @@ class FakeLLM:
             return self._verify(system, messages)
         if "Find a UI element" in system:
             return self._locate(system, messages)
+        if "reusable walkthrough" in system:
+            return self._clean(messages)
         return self._answer(messages)
 
     @staticmethod
@@ -107,6 +109,51 @@ class FakeLLM:
             if want & _words(name):
                 return json.dumps({"target": {"element_id": el_id}})
         return json.dumps({"target": None})
+
+    @staticmethod
+    def _clean(messages: list[Message]) -> str:
+        text = "\n".join(p for p in messages[-1].parts if isinstance(p, str))
+        steps = []
+        for i, line in enumerate(re.findall(r"^\d+\. (.+?)(?: in .+)?$", text, re.MULTILINE)):
+            if line.startswith("click ") and "'" in line:
+                role, name = line[6:].split(" '", 1)
+                target = {"role": role, "name": name.rstrip("'")}
+                steps.append(
+                    {
+                        "instruction": f"Click {target['name']}.",
+                        "target": target,
+                        "action_hint": "click",
+                        "raw": [i],
+                    }
+                )
+            elif line.startswith("type "):
+                steps.append(
+                    {
+                        "instruction": f"Type {line[5:]}.",
+                        "target": None,
+                        "action_hint": "type",
+                        "raw": [i],
+                    }
+                )
+            else:
+                steps.append(
+                    {
+                        "instruction": f"{line[0].upper()}{line[1:]}.",
+                        "target": None,
+                        "action_hint": "type",
+                        "raw": [i],
+                    }
+                )
+        if not steps:
+            steps = [{"instruction": "Follow along.", "raw": []}]
+        return json.dumps(
+            {
+                "title": "Recorded walkthrough",
+                "app": "",
+                "summary": "Recorded with Nudgy.",
+                "steps": steps,
+            }
+        )
 
     def _answer(self, messages: list[Message]) -> str:
         text = "\n".join(p for p in messages[-1].parts if isinstance(p, str))

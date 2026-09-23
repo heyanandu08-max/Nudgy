@@ -10,8 +10,10 @@ use serde::{Deserialize, Serialize};
 mod dashboard;
 pub mod reviews;
 mod schema;
+mod walkthroughs;
 
 pub use dashboard::Dashboard;
+pub use walkthroughs::WalkthroughRow;
 
 pub struct Store {
     conn: Mutex<Connection>,

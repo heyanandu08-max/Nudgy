@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./nudgy.db"
     cors_origins: str = "http://localhost:1420,tauri://localhost,http://tauri.localhost"
     jwt_secret: str = "change-me"
+    # Public base URL used in share links (https://nudgy.app in prod).
+    public_url: str = "http://127.0.0.1:8787"
 
     llm_provider: str = "fake"
     stt_provider: str = "fake"

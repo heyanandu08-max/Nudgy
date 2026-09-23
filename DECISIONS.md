@@ -126,3 +126,19 @@ lesson and feeds SM-2. Mastery on cards = 25% per successful repetition (≥10% 
 A small card near the corner of the cursor's monitor, driven by the Rust scheduler, keeps the
 tone gentle and on-brand, needs no notification permission, and can be suppressed precisely
 (full-screen check through UIA/AX right before showing).
+
+## D24 — Recorder polls input instead of hooking it
+Global input hooks differ per OS and the common crate (`rdev`) has known crashes with keyboard
+events off the main thread on recent macOS. `device_query` polling at 8 ms catches human input
+(clicks/keys last ~50–150 ms) and needs no event loop; element lookup and thumbnails run on a
+side thread so polling never stalls. Only *what* was typed is kept, per burst; secure fields → "[hidden]".
+
+## D25 — `.nudgy` files are plain JSON with an explicit format + version
+`{"format": "nudgy.walkthrough", "version": 1, …}` is validated on import in the app and on
+upload in the backend. Newer versions are rejected with "needs a newer Nudgy". Thumbnails are
+optional JPEG data URLs (≤300 KB each) and are dropped on export/share unless the author ticks
+"Include screenshots".
+
+## D26 — Share links are unlisted, not secret
+Slugs are 72-bit random tokens; anyone with the link can view the walkthrough (that's the point
+of sharing). Team libraries with access control arrive with accounts in Phase 7.

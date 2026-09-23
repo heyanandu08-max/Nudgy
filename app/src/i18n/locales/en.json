@@ -50,11 +50,16 @@
     "llm_refused": "I can't help with that one.",
     "tts": "My voice isn't working right now, so I'll just show captions.",
     "internal": "Something went wrong on our side.",
-    "generic": "Something went wrong."
+    "generic": "Something went wrong.",
+    "empty_recording": "Nothing was recorded. Try again and click through the task.",
+    "bad_link": "That doesn't look like a Nudgy link.",
+    "not_found": "That link doesn't point to a walkthrough anymore.",
+    "input_permission": "Nudgy needs the Input Monitoring / Accessibility permission to record."
   },
   "askBox": {
     "placeholder": "Ask Nudgy anything… (Enter to send, Esc to close)",
-    "label": "Your question"
+    "label": "Your question",
+    "notePlaceholder": "Add a note to the last step… (Enter to save, Esc to close)"
   },
   "tutor": {
     "startTitle": "Learn something new",
@@ -125,5 +130,39 @@
     "weak": "Weak spots",
     "noWeak": "No weak spots yet. Nice!",
     "weakDetail": "{{hints}} hints, {{skips}} skips"
+  },
+  "walkthroughs": {
+    "title": "Walkthroughs",
+    "help": "Record how you do something once. Nudgy turns it into a guided lesson anyone can replay — on their own computer, even on a different OS.",
+    "record": "Record new",
+    "importFile": "Import file…",
+    "linkPlaceholder": "Paste a Nudgy link",
+    "importLink": "Import",
+    "empty": "No walkthroughs yet.",
+    "steps_one": "{{count}} step",
+    "steps_other": "{{count}} steps",
+    "play": "Play",
+    "export": "Export",
+    "share": "Share",
+    "delete": "Delete",
+    "confirmDelete": "Delete \"{{title}}\"?",
+    "includeScreenshots": "Include screenshots",
+    "screenshotsHelp": "Screenshots may show private things on your screen. They're left out unless you tick this.",
+    "shared": "Link copied: {{url}}",
+    "exported": "Saved.",
+    "imported": "Imported \"{{title}}\".",
+    "cleaning": "Turning your recording into a walkthrough…",
+    "saved": "Saved \"{{title}}\" ({{count}} steps).",
+    "showSteps": "Show steps",
+    "hideSteps": "Hide steps",
+    "recording": {
+      "label": "Recording",
+      "steps_one": "{{count}} step",
+      "steps_other": "{{count}} steps",
+      "note": "Add note",
+      "stop": "Stop",
+      "cancel": "Cancel",
+      "hint": "Do the task normally. Hold your hotkey to add a voice note."
+    }
   }
 }

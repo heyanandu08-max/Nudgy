@@ -5,12 +5,15 @@ import { Shell, type Tab } from "./components/Shell";
 import { AskBox } from "./features/ask/AskBox";
 import { HomePage } from "./features/home/HomePage";
 import { SettingsPage } from "./features/settings/SettingsPage";
+import { WalkthroughsPage } from "./features/walkthroughs/WalkthroughsPage";
 import { getTutor } from "./features/tutor/host";
+import { finishRecording } from "./features/walkthroughs/recording";
 import type { Settings } from "./lib/settings";
 import { useSettings } from "./stores/settings";
 
 const TABS: Tab[] = [
   { id: "home", labelKey: "nav.home", render: () => <HomePage /> },
+  { id: "walkthroughs", labelKey: "nav.walkthroughs", render: () => <WalkthroughsPage /> },
   { id: "settings", labelKey: "nav.settings", render: () => <SettingsPage /> },
 ];
 
@@ -31,6 +34,7 @@ function MainWindow() {
       // The tray's "Pause" item changes settings from Rust; keep the UI in sync.
       listen<Settings>("settings-changed", (e) => replace(e.payload)),
       listen<string>("navigate", (e) => setTab(e.payload)),
+      listen("recorder-stop", () => void finishRecording(setTab)),
     ];
     return () => subs.forEach((p) => p.then((f) => f()));
   }, [load, replace]);

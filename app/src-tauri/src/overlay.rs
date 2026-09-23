@@ -43,6 +43,24 @@ impl OverlayState {
         ms.iter().position(|m| m.id == id).map(label_for)
     }
 
+    /// Whether a screen-space point is over one of Nudgy's own clickable overlay widgets.
+    pub fn is_interactive_at(&self, p: Point) -> bool {
+        let monitors = self.monitors();
+        let Some((idx, m)) = monitors
+            .iter()
+            .enumerate()
+            .find(|(_, m)| m.bounds.contains(p))
+        else {
+            return false;
+        };
+        let local = geometry::screen_point_to_overlay(p, m);
+        self.interactive
+            .lock()
+            .unwrap()
+            .get(&label_for(idx))
+            .is_some_and(|rs| rs.iter().any(|r| r.contains(local)))
+    }
+
     pub fn set_interactive(&self, label: &str, rects: Vec<Rect>) {
         self.interactive
             .lock()

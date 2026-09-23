@@ -56,7 +56,43 @@ pub fn capture_monitor(monitor: &MonitorInfo) -> Result<Screenshot, String> {
 }
 
 pub fn encode(img: DynamicImage, source: Rect) -> Result<Screenshot, String> {
-    let (w, h) = geometry::screenshot_size(img.width(), img.height(), MAX_WIDTH);
+    encode_sized(img, source, MAX_WIDTH, JPEG_QUALITY)
+}
+
+/// Small JPEG of one monitor for walkthrough step thumbnails, as a data URL.
+pub fn thumbnail_data_url(monitor: &MonitorInfo) -> Result<String, String> {
+    use base64::Engine as _;
+    let monitors = xcap::Monitor::all().map_err(|e| format!("list monitors: {e}"))?;
+    let candidates: Vec<(Rect, f64)> = monitors
+        .iter()
+        .map(|m| {
+            let r = Rect::new(
+                m.x().unwrap_or(0) as f64,
+                m.y().unwrap_or(0) as f64,
+                m.width().unwrap_or(0) as f64,
+                m.height().unwrap_or(0) as f64,
+            );
+            (r, m.scale_factor().unwrap_or(1.0) as f64)
+        })
+        .collect();
+    let idx = best_match(&monitor.bounds, &candidates).ok_or("no monitor to capture")?;
+    let img = monitors[idx]
+        .capture_image()
+        .map_err(|e| format!("capture: {e}"))?;
+    let shot = encode_sized(DynamicImage::ImageRgba8(img), monitor.bounds, 640, 70)?;
+    Ok(format!(
+        "data:image/jpeg;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(shot.jpeg)
+    ))
+}
+
+fn encode_sized(
+    img: DynamicImage,
+    source: Rect,
+    max_width: u32,
+    quality: u8,
+) -> Result<Screenshot, String> {
+    let (w, h) = geometry::screenshot_size(img.width(), img.height(), max_width);
     let img = if (w, h) == (img.width(), img.height()) {
         img
     } else {
@@ -64,7 +100,7 @@ pub fn encode(img: DynamicImage, source: Rect) -> Result<Screenshot, String> {
     };
     let rgb = img.to_rgb8();
     let mut jpeg = Vec::with_capacity((w * h / 4) as usize);
-    JpegEncoder::new_with_quality(Cursor::new(&mut jpeg), JPEG_QUALITY)
+    JpegEncoder::new_with_quality(Cursor::new(&mut jpeg), quality)
         .encode_image(&rgb)
         .map_err(|e| format!("jpeg: {e}"))?;
     Ok(Screenshot {

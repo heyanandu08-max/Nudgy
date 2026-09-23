@@ -191,11 +191,18 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   without planning or locating; full-screen suppression needs hardware)
 
 ### Phase 6 — Record & Replay
-- [ ] Recorder: clicks/keys + element info + per-step screenshot + notes (local only)
-- [ ] `/v1/walkthroughs/clean` (`prompts/walkthrough_clean.md`)
-- [ ] `.nudgy` JSON export/import; share links via backend (no screenshots uploaded unless user opts in per walkthrough)
-- [ ] Player = Tutor-mode lesson with element matching by role+name (fuzzy), coords as last resort
-- [ ] **Done when:** recorded on one machine, replays on another (incl. Win ↔ macOS in Chrome)
+- [x] Recorder: clicks (element under cursor via UIA/AX), typed text (bursts), shortcuts, named keys,
+      per-click thumbnail, typed + voice notes; password fields → "[hidden]", blocked apps anonymized,
+      Nudgy's own widgets/windows ignored; 8 ms polling, slow lookups off the polling thread
+- [x] `/v1/walkthroughs/clean` (`prompts/walkthrough_clean.md`) with deterministic fallback (never loses a recording)
+- [x] `.nudgy` JSON (format/version, validated in Rust + Pydantic) export/import; share links
+      (`POST /v1/walkthroughs`, `GET /v1/walkthroughs/{slug}`, public `/w/{slug}` page with "Open in Nudgy");
+      screenshots stripped unless the author opts in
+- [x] Player = tutor lesson from the walkthrough; targets matched by role+name (role families across
+      UIA/AX), backend locate as fallback
+- [~] **Done when:** recorded on one machine, replays on another (incl. Win ↔ macOS in Chrome)
+  (verified on Linux/Xvfb: record 4 steps → clean → share → delete → import via link → play as a
+  guided lesson; cross-OS replay needs two real machines)
 
 ### Phase 7 — Accounts, limits, billing
 - [ ] Magic-link email, Google, Apple sign-in → JWT; app deep link `nudgy://auth`

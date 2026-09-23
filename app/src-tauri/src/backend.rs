@@ -122,3 +122,24 @@ pub async fn post_context<R: Runtime>(
     )
     .await
 }
+
+/// multipart `audio` (WAV) → JSON.
+pub async fn post_audio<R: Runtime>(
+    app: &AppHandle<R>,
+    path: &str,
+    wav: Vec<u8>,
+) -> Result<Value, ApiError> {
+    let form = reqwest::multipart::Form::new().part(
+        "audio",
+        reqwest::multipart::Part::bytes(wav)
+            .file_name("note.wav")
+            .mime_str("audio/wav")
+            .unwrap(),
+    );
+    finish(
+        authed(app, client().post(url(app, path)).multipart(form))
+            .send()
+            .await,
+    )
+    .await
+}

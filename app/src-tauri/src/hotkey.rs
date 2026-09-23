@@ -116,12 +116,15 @@ fn on_event<R: Runtime>(app: &AppHandle<R>, event: ShortcutEvent) {
             s.pressed_at = None;
             s.last_tap = None;
             drop(s);
+            if app.state::<crate::recorder::Recorder>().is_recording() {
+                return open_text_box(app, "note");
+            }
             let captured = ask::capture_context(app);
             let _ = app.emit("capture-indicator", false);
             let mut s = hk.inner.lock().unwrap();
             s.pending_text = Some(captured);
             drop(s);
-            open_text_box(app);
+            open_text_box(app, "ask");
         }
         Action::Cancel => {
             s.pressed_at = None;
@@ -168,6 +171,25 @@ fn on_event<R: Runtime>(app: &AppHandle<R>, event: ShortcutEvent) {
                     }
                     None => return ask::set_companion(&app, &label, "idle"),
                 };
+                // While recording a walkthrough, push-to-talk adds a voice note instead.
+                if app.state::<crate::recorder::Recorder>().is_recording() {
+                    drop(captured);
+                    let app2 = app.clone();
+                    tauri::async_runtime::spawn(async move {
+                        let lang = app2.state::<SettingsStore>().get().language;
+                        let path = format!("/v1/transcribe?language={lang}");
+                        match crate::backend::post_audio(&app2, &path, audio).await {
+                            Ok(v) => {
+                                let text = v["text"].as_str().unwrap_or_default().to_string();
+                                app2.state::<crate::recorder::Recorder>().note(&text);
+                                let _ = app2.emit("recorder-note", &text);
+                            }
+                            Err(e) => log::warn!("voice note failed: {e}"),
+                        }
+                        ask::set_companion(&app2, &companion_label(&app2), "idle");
+                    });
+                    return;
+                }
                 let Some(captured) = captured else {
                     return ask::set_companion(&app, &label, "idle");
                 };
@@ -190,7 +212,7 @@ pub fn companion_label<R: Runtime>(app: &AppHandle<R>) -> String {
         .unwrap_or_else(|| crate::overlay::label_for(0))
 }
 
-fn open_text_box<R: Runtime>(app: &AppHandle<R>) {
+pub fn open_text_box<R: Runtime>(app: &AppHandle<R>, mode: &str) {
     let window = match app.get_webview_window(ASK_WINDOW) {
         Some(w) => w,
         None => match WebviewWindowBuilder::new(
@@ -224,7 +246,7 @@ fn open_text_box<R: Runtime>(app: &AppHandle<R>) {
     }
     let _ = window.show();
     let _ = window.set_focus();
-    let _ = window.emit("ask-box-open", ());
+    let _ = window.emit("ask-box-open", mode);
 }
 
 /// Submits a typed question using the context captured on the double-tap.

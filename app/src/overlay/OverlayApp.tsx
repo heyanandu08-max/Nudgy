@@ -8,6 +8,7 @@ import { follow, type Vec } from "../lib/motion";
 import type { Settings } from "../lib/settings";
 import { CaptionBubble } from "./CaptionBubble";
 import { LessonPanel } from "./LessonPanel";
+import { RecorderBar } from "./RecorderBar";
 import { ReviewNudge, type Nudge } from "./ReviewNudge";
 import { Companion } from "./Companion";
 import { Pointer } from "./Pointer";
@@ -48,6 +49,7 @@ export function OverlayApp() {
   /** A lesson started before this overlay heard where the cursor is: claim on first sight. */
   const claimUntil = useRef(0);
   const [nudge, setNudge] = useState<Nudge | null>(null);
+  const [recording, setRecording] = useState<{ recording: boolean; steps: number }>({ recording: false, steps: 0 });
 
   useEffect(() => {
     const st = useOverlay.getState;
@@ -120,6 +122,7 @@ export function OverlayApp() {
         if (!e.payload.clips.length) scheduleHide();
       }),
       listen<Nudge>("review-nudge", (e) => setNudge(e.payload)),
+      listen<{ recording: boolean; steps: number }>("recorder-state", (e) => setRecording(e.payload)),
       listen<TutorView>("lesson-state", (e) => {
         const v = e.payload;
         const wasActive = !!lessonRef.current && ACTIVE_PHASES.includes(lessonRef.current.phase);
@@ -179,6 +182,7 @@ export function OverlayApp() {
         {s.caption && <CaptionBubble caption={s.caption} />}
       </div>
       {showPanel && lesson && <LessonPanel view={lesson} />}
+      {recording.recording && s.active && <RecorderBar steps={recording.steps} />}
       {nudge && !s.paused && !showPanel && <ReviewNudge nudge={nudge} onClose={() => setNudge(null)} />}
       {s.target && !s.paused && (
         <Pointer key={s.target.seq} target={s.target} from={pointerFrom} onDone={s.clearTarget} />

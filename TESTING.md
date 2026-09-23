@@ -76,3 +76,18 @@ and listen to the clips.
 | "Later" hides it for 4 h; ignoring it auto-snoozes | | |
 | "Let's do it" / "Review now" runs the quiz: no pointing until you ask or fail twice | | |
 | Finishing the review updates % mastered and the next review date | | |
+
+## Phase 6 — Record & Replay
+| Check | Win | Mac |
+|-------|-----|-----|
+| Walkthroughs → Record new: main window hides, red "Recording" bar appears top-center | | |
+| Clicks in Chrome/Word are logged with the right element names (Show steps after stopping) | | |
+| Typing is captured as whole words; Ctrl/Cmd shortcuts appear as "Press Control plus S" | | |
+| Typing into a password field shows only "type your password", never the text | | |
+| Clicking the recorder bar itself is not recorded | | |
+| Hold hotkey during recording → spoken note attaches to the last step; "Add note" box too | | |
+| Stop → spoken "Turning your recording…" → walkthrough appears with title + clean steps + thumbnails | | |
+| Export (with/without screenshots) → .nudgy file opens in a text editor as JSON | | |
+| Import file on another machine → Play → pointer finds the same buttons by name | | |
+| Share → link copied; opening it in a browser shows the steps and "Open in Nudgy" | | |
+| Import the link on a **Mac** that was recorded on **Windows** (Chrome): steps match and point correctly | | |

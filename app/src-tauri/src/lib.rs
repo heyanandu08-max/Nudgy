@@ -11,11 +11,13 @@ mod matcher;
 mod nudges;
 mod overlay;
 mod privacy;
+mod recorder;
 mod settings;
 mod sse;
 mod store;
 mod tray;
 mod uitree;
+mod walkthrough;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow, WindowEvent};
 
@@ -86,6 +88,11 @@ fn last_timings(state: State<'_, ask::AskState>) -> Option<serde_json::Value> {
     state.last_timings.lock().unwrap().clone()
 }
 
+#[tauri::command]
+fn open_note_box(app: AppHandle) {
+    hotkey::open_text_box(&app, "note");
+}
+
 /// Webview errors land in the app log (webviews have no console in release builds).
 #[tauri::command]
 fn ui_log(window: WebviewWindow, level: String, message: String) {
@@ -107,6 +114,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             app.manage(SettingsStore::load(&dir));
@@ -114,6 +122,7 @@ pub fn run() {
             app.manage(ask::AskState::default());
             app.manage(hotkey::HotkeyState::default());
             app.manage(lesson::LessonState::default());
+            app.manage(recorder::Recorder::default());
             let db = app.path().app_data_dir()?.join("nudgy.db");
             app.manage(store::Store::open(&db).map_err(|e| format!("open {}: {e}", db.display()))?);
             activity::init(app.handle());
@@ -180,6 +189,20 @@ pub fn run() {
             lesson::dashboard,
             lesson::review_plan,
             lesson::review_snooze,
+            walkthrough::recorder_start,
+            walkthrough::recorder_cancel,
+            walkthrough::recorder_note,
+            walkthrough::recorder_finish,
+            walkthrough::walkthrough_list,
+            walkthrough::walkthrough_get,
+            walkthrough::walkthrough_save,
+            walkthrough::walkthrough_delete,
+            walkthrough::walkthrough_plan,
+            walkthrough::walkthrough_export,
+            walkthrough::walkthrough_import_file,
+            walkthrough::walkthrough_share,
+            walkthrough::walkthrough_fetch,
+            open_note_box,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");

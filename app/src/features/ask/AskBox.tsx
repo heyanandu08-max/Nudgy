@@ -7,12 +7,14 @@ import { useTranslation } from "react-i18next";
 export function AskBox() {
   const { t } = useTranslation();
   const [text, setText] = useState("");
+  const [mode, setMode] = useState<"ask" | "note">("ask");
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.body.classList.add("ask-box");
     input.current?.focus();
-    const off = listen("ask-box-open", () => {
+    const off = listen<"ask" | "note">("ask-box-open", (e) => {
+      setMode(e.payload ?? "ask");
       setText("");
       input.current?.focus();
     });
@@ -24,7 +26,12 @@ export function AskBox() {
   const submit = async () => {
     const q = text.trim();
     setText("");
-    await invoke("ask_text", { text: q });
+    if (mode === "note") {
+      if (q) await invoke("recorder_note", { text: q });
+      await invoke("cancel_text_ask"); // just hides the box
+    } else {
+      await invoke("ask_text", { text: q });
+    }
   };
 
   return (
@@ -40,7 +47,7 @@ export function AskBox() {
         ref={input}
         aria-label={t("askBox.label")}
         className="w-full bg-transparent text-base outline-none placeholder:text-slate-400"
-        placeholder={t("askBox.placeholder")}
+        placeholder={mode === "note" ? t("askBox.notePlaceholder") : t("askBox.placeholder")}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {

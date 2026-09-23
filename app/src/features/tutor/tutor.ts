@@ -108,6 +108,12 @@ export class Tutor {
     await this.run(plan, goal, false);
   }
 
+  /** Plays a recorded walkthrough as a guided lesson. */
+  async startWalkthrough(plan: LessonPlan, goal: string): Promise<void> {
+    if (this.active) await this.stop(false);
+    await this.run(plan, goal, false);
+  }
+
   /** Replays a stored plan as a "can you still do this?" review quiz. */
   async startReview(plan: LessonPlan, goal: string): Promise<void> {
     if (this.active) await this.stop(false);

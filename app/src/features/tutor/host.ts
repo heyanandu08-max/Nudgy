@@ -102,3 +102,9 @@ export function hideMainWindow(): void {
     .hide()
     .catch(() => {});
 }
+
+export async function playWalkthrough(id: string): Promise<void> {
+  hideMainWindow();
+  const plan = await invoke<LessonPlan>("walkthrough_plan", { id });
+  await getTutor().startWalkthrough(plan, `walkthrough:${id}`);
+}
