@@ -140,6 +140,36 @@ impl Store {
     pub fn wipe(&self) -> Result<()> {
         self.with(|c| c.execute_batch(schema::WIPE))
     }
+
+    /// Every local table as JSON rows, for "Export my data".
+    pub fn export_json(&self) -> Result<serde_json::Value> {
+        use rusqlite::types::ValueRef;
+        use serde_json::{json, Map, Value};
+        let mut out = Map::new();
+        for table in schema::TABLES {
+            let rows = self.with(|c| {
+                let mut st = c.prepare(&format!("SELECT * FROM {table}"))?;
+                let cols: Vec<String> = st.column_names().iter().map(|s| s.to_string()).collect();
+                let rows = st.query_map([], |r| {
+                    let mut row = Map::new();
+                    for (i, name) in cols.iter().enumerate() {
+                        let v = match r.get_ref(i)? {
+                            ValueRef::Null => Value::Null,
+                            ValueRef::Integer(n) => json!(n),
+                            ValueRef::Real(f) => json!(f),
+                            ValueRef::Text(t) => json!(String::from_utf8_lossy(t)),
+                            ValueRef::Blob(_) => Value::Null,
+                        };
+                        row.insert(name.clone(), v);
+                    }
+                    Ok(Value::Object(row))
+                })?;
+                rows.collect::<rusqlite::Result<Vec<_>>>()
+            })?;
+            out.insert(table.to_string(), Value::Array(rows));
+        }
+        Ok(Value::Object(out))
+    }
 }
 
 #[cfg(test)]
@@ -203,6 +233,18 @@ mod tests {
             .with(|c| c.query_row("SELECT COUNT(*) FROM lesson_steps", [], |r| r.get(0)))
             .unwrap();
         assert_eq!(n, 1);
+    }
+
+    #[test]
+    fn export_contains_every_table() {
+        let s = Store::in_memory().unwrap();
+        s.lesson_start("a.b", "B", "A", "T", "g", "{}", 1).unwrap();
+        let v = s.export_json().unwrap();
+        for t in schema::TABLES {
+            assert!(v[t].is_array(), "{t}");
+        }
+        assert_eq!(v["lessons"][0]["title"], "T");
+        assert_eq!(v["skills"][0]["id"], "a.b");
     }
 
     #[test]

@@ -195,6 +195,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_settings,
+            privacy::privacy_export,
+            privacy::privacy_delete,
             save_settings,
             set_interactive_regions,
             get_monitor_for_overlay,

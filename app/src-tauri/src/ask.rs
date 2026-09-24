@@ -97,6 +97,7 @@ impl AskState {
 /// Grabs the screenshot + UI tree for the monitor under the cursor, honouring privacy rules.
 pub fn capture_context<R: Runtime>(app: &AppHandle<R>) -> Captured {
     let started = Instant::now();
+    let _indicator = crate::privacy::CaptureGuard::new(app);
     let monitors = app.state::<OverlayState>().monitors();
     let cursor = app
         .cursor_position()

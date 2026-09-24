@@ -369,6 +369,28 @@ button:focus-visible {
   color: var(--ink-3);
 }
 
+/* --- Capture tag (top right): shown whenever the screen is being read --- */
+.capture {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 11px var(--mono);
+  animation: pop 120ms ease-out;
+}
+.capture i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* --- Recorder pill (top center) --- */
 .recbar {
   position: fixed;

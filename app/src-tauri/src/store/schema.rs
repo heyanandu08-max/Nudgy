@@ -69,6 +69,17 @@ const MIGRATIONS: &[&str] = &[
      CREATE INDEX asks_at ON asks(at);",
 ];
 
+/// Tables holding user data (export order).
+pub const TABLES: &[&str] = &[
+    "skills",
+    "lessons",
+    "lesson_steps",
+    "mistakes",
+    "reviews",
+    "walkthroughs",
+    "asks",
+];
+
 pub const WIPE: &str = "DELETE FROM mistakes; DELETE FROM lesson_steps; DELETE FROM reviews;
     DELETE FROM lessons; DELETE FROM skills; DELETE FROM walkthroughs; DELETE FROM asks; VACUUM;";
 

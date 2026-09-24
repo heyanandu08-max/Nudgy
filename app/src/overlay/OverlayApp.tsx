@@ -26,6 +26,8 @@ const CAPTION_LINGER_MS = 6000;
 /** An idle Nudgy cursor fades away after this long without mouse movement. */
 const IDLE_FADE_MS = 5000;
 const NICE_MS = 1400;
+/** Minimum time the "looking at your screen" tag is shown. */
+const LOOKING_MIN_MS = 1200;
 const FLIP_X = 340;
 const FLIP_Y = 200;
 
@@ -56,6 +58,9 @@ export function OverlayApp() {
   const [nice, setNice] = useState(false);
   const [nudge, setNudge] = useState<Nudge | null>(null);
   const [recording, setRecording] = useState({ recording: false, steps: 0 });
+  const [looking, setLooking] = useState(false);
+  const lookingSince = useRef(0);
+  const lookingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const st = useOverlay.getState;
@@ -97,6 +102,17 @@ export function OverlayApp() {
         }
       }),
       listen("cursor-left", () => st().setActive(false)),
+      // Every screen capture is visible; the tag stays up long enough to notice.
+      listen<boolean>("screen-capture", (e) => {
+        clearTimeout(lookingTimer.current);
+        if (e.payload) {
+          lookingSince.current = Date.now();
+          setLooking(true);
+        } else {
+          const left = LOOKING_MIN_MS - (Date.now() - lookingSince.current);
+          lookingTimer.current = setTimeout(() => setLooking(false), Math.max(0, left));
+        }
+      }),
       listen<CompanionMode>("companion-state", (e) => {
         st().setMode(e.payload);
         if (e.payload === "listening") {
@@ -244,6 +260,12 @@ export function OverlayApp() {
           size={settings.cursorSize}
           onDone={s.clearTarget}
         />
+      )}
+      {looking && s.active && (
+        <div className="capture" role="status">
+          <i aria-hidden />
+          {t("capture.looking")}
+        </div>
       )}
       {showCard && lesson && <LessonCard view={lesson} />}
       {s.active && !s.paused && <StatusPill state={pill} />}

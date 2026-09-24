@@ -173,3 +173,14 @@ cancel edit). We don't grab it there; stopping is a click on the card or saying 
 Lessons bring the real app to the front (`focus_app`) and hide Nudgy's window. If we can't open
 it, we ask the user to ("Open Excel and I'll take it from there") and wait (`wait_for_app`),
 rather than showing a mock of the app.
+
+## D33 — Account deletion cancels billing first, or does nothing
+`DELETE /v1/me` cancels an active Stripe subscription before deleting anything; if Stripe
+fails, the request fails and no data is removed, so nobody keeps paying for a deleted account.
+Deleting a team owner dissolves the team: members drop to Free and the team library goes.
+Locally, the app only wipes after the server confirmed.
+
+## D34 — The capture indicator is tied to the capture, not the hotkey
+`CaptureGuard` wraps the one function that takes screenshots, so every capture (question,
+lesson check) shows the tag, and it can't be forgotten on an error path (it clears on drop).
+The tag stays at least 1.2 s so a 100 ms capture is still noticeable.

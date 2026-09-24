@@ -312,5 +312,37 @@
     "yourTurn": "your turn · I'm watching this window only",
     "openApp": "open {{app}} and I'll take it from there",
     "planning": "planning your lesson"
+  },
+  "privacy": {
+    "title": "Your",
+    "titleEm": "privacy",
+    "sub": "What Nudgy sends, where it goes, and how to take it back. Your server: {{host}}.",
+    "askTitle": "When you ask",
+    "askBody": "Only while you hold the hotkey: a screenshot of the screen your cursor is on, the names of buttons in the app in front, and your question. It goes to {{host}}, which passes it to the AI provider that server is set up with, then throws it away. Screenshots and recordings are never saved or logged.",
+    "lessonTitle": "During a lesson",
+    "lessonBody": "The same, each time you pause so Nudgy can check the step. Between checks, nothing is sent.",
+    "walkTitle": "Walkthroughs",
+    "walkBody": "Stay on this computer until you share one. Shared copies leave screenshots out unless you include them. Password fields are recorded as [hidden].",
+    "neverTitle": "Never",
+    "neverBody": "Password fields and the apps in your list are never captured, even if you press the hotkey. Nudgy doesn't watch your screen in the background. A small \"looking\" tag shows every time it does look.",
+    "export": "Export my data",
+    "exportHelp": "Your lessons, skills, questions, walkthroughs and settings, plus your account if you're signed in. One JSON file.",
+    "exportButton": "Export…",
+    "exporting": "Exporting…",
+    "exported": "Saved.",
+    "deleteLocal": "Delete learning history",
+    "deleteLocalHelp": "Lessons, skills, reviews, question history and walkthroughs on this computer.",
+    "deleteAccount": "Delete my account",
+    "deleteAccountHelp": "Also deletes your account, usage and shared links on the server, and cancels any subscription.",
+    "deleteButton": "Delete…",
+    "sure": "This can't be undone.",
+    "yesDelete": "Delete",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "localDeleted": "Learning history deleted.",
+    "accountDeleted": "Account and learning history deleted."
+  },
+  "capture": {
+    "looking": "looking at your screen"
   }
 }

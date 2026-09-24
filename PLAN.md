@@ -229,12 +229,12 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
 - [ ] Dark mode (TODO)
 
 ### Phase 8 — Privacy & safety
-- [ ] Capture only while hotkey held / step verifying (enforced in Rust)
-- [ ] Screenshots processed in memory only; metadata-only logging (enforced + tested)
-- [ ] App/window blocklist + password-field auto-skip
-- [ ] Visible capture indicator (overlay + tray icon state)
-- [ ] Privacy page in settings; "Delete my data"; `/v1/me/export`, `DELETE /v1/me`
-- [ ] `docs/privacy-policy.md` draft
+- [x] Capture only while hotkey held / step verifying (enforced in Rust; `ask::capture_context` is the only screenshot path)
+- [x] Screenshots processed in memory only; metadata-only logging (enforced + tested: `test_screenshot_bytes_never_logged`, export test)
+- [x] App/window blocklist + password-field auto-skip (`privacy.rs`, editable in Settings)
+- [x] Visible capture indicator (overlay "looking at your screen" tag + tray tooltip, via `CaptureGuard`)
+- [x] Privacy page in settings; export; "Delete my data"; `/v1/me/export`, `DELETE /v1/me` (cancels subscription, dissolves owned team)
+- [x] `docs/privacy-policy.md` draft (needs legal review)
 
 ### Phase 9 — Polish & release
 - [ ] First-run onboarding (Nudgy teaches Nudgy) + permission walkthrough (macOS: mic, screen recording, accessibility)

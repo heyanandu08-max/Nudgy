@@ -90,6 +90,14 @@ class StripeClient:
             data["allow_promotion_codes"] = True
         return self._post("/checkout/sessions", data)["url"]
 
+    def cancel_subscription(self, subscription_id: str) -> None:
+        """Ends the subscription immediately (used when the account is deleted)."""
+        r = self.http.delete(f"/subscriptions/{subscription_id}")
+        if r.status_code >= 400 and r.status_code != 404:
+            raise StripeError(
+                r.json().get("error", {}).get("message", f"Stripe error {r.status_code}")
+            )
+
     def create_portal(self, customer: str, return_url: str) -> str:
         return self._post(
             "/billing_portal/sessions", {"customer": customer, "return_url": return_url}

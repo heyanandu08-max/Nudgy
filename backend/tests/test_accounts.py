@@ -14,7 +14,7 @@ from app.main import create_app
 from app.models import UsageEvent, User
 from app.providers.fake import FakeLLM, FakeSTT, FakeTTS
 from app.providers.registry import Providers, get_providers
-from app.routers.auth import get_apple, get_google, get_mailer, get_oauth_http
+from app.routers.auth import get_apple, get_google, get_mailer, get_oauth_http, optional_stripe
 from app.routers.billing import get_stripe
 from app.services import auth
 from app.services.email import ConsoleEmail
@@ -49,6 +49,8 @@ class StripeRecorder:
             return httpx.Response(
                 200, json={"id": "cs_1", "url": "https://checkout.stripe.test/cs_1"}
             )
+        if req.method == "DELETE" and req.url.path.startswith("/v1/subscriptions/"):
+            return httpx.Response(200, json={"id": req.url.path.rsplit("/", 1)[1]})
         if req.url.path == "/v1/billing_portal/sessions":
             return httpx.Response(200, json={"url": "https://billing.stripe.test/p"})
         return httpx.Response(404, json={"error": {"message": "nope"}})
@@ -79,6 +81,9 @@ def env(monkeypatch):
             get_google: lambda: google,
             get_apple: lambda: apple,
             get_stripe: lambda: StripeClient(
+                "sk_test", transport=httpx.MockTransport(stripe.handler)
+            ),
+            optional_stripe: lambda: StripeClient(
                 "sk_test", transport=httpx.MockTransport(stripe.handler)
             ),
             get_providers: lambda: Providers(llm=FakeLLM(), stt=FakeSTT(), tts=FakeTTS()),
@@ -477,3 +482,61 @@ def test_team_plan_invites_and_shared_library(env):
         "/v1/walkthroughs", json={"walkthrough": doc, "team": True}, headers=bearer(outsider)
     )
     assert r.status_code == 403
+
+
+def test_export_lists_what_the_server_holds(env):
+    assert env["client"].get("/v1/me/export").status_code == 401
+    token = magic_sign_in(env, "ada@example.com")
+    ask(env, token)
+    doc = {"id": "w", "title": "Tabs", "app": "Chrome", "steps": [{"instruction": "Open a tab."}]}
+    env["client"].post("/v1/walkthroughs", json={"walkthrough": doc}, headers=bearer(token))
+    data = env["client"].get("/v1/me/export", headers=bearer(token)).json()
+    assert data["format"] == "nudgy-account-export"
+    assert data["account"]["email"] == "ada@example.com"
+    assert [u["kind"] for u in data["usage"]] == ["asks"]
+    assert data["shared_walkthroughs"][0]["document"]["title"] == "Tabs"
+    # Metadata only: no screenshots, audio or question text are ever stored server-side.
+    assert "how do I change the font" not in json.dumps(data)
+
+
+def test_delete_account_cancels_billing_and_dissolves_team(env):
+    owner = magic_sign_in(env, "boss@acme.com")
+    uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
+    webhook(
+        env,
+        {
+            "id": "evt_d",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "customer": "cus_d",
+                    "subscription": "sub_d",
+                    "metadata": {"user_id": str(uid), "plan": "team", "seats": "3"},
+                }
+            },
+        },
+    )
+    env["client"].post("/v1/team/invites", json={"email": "m@acme.com"}, headers=bearer(owner))
+    member = magic_sign_in(env, "m@acme.com")
+    doc = {"id": "w", "title": "Onboarding", "app": "SAP", "steps": [{"instruction": "Go."}]}
+    env["client"].post(
+        "/v1/walkthroughs", json={"walkthrough": doc, "team": True}, headers=bearer(owner)
+    )
+
+    r = env["client"].delete("/v1/me", headers=bearer(owner))
+    assert r.status_code == 200
+    assert r.json()["deleted"] is True and r.json()["team_dissolved"] is True
+    assert ("/v1/subscriptions/sub_d", {}) in env["stripe"].calls
+    assert env["client"].get("/v1/me", headers=bearer(owner)).status_code == 401
+    me = env["client"].get("/v1/me", headers=bearer(member)).json()
+    assert me["plan"] == "free" and me["team"] is None
+
+
+def test_delete_free_account_without_billing(env):
+    token = magic_sign_in(env, "solo@example.com")
+    ask(env, token)
+    assert env["client"].delete("/v1/me", headers=bearer(token)).json()["usage"] == 1
+    assert env["client"].delete("/v1/me", headers=bearer(token)).status_code == 401
+    # Signing in again starts a fresh, empty account.
+    again = magic_sign_in(env, "solo@example.com")
+    assert env["client"].get("/v1/me/export", headers=bearer(again)).json()["usage"] == []

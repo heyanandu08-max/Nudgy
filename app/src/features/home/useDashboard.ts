@@ -53,7 +53,11 @@ export function useDashboard(): DashboardData {
     refresh();
     if (!isTauri()) return;
     const off = listen("progress-changed", refresh);
-    return () => void off.then((f) => f());
+    const offWipe = listen("data-wiped", refresh);
+    return () => {
+      void off.then((f) => f());
+      void offWipe.then((f) => f());
+    };
   }, [refresh]);
   return data;
 }

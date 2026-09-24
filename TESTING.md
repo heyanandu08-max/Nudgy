@@ -106,3 +106,18 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Manage billing → cancel → plan returns to Free when the period ends | | |
 | Team (3 seats) → invite 2 people → they sign in with those emails → appear as members; 4th invite refused | | |
 | Share a walkthrough with "Share with my team" → teammates see it under Team library → Import | | |
+
+## Phase 8 — Privacy & safety
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| Hold the hotkey → "looking at your screen" tag at top right of the screen under the cursor, gone ~1 s after | | |
+| Tray/menu-bar tooltip reads "Nudgy · looking at your screen" while capturing | | |
+| Focus a password field (browser login) → ask → answer says it didn't look; no screenshot in the request | | |
+| 1Password/Bitwarden in front → same | | |
+| Add "Notes" to the list → ask over Notes → withheld; remove it → works again | | |
+| Idle for 10 min with network monitor open → no requests to the Nudgy server | | |
+| Settings → Privacy → Export → JSON contains lessons, asks, walkthroughs, settings (+ account if signed in) | | |
+| Delete learning history → Home shows the empty state | | |
+| Delete my account (signed in, Pro test subscription) → Stripe dashboard shows it cancelled; signed out | | |
+| Server log after a session: no base64, no question text | | |

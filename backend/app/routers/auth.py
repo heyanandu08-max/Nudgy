@@ -15,9 +15,10 @@ from app.config import Settings, get_settings
 from app.db import get_db
 from app.deps import signed_in
 from app.models import Team, User
-from app.services import auth
+from app.services import account_data, auth
 from app.services.email import EmailSender, get_email_sender
 from app.services.pages import page
+from app.services.stripe_api import StripeClient, StripeError
 from app.services.usage import summary
 
 router = APIRouter()
@@ -213,6 +214,39 @@ def me(user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends
         else None,
         **summary(db, user),
     }
+
+
+@router.get("/v1/me/export")
+def export_me(
+    user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends(get_db)]
+) -> dict:
+    """Everything the server stores about you, as JSON."""
+    return account_data.export(db, user)
+
+
+def optional_stripe(settings: Annotated[Settings, Depends(get_settings)]) -> StripeClient | None:
+    try:
+        return StripeClient(settings.stripe_secret_key)
+    except StripeError:
+        return None
+
+
+@router.delete("/v1/me")
+def delete_me(
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+    stripe: Annotated[StripeClient | None, Depends(optional_stripe)],
+) -> dict:
+    """Deletes the account and all server-side data. A running subscription is cancelled first;
+    if that fails nothing is deleted, so nobody keeps paying for an account that is gone."""
+    if user.stripe_subscription_id and user.subscription_status not in (None, "canceled"):
+        if stripe is None:
+            raise HTTPException(503, {"code": "config", "message": "Billing is not configured."})
+        try:
+            stripe.cancel_subscription(user.stripe_subscription_id)
+        except StripeError as e:
+            raise HTTPException(502, {"code": "billing_error", "message": str(e)}) from e
+    return {"deleted": True, **account_data.delete_user(db, user)}
 
 
 @router.post("/v1/auth/refresh")
