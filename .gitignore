@@ -28,3 +28,4 @@ Thumbs.db
 !.vscode/extensions.json
 .idea/
 *.tsbuildinfo
+app/src-tauri/tauri.release.conf.json

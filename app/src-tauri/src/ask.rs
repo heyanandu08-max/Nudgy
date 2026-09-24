@@ -280,6 +280,15 @@ pub async fn run<R: Runtime>(
             "ask-notice",
             json!({"code": "screen_withheld", "reason": reason}),
         );
+    } else if captured.screenshot.is_none()
+        && crate::permissions::current().screen == crate::permissions::Status::Denied
+    {
+        emit(
+            &app,
+            &label,
+            "ask-error",
+            json!({"code": "no_screen_permission", "fatal": false}),
+        );
     }
 
     let mut form = reqwest::multipart::Form::new().text("context", prepared.context.to_string());

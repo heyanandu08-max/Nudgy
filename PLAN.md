@@ -237,12 +237,12 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
 - [x] `docs/privacy-policy.md` draft (needs legal review)
 
 ### Phase 9 — Polish & release
-- [ ] First-run onboarding (Nudgy teaches Nudgy) + permission walkthrough (macOS: mic, screen recording, accessibility)
-- [ ] Friendly error states (no mic, offline, backend down, provider error, permissions)
-- [ ] Debug panel with per-stage timings; target first audio ≤2.5 s
-- [ ] Signed installers (MSI/NSIS, notarized DMG) via CI + Tauri updater
-- [ ] README with setup, env vars, run, build, architecture diagram
-- [ ] `TESTING.md` manual checklist
+- [x] First-run onboarding + permission walkthrough (macOS: screen recording, accessibility, microphone; `permissions.rs`)
+- [x] Friendly error states (no mic, offline, backend down, provider error, screen permission)
+- [x] Debug panel with per-stage timings (Settings → About → Last answer); target first audio ≤2.5 s
+- [~] Signed installers (MSI/NSIS, notarized DMG) via CI + Tauri updater — workflows + updater done; needs signing secrets and a tagged run
+- [x] README with setup, env vars, run, build, architecture diagram; backend Dockerfile
+- [x] `TESTING.md` manual checklist
 
 ---
 

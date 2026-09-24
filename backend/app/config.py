@@ -70,6 +70,19 @@ class Settings(BaseSettings):
             problems.append("NUDGY_AUTH_REQUIRED must be true outside development")
         if self.email_provider == "console":
             problems.append("NUDGY_EMAIL_PROVIDER=console would log sign-in links")
+        fakes = [
+            name
+            for name, value in (
+                ("LLM", self.llm_provider),
+                ("STT", self.stt_provider),
+                ("TTS", self.tts_provider),
+            )
+            if value == "fake"
+        ]
+        if fakes:
+            problems.append(f"NUDGY_{'/'.join(fakes)}_PROVIDER is 'fake'")
+        if not self.public_url.startswith("https://"):
+            problems.append("NUDGY_PUBLIC_URL must be the server's https:// address")
         if problems:
             raise RuntimeError("Unsafe configuration: " + "; ".join(problems))
 

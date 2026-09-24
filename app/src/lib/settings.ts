@@ -15,6 +15,7 @@ export interface Settings {
   cursorColor: CursorColor;
   cursorSize: CursorSize;
   hideCursorIdle: boolean;
+  onboarded: boolean;
 }
 
 export type CursorColor = "black" | "white" | "red" | "blue";
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   cursorColor: "black",
   cursorSize: "m",
   hideCursorIdle: false,
+  onboarded: false,
 };
 
 const BROWSER_KEY = "nudgy.settings";

@@ -37,7 +37,8 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": false
   },
   "plugins": {
     "deep-link": {
@@ -46,6 +47,12 @@
           "nudgy"
         ]
       }
+    },
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/heyanandu08-max/Nudgy/releases/latest/download/latest.json"
+      ]
     }
   }
 }

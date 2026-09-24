@@ -184,3 +184,18 @@ Locally, the app only wipes after the server confirmed.
 `CaptureGuard` wraps the one function that takes screenshots, so every capture (question,
 lesson check) shows the tag, and it can't be forgotten on an error path (it clears on drop).
 The tag stays at least 1.2 s so a 100 ms capture is still noticeable.
+
+## D35 — Updater key comes from CI, dev builds have updates off
+`createUpdaterArtifacts` requires the signing key at build time, which would break every local
+`tauri build`. The committed config has an empty pubkey and no updater artifacts; the release
+workflow injects both. The app treats an empty pubkey as "updates off in this build".
+
+## D36 — Onboarding is one short screen per need, then a real question
+The intro is skippable and has at most three steps: what Nudgy does, macOS permissions (only on
+macOS, re-read every 1.5 s so it follows System Settings live), and asking a real first question.
+It teaches the hotkey by having you use it rather than with a canned tour.
+
+## D37 — Production refuses unsafe configuration
+Outside `dev`, the server won't start with fake AI providers, a weak JWT secret, auth off,
+console email (would log sign-in links) or a non-https public URL (sign-in links and Stripe
+redirects would break or leak).

@@ -25,10 +25,19 @@ def test_production_refuses_unsafe_defaults():
 
     with pytest.raises(RuntimeError, match="JWT_SECRET"):
         Settings(env="prod").check_production_safety()
-    Settings(
-        env="prod",
-        jwt_secret="x" * 40,
-        auth_required=True,
-        email_provider="smtp",
-    ).check_production_safety()
+    safe = {
+        "env": "prod",
+        "jwt_secret": "x" * 40,
+        "auth_required": True,
+        "email_provider": "smtp",
+        "llm_provider": "anthropic",
+        "stt_provider": "deepgram",
+        "tts_provider": "elevenlabs",
+        "public_url": "https://api.nudgy.test",
+    }
+    Settings(**safe).check_production_safety()
+    with pytest.raises(RuntimeError, match="LLM_PROVIDER"):
+        Settings(**{**safe, "llm_provider": "fake"}).check_production_safety()
+    with pytest.raises(RuntimeError, match="PUBLIC_URL"):
+        Settings(**{**safe, "public_url": "http://127.0.0.1:8787"}).check_production_safety()
     Settings(env="dev").check_production_safety()  # dev stays key-less

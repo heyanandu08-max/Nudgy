@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, StatusDot } from "../../components/ui";
 import { Card, Row, SettingsHeading } from "./parts";
+import { TimingsCard } from "./Timings";
+import { UpdateControl } from "./UpdateControl";
 import { useHealth } from "./useHealth";
 import { useSave } from "./useSave";
 
@@ -38,7 +40,14 @@ export function AboutSection() {
         <Row title={t("settings.version")}>
           <span className="font-mono text-xs text-ink-2">{__APP_VERSION__}</span>
         </Row>
+        <Row title={t("settings.updates")}>
+          <UpdateControl />
+        </Row>
+        <Row title={t("settings.intro")} help={t("settings.introHelp")}>
+          <Button onClick={() => void update({ onboarded: false })}>{t("settings.introButton")}</Button>
+        </Row>
       </Card>
+      <TimingsCard />
     </>
   );
 }

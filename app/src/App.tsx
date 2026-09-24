@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { Footer } from "./components/Footer";
 import { TitleBar, type Tab } from "./components/TitleBar";
 import { AskBox } from "./features/ask/AskBox";
+import { Onboarding } from "./features/onboarding/Onboarding";
 import { HomePage, startRecording } from "./features/home/HomePage";
 import { SettingsPage, type SettingsSection } from "./features/settings/SettingsPage";
 import { getTutor } from "./features/tutor/host";
@@ -24,7 +25,7 @@ export default function App() {
 }
 
 function MainWindow() {
-  const { loaded, load, replace } = useSettings();
+  const { settings, loaded, load, replace } = useSettings();
   const [tab, setTab] = useState("home");
   const [section, setSection] = useState<SettingsSection>("cursor");
 
@@ -51,6 +52,7 @@ function MainWindow() {
   }, [load, replace]);
 
   if (!loaded) return null;
+  if (!settings.onboarded) return <Onboarding />;
   return (
     <div className="flex h-full min-w-[760px] flex-col bg-bg">
       <TitleBar tabs={TABS} active={tab} onChange={setTab} onAccount={() => navigate("account")} />

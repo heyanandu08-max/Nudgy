@@ -35,10 +35,15 @@ pub fn matches(wanted: &str, app_name: &str, window_title: &str) -> bool {
         return true;
     }
     let (mac, exe) = canonical(&w);
-    let hay = format!("{} {}", app_name.to_lowercase(), window_title.to_lowercase());
+    let hay = format!(
+        "{} {}",
+        app_name.to_lowercase(),
+        window_title.to_lowercase()
+    );
     hay.contains(&w)
         || (!mac.is_empty() && hay.contains(&mac.to_lowercase()))
-        || (!exe.is_empty() && app_name.to_lowercase().trim_end_matches(".exe") == exe.to_lowercase())
+        || (!exe.is_empty()
+            && app_name.to_lowercase().trim_end_matches(".exe") == exe.to_lowercase())
 }
 
 pub fn is_front(app: &str) -> bool {
@@ -53,7 +58,11 @@ fn bring_to_front(app: &str) -> bool {
     let (mac, _) = canonical(app);
     let name = if mac.is_empty() { app.trim() } else { mac };
     // `open -a` focuses a running app or launches it.
-    std::process::Command::new("open").arg("-a").arg(name).status().is_ok_and(|s| s.success())
+    std::process::Command::new("open")
+        .arg("-a")
+        .arg(name)
+        .status()
+        .is_ok_and(|s| s.success())
 }
 
 #[cfg(target_os = "windows")]
@@ -63,7 +72,10 @@ fn bring_to_front(app: &str) -> bool {
     };
     if let Ok(windows) = xcap::Window::all() {
         for w in windows {
-            let (name, title) = (w.app_name().unwrap_or_default(), w.title().unwrap_or_default());
+            let (name, title) = (
+                w.app_name().unwrap_or_default(),
+                w.title().unwrap_or_default(),
+            );
             if title.is_empty() || !matches(app, &name, &title) {
                 continue;
             }
@@ -106,7 +118,9 @@ pub async fn focus_app(app: String) -> bool {
         return true;
     }
     let target = app.clone();
-    let launched = tauri::async_runtime::spawn_blocking(move || bring_to_front(&target)).await.unwrap_or(false);
+    let launched = tauri::async_runtime::spawn_blocking(move || bring_to_front(&target))
+        .await
+        .unwrap_or(false);
     if !launched {
         return false;
     }
@@ -124,7 +138,10 @@ async fn wait(app: &str, timeout: Duration) -> bool {
     let start = Instant::now();
     while start.elapsed() < timeout {
         let a = app.to_string();
-        if tauri::async_runtime::spawn_blocking(move || is_front(&a)).await.unwrap_or(false) {
+        if tauri::async_runtime::spawn_blocking(move || is_front(&a))
+            .await
+            .unwrap_or(false)
+        {
             // Give the window a moment to finish appearing before we look at it.
             tokio::time::sleep(Duration::from_millis(600)).await;
             return true;
@@ -143,9 +160,17 @@ mod tests {
         assert!(matches("Excel", "Microsoft Excel", "Budget.xlsx"));
         assert!(matches("Excel", "EXCEL.EXE", "Book1"));
         assert!(matches("Chrome", "Google Chrome", "New Tab"));
-        assert!(matches("DaVinci Resolve", "Resolve", "DaVinci Resolve - Project"));
+        assert!(matches(
+            "DaVinci Resolve",
+            "Resolve",
+            "DaVinci Resolve - Project"
+        ));
         assert!(matches("Figma", "Figma", "Untitled"));
-        assert!(!matches("Excel", "Google Chrome", "Sheets tips - Google Search"));
+        assert!(!matches(
+            "Excel",
+            "Google Chrome",
+            "Sheets tips - Google Search"
+        ));
         assert!(matches("", "Anything", "")); // no app in the plan → don't block
     }
 

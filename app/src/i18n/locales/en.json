@@ -64,7 +64,23 @@
     "version": "Version",
     "saved": "saved",
     "saveFailed": "couldn't save: {{error}}",
-    "paused": "Nudgy is paused. Resume it from the tray icon."
+    "paused": "Nudgy is paused. Resume it from the tray icon.",
+    "intro": "Intro",
+    "introHelp": "Permissions and the first-question walkthrough",
+    "introButton": "Show again",
+    "timings": "Last answer",
+    "timingsNone": "Ask something and the timings show up here.",
+    "timingsFirstAudio": "first audio after {{ms}} ms (target {{target}} ms)",
+    "timingsApp": "app",
+    "timingsServer": "server",
+    "updates": "Updates",
+    "updateCheck": "Check now",
+    "updateChecking": "Checking…",
+    "updateInstall": "Install {{version}} and restart",
+    "update_current": "up to date",
+    "update_installing": "installing…",
+    "update_failed": "couldn't check. Try later.",
+    "update_disabled": "off in this build"
   },
   "health": {
     "checking": "connecting",
@@ -84,7 +100,7 @@
     "backend_error": "Something broke on my side. Try again in a moment.",
     "auth_required": "Sign in to keep going.",
     "limit_reached": "That's this month's free questions. You can upgrade in Settings → Account.",
-    "stt": "I couldn't make that out. Try once more?",
+    "stt": "I couldn't make that out. Try once more.",
     "llm": "I'm slow right now. Try again in a moment.",
     "llm_refused": "I can't help with that one.",
     "tts": "My voice isn't working, so I'll stick to captions.",
@@ -98,7 +114,8 @@
     "no_seats": "All seats are taken. Add seats in billing.",
     "billing_error": "Billing isn't responding. Try again in a minute.",
     "config": "This isn't set up on the server yet.",
-    "no_team": "That needs the Team plan."
+    "no_team": "That needs the Team plan.",
+    "no_screen_permission": "I can't see your screen yet. Allow screen recording for Nudgy in System Settings, then reopen it."
   },
   "askBox": {
     "placeholder": "Ask anything · Enter to send · Esc to close",
@@ -344,5 +361,40 @@
   },
   "capture": {
     "looking": "looking at your screen"
+  },
+  "onboarding": {
+    "progress": "{{n}} / {{total}}",
+    "welcomeBefore": "A tutor that ",
+    "welcomeEm": "points",
+    "welcomeAfter": " at the button.",
+    "welcomeBody": "Hold the hotkey anywhere, ask how to do something, and Nudgy tells you the next step and moves its cursor to the exact button. Ask it to teach you, and it walks you through step by step, in your own app.",
+    "welcomePrivacy": "It only looks at your screen while you hold the keys or during a lesson you started.",
+    "start": "Get started",
+    "skip": "Skip setup",
+    "permsTitle": "Three things macOS will ask about",
+    "permsBody": "Nudgy needs these to see the screen you ask about, find buttons by name, and hear your question. You can change them later in System Settings → Privacy & Security.",
+    "perm": {
+      "screen": "Screen recording",
+      "screenWhy": "To see what you see, only when you ask",
+      "accessibility": "Accessibility",
+      "accessibilityWhy": "To find buttons by name and skip password fields",
+      "microphone": "Microphone",
+      "microphoneWhy": "To hear your question while you hold the keys"
+    },
+    "allowed": "allowed",
+    "allow": "Allow…",
+    "check": "Open settings",
+    "permsRestart": "After allowing screen recording, macOS may ask you to reopen Nudgy.",
+    "continue": "Continue",
+    "later": "I'll do this later",
+    "tryTitle": "Ask your first question",
+    "tryHold": "Hold",
+    "tryAsk": "Ask something about the app in front, like “how do I make this bold?”",
+    "tryLet": "Let go. Nudgy answers and points.",
+    "tryType": "Rather type? Tap the keys twice quickly.",
+    "tryWaiting": "waiting for your first question…",
+    "tryDone": "✓ that's it. You're set.",
+    "finish": "Go to Nudgy",
+    "finishLater": "Skip for now"
   }
 }

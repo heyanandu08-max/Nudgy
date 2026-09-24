@@ -121,3 +121,19 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Delete learning history → Home shows the empty state | | |
 | Delete my account (signed in, Pro test subscription) → Stripe dashboard shows it cancelled; signed out | | |
 | Server log after a session: no base64, no question text | | |
+
+## Phase 9 — Polish & release
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| Fresh install → intro opens by itself; "Skip setup" goes straight to Home | | |
+| Mac: permissions step shows Screen recording / Accessibility / Microphone; "Allow…" opens the right System Settings pane; rows turn "allowed" without restarting the intro | | |
+| "Ask your first question" ticks when the first answer arrives | | |
+| Settings → About → Intro → Show again reopens it | | |
+| Screen recording off (Mac) → ask → caption says to allow screen recording | | |
+| Backend stopped → title bar says Offline; asking says it can't reach the server | | |
+| Mic unplugged/denied → "I can't hear you…" | | |
+| Settings → About → Last answer: first audio under 2.5 s on a normal connection (real providers) | | |
+| Tag `v0.1.1` → release workflow → draft release has signed MSI/NSIS + notarized DMG + latest.json | | |
+| Install 0.1.0, publish 0.1.1 → About → Check now → "Install 0.1.1 and restart" → relaunches on 0.1.1 | | |
+| Installed app launches with no console window (Win) and passes Gatekeeper without warnings (Mac) | | |

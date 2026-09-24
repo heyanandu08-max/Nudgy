@@ -105,7 +105,10 @@ pub async fn privacy_delete(app: AppHandle, account: bool) -> Result<(), ApiErro
     }
     let _ = app.emit("walkthroughs-changed", ());
     let _ = app.emit("data-wiped", ());
-    log::info!("local data wiped (account deleted: {})", account && signed_in);
+    log::info!(
+        "local data wiped (account deleted: {})",
+        account && signed_in
+    );
     Ok(())
 }
 

@@ -12,7 +12,9 @@ mod lesson;
 mod matcher;
 mod nudges;
 mod overlay;
+mod permissions;
 mod privacy;
+mod updates;
 mod recorder;
 mod settings;
 mod sse;
@@ -122,6 +124,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
@@ -167,7 +170,10 @@ pub fn run() {
                 log::error!("could not register hotkey {accelerator}: {e}");
             }
 
-            if std::env::var_os("NUDGY_SHOW_MAIN").is_some() {
+            // First run: open the window so onboarding (permissions, first question) shows.
+            if std::env::var_os("NUDGY_SHOW_MAIN").is_some()
+                || !app.state::<SettingsStore>().get().onboarded
+            {
                 tray::show_main(app.handle());
             }
 
@@ -195,6 +201,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_settings,
+            permissions::permissions,
+            permissions::permission_request,
+            updates::update_check,
+            updates::update_install,
             privacy::privacy_export,
             privacy::privacy_delete,
             save_settings,

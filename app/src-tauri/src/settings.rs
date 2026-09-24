@@ -35,6 +35,8 @@ pub struct Settings {
     pub cursor_size: String,
     /// Only show the Nudgy cursor when called (hotkey, lesson, pointing).
     pub hide_cursor_idle: bool,
+    /// First-run walkthrough finished (or skipped).
+    pub onboarded: bool,
 }
 
 impl Default for Settings {
@@ -54,6 +56,7 @@ impl Default for Settings {
             cursor_color: "black".into(),
             cursor_size: "m".into(),
             hide_cursor_idle: false,
+            onboarded: false,
         }
     }
 }
