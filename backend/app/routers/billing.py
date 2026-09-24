@@ -30,6 +30,7 @@ def get_stripe(settings: Annotated[Settings, Depends(get_settings)]) -> StripeCl
 
 class CheckoutRequest(BaseModel):
     plan: Literal["pro", "team"]
+    interval: Literal["month", "year"] = "month"
     seats: int = Field(default=1, ge=1, le=500)
     student: bool = False
 
@@ -43,9 +44,11 @@ def checkout(
     stripe: Annotated[StripeClient, Depends(get_stripe)],
 ) -> dict:
     plan = get_plan(req.plan)
-    if not plan.stripe_price:
+    price = plan.stripe_price(req.interval)
+    if not price:
         raise HTTPException(
-            503, {"code": "config", "message": f"No Stripe price configured for {plan.name}"}
+            503,
+            {"code": "config", "message": f"No Stripe {req.interval}ly price for {plan.name}"},
         )
     try:
         if not user.stripe_customer_id:
@@ -54,7 +57,7 @@ def checkout(
         base = settings.public_url.rstrip("/")
         url = stripe.create_checkout(
             customer=user.stripe_customer_id,
-            price=plan.stripe_price,
+            price=price,
             quantity=req.seats if plan.per_seat else 1,
             user_id=user.id,
             plan=plan.id,

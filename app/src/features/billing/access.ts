@@ -15,9 +15,13 @@ export interface Access {
   /** This account has a monthly lesson cap right now. */
   capped: boolean;
   lessons: LessonQuota | null;
+  /** Price labels per billing interval, sent only to capped users when billing is set up. */
+  offer: Partial<Record<Interval, string>> | null;
 }
 
-export const NO_ACCESS_INFO: Access = { notice: null, capped: false, lessons: null };
+export type Interval = "month" | "year";
+
+export const NO_ACCESS_INFO: Access = { notice: null, capped: false, lessons: null, offer: null };
 
 /** Show the "lessons left" note when this many (or fewer) are left. */
 export const NEAR_CAP = 1;

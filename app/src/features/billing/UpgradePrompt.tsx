@@ -11,7 +11,7 @@ export function UpgradePrompt({ onClose }: { onClose: () => void }) {
   const { access, refresh } = useAccess();
   useEffect(() => void refresh(), [refresh]);
   const q = access.lessons;
-  const subscribe = useSubscribe();
+  const subscribe = useSubscribe(access.offer);
 
   return (
     <div className="flex min-h-full items-center justify-center px-14 py-10">
@@ -26,7 +26,7 @@ export function UpgradePrompt({ onClose }: { onClose: () => void }) {
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{t("billing.stillWorks")}</p>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{t("billing.subscribeRemoves")}</p>
         <div className="mt-8 flex flex-wrap items-center gap-2">
-          {subscribe.button}
+          {subscribe.buttons}
           <Button onClick={onClose}>{t("billing.notNow")}</Button>
         </div>
         {subscribe.status && <div className="mt-3">{subscribe.status}</div>}

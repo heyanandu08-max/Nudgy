@@ -1,12 +1,19 @@
-export type SubscribeResult = { ok: true } | { ok: false; reason: "not_connected" };
+import { invoke } from "@tauri-apps/api/core";
+import { errorCode } from "../../lib/errors";
+import type { Interval } from "./access";
+
+export type SubscribeResult = "opened" | "not_connected" | "failed";
 
 /**
- * The one entry point for "Subscribe" (upgrade screen and Account).
- * TODO: connect billing provider. The backend already has Stripe Checkout
- * (`invoke("billing_checkout", { plan: "pro", seats: 1, student: false })`) and marks the
- * account paid from the webhook, which is all the cap logic needs. Until billing is
- * switched on, this reports that subscriptions aren't open yet.
+ * The one entry point for "Subscribe" (upgrade screen and Account): opens Stripe Checkout in
+ * the browser for Nudgy Pro, monthly or yearly. The server marks the account paid from
+ * Stripe's webhook; the app picks it up when the browser hands back (nudgy://billing).
  */
-export async function startSubscription(): Promise<SubscribeResult> {
-  return { ok: false, reason: "not_connected" };
+export async function startSubscription(interval: Interval): Promise<SubscribeResult> {
+  try {
+    await invoke("billing_checkout", { plan: "pro", seats: 1, student: false, interval });
+    return "opened";
+  } catch (e) {
+    return errorCode(e) === "config" ? "not_connected" : "failed";
+  }
 }

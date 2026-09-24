@@ -132,4 +132,6 @@ def state(db: Session, s: Settings, user: User | None, now: datetime) -> dict:
         else None,
         "capped": quota is not None,
         "lessons": quota.as_dict() if quota else None,
+        # What subscribing costs, only when it's relevant (capped) and actually buyable.
+        "offer": (get_plan("pro").offer() or None) if quota else None,
     }

@@ -366,7 +366,7 @@ def test_signup_hit_limit_pay_and_get_upgraded(env):
 
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
     assert me["plan"] == "pro" and me["subscription_status"] == "active" and me["paid"]
-    assert me["access"] == {"notice": None, "capped": False, "lessons": None}
+    assert me["access"] == {"notice": None, "capped": False, "lessons": None, "offer": None}
     assert plan_lesson(env, token).status_code == 200
 
     # Cancelling in the portal downgrades via the subscription webhook.
@@ -540,3 +540,46 @@ def test_delete_free_account_without_billing(env):
     # Signing in again starts a fresh, empty account.
     again = magic_sign_in(env, "solo@example.com")
     assert env["client"].get("/v1/me/export", headers=bearer(again)).json()["usage"] == []
+
+
+def test_monthly_and_yearly_pro_prices(env, monkeypatch):
+    monkeypatch.setenv("STRIPE_PRICE_PRO_YEARLY", "price_pro_year")
+    token = magic_sign_in(env)
+    # Capped free users are offered both prices (labels from plans.yaml).
+    me = env["client"].get("/v1/me", headers=bearer(token)).json()
+    assert me["access"]["offer"] == {"month": "$20", "year": "$40"}
+    r = env["client"].post(
+        "/v1/billing/checkout", json={"plan": "pro", "interval": "year"}, headers=bearer(token)
+    )
+    assert r.status_code == 200
+    assert env["stripe"].calls[-1][1]["line_items[0][price]"] == "price_pro_year"
+    # A yearly subscription maps back to Pro in the webhook.
+    uid = me["id"]
+    upd = {
+        "id": "evt_y",
+        "type": "customer.subscription.updated",
+        "data": {
+            "object": {
+                "id": "sub_y",
+                "customer": "cus_123",
+                "status": "active",
+                "metadata": {"user_id": str(uid)},
+                "items": {"data": [{"price": {"id": "price_pro_year"}, "quantity": 1}]},
+            }
+        },
+    }
+    webhook(env, upd)
+    me = env["client"].get("/v1/me", headers=bearer(token)).json()
+    assert me["plan"] == "pro" and me["access"]["offer"] is None
+
+
+def test_offer_lists_only_prices_that_exist(env, monkeypatch):
+    monkeypatch.delenv("STRIPE_PRICE_PRO_YEARLY", raising=False)
+    token = magic_sign_in(env)
+    assert env["client"].get("/v1/access", headers=bearer(token)).json()["offer"] == {
+        "month": "$20"
+    }
+    r = env["client"].post(
+        "/v1/billing/checkout", json={"plan": "pro", "interval": "year"}, headers=bearer(token)
+    )
+    assert r.status_code == 503 and r.json()["detail"]["code"] == "config"

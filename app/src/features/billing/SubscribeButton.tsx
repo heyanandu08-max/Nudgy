@@ -1,29 +1,38 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui";
+import type { Access, Interval } from "./access";
 import { startSubscription } from "./subscribe";
 
-/** Subscribe action shared by the upgrade screen and Account: the button, plus a status
- * line the caller places under its row of buttons. */
-export function useSubscribe() {
+/** Subscribe actions shared by the upgrade screen and Account: one button per price the
+ * server offers (monthly first), plus a status line the caller places under its buttons. */
+export function useSubscribe(offer: Access["offer"]) {
   const { t } = useTranslation();
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const go = async () => {
+  const go = async (interval: Interval) => {
     setBusy(true);
-    const r = await startSubscription();
+    const r = await startSubscription(interval);
     setBusy(false);
-    setNote(r.ok ? null : t("billing.notConnected"));
+    setNote(t(`billing.result.${r}`));
   };
-  const button = (
-    <Button variant="primary" disabled={busy} onClick={() => void go()}>
-      {t("billing.subscribe")}
-    </Button>
-  );
-  const status = note && (
+  const intervals = (["month", "year"] as Interval[]).filter((i) => offer?.[i]);
+  const buttons =
+    intervals.length > 0 ? (
+      intervals.map((i, n) => (
+        <Button key={i} variant={n === 0 ? "primary" : "secondary"} disabled={busy} onClick={() => void go(i)}>
+          {t(`billing.per.${i}`, { price: offer?.[i] })}
+        </Button>
+      ))
+    ) : (
+      <Button variant="primary" disabled>
+        {t("billing.subscribe")}
+      </Button>
+    );
+  const status = (note || intervals.length === 0) && (
     <p role="status" className="font-mono text-[11px] text-ink-2">
-      {note}
+      {note ?? t("billing.result.not_connected")}
     </p>
   );
-  return { button, status };
+  return { buttons, status };
 }

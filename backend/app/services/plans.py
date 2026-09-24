@@ -15,12 +15,19 @@ class Plan:
     name: str
     paid: bool
     features: dict[str, bool] = field(default_factory=dict)
-    stripe_price_env: str | None = None
+    # billing interval ("month" | "year") → env var holding the Stripe price ID
+    price_envs: dict[str, str] = field(default_factory=dict)
+    # billing interval → price shown in the app, e.g. "$20"
+    labels: dict[str, str] = field(default_factory=dict)
     per_seat: bool = False
 
-    @property
-    def stripe_price(self) -> str | None:
-        return os.environ.get(self.stripe_price_env) if self.stripe_price_env else None
+    def stripe_price(self, interval: str = "month") -> str | None:
+        env = self.price_envs.get(interval)
+        return os.environ.get(env) or None if env else None
+
+    def offer(self) -> dict[str, str]:
+        """Intervals that can actually be bought, with their labels."""
+        return {i: self.labels.get(i, "") for i in self.price_envs if self.stripe_price(i)}
 
 
 @lru_cache
@@ -32,7 +39,8 @@ def plans() -> dict[str, Plan]:
             name=p["name"],
             paid=bool(p.get("paid", False)),
             features=p.get("features", {}),
-            stripe_price_env=p.get("stripe_price_env"),
+            price_envs=dict(p.get("prices") or {}),
+            labels=dict(p.get("labels") or {}),
             per_seat=bool(p.get("per_seat", False)),
         )
         for pid, p in raw.items()
@@ -45,7 +53,7 @@ def get_plan(plan_id: str) -> Plan:
 
 def plan_for_price(price_id: str | None) -> str | None:
     for p in plans().values():
-        if price_id and p.stripe_price == price_id:
+        if price_id and price_id in (p.stripe_price(i) for i in p.price_envs):
             return p.id
     return None
 

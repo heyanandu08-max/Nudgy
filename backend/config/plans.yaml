@@ -1,5 +1,7 @@
 # Plans live in config, not code. Stripe price/coupon IDs come from the environment
-# (STRIPE_PRICE_PRO, STRIPE_PRICE_TEAM, STRIPE_COUPON_STUDENT) so test/live modes differ by env.
+# (STRIPE_PRICE_PRO, STRIPE_PRICE_PRO_YEARLY, STRIPE_PRICE_TEAM, STRIPE_COUPON_STUDENT) so
+# test/live modes differ by env. `prices` maps a billing interval to the env var holding the
+# Stripe price ID; `labels` is what the app shows (keep them equal to the Stripe prices).
 #
 # Paid plans have no limits at all. The free plan's only limit is the monthly lesson cap,
 # which applies after the free-access window ends (FREE_UNTIL) and is a runtime setting
@@ -12,12 +14,13 @@ plans:
   pro:
     name: Pro
     paid: true
-    stripe_price_env: STRIPE_PRICE_PRO
+    prices: { month: STRIPE_PRICE_PRO, year: STRIPE_PRICE_PRO_YEARLY }
+    labels: { month: "$20", year: "$40" }
     features: { share_links: true, team_library: false }
   team:
     name: Team
     paid: true
-    stripe_price_env: STRIPE_PRICE_TEAM
+    prices: { month: STRIPE_PRICE_TEAM }
     per_seat: true
     features: { share_links: true, team_library: true }
 

@@ -52,9 +52,14 @@ def test_free_year_is_unlimited_and_silent(launched):
     for _ in range(12):
         r = plan_lesson(launched, token)
         assert r.status_code == 200 and r.json()["quota"] is None
-    assert access(launched, token) == {"notice": None, "capped": False, "lessons": None}
+    assert access(launched, token) == {
+        "notice": None,
+        "capped": False,
+        "lessons": None,
+        "offer": None,
+    }
     me = launched["client"].get("/v1/me", headers=bearer(token)).json()
-    assert me["access"] == {"notice": None, "capped": False, "lessons": None}
+    assert me["access"] == {"notice": None, "capped": False, "lessons": None, "offer": None}
     # Still logged for cost tracking.
     with Session(get_engine()) as db:
         lessons = db.query(UsageEvent).filter_by(kind="lessons").all()
@@ -133,7 +138,12 @@ def test_paid_plan_is_never_capped(launched):
     for _ in range(8):
         r = plan_lesson(launched, token)
         assert r.status_code == 200 and r.json()["quota"] is None
-    assert access(launched, token) == {"notice": None, "capped": False, "lessons": None}
+    assert access(launched, token) == {
+        "notice": None,
+        "capped": False,
+        "lessons": None,
+        "offer": None,
+    }
     launched["clock"].at(2027, 9, 10)
     assert access(launched, token)["notice"] is None  # nothing changes for payers
 

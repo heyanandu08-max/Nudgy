@@ -217,11 +217,17 @@ pub async fn billing_checkout(
     plan: String,
     seats: u32,
     student: bool,
+    interval: Option<String>,
 ) -> Result<(), ApiError> {
     let v = backend::post_json(
         &app,
         "/v1/billing/checkout",
-        &json!({"plan": plan, "seats": seats.max(1), "student": student}),
+        &json!({
+            "plan": plan,
+            "seats": seats.max(1),
+            "student": student,
+            "interval": interval.as_deref().unwrap_or("month"),
+        }),
     )
     .await?;
     open(

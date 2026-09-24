@@ -397,10 +397,18 @@
     "subscribeRemoves": "Subscribing removes the monthly cap. Nothing else changes.",
     "subscribe": "Subscribe",
     "notNow": "Not now",
-    "notConnected": "subscriptions aren't open yet",
     "plan": "Plan",
     "free": "Free",
     "capped_one": "{{left}} of {{count}} lesson left this month · resets {{date}}",
-    "capped_other": "{{left}} of {{count}} lessons left this month · resets {{date}}"
+    "capped_other": "{{left}} of {{count}} lessons left this month · resets {{date}}",
+    "per": {
+      "month": "Subscribe · {{price}} a month",
+      "year": "{{price}} a year"
+    },
+    "result": {
+      "opened": "checkout opened in your browser · Nudgy updates when you're done",
+      "not_connected": "subscriptions aren't open yet",
+      "failed": "couldn't open checkout · try again in a minute"
+    }
   }
 }

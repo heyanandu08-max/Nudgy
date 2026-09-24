@@ -105,7 +105,7 @@ function SignIn({ onStatus, onError }: { onStatus: (s: string) => void; onError:
 function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => void; onError: (e: unknown) => void }) {
   const { t, i18n } = useTranslation();
   const q = me.access.lessons;
-  const subscribe = useSubscribe();
+  const subscribe = useSubscribe(me.access.offer);
 
   return (
     <>
@@ -135,7 +135,7 @@ function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => vo
             </p>
             <p className="font-mono text-[11px] text-ink-3">{t("billing.capped", { left: q.left, count: q.limit, date: formatDay(q.resets_at, i18n.language) })}</p>
             <p className="text-[13px] text-ink-2">{t("billing.subscribeRemoves")}</p>
-            <div className="flex flex-wrap items-center gap-2">{subscribe.button}</div>
+            <div className="flex flex-wrap items-center gap-2">{subscribe.buttons}</div>
             {subscribe.status}
           </div>
         )}
