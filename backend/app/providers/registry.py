@@ -31,7 +31,10 @@ def build_llm(s: Settings) -> LLMProvider:
             from app.providers.openai_compat_llm import OpenAICompatibleLLM
 
             return OpenAICompatibleLLM(
-                s.gateway_url, s.gateway_key, s.llm_model, vision=s.llm_vision
+                s.llm_base_url or s.gateway_url,
+                s.llm_api_key or s.gateway_key,
+                s.llm_model,
+                vision=s.llm_vision,
             )
         case "fake":
             from app.providers.fake import FakeLLM

@@ -20,9 +20,12 @@ from app.providers.base import ImagePart, Message, ProviderError, Usage
 
 
 def v1_url(base_url: str, path: str) -> str:
-    """`http://host:port` or `http://host:port/v1` + `/chat/completions` → the full URL."""
+    """Joins an OpenAI-compatible base URL and an endpoint path. A bare host
+    (`http://127.0.0.1:31415`) gets `/v1`; a base that already has a path
+    (`…/v1`, `…/api/v1`, `…/v1beta/openai`) is used as given."""
     base = base_url.rstrip("/")
-    return f"{base}{path}" if base.endswith("/v1") else f"{base}/v1{path}"
+    has_path = "/" in base.split("://", 1)[-1]
+    return f"{base}{path}" if has_path else f"{base}/v1{path}"
 
 
 def to_openai(system: str, messages: list[Message], vision: bool) -> list[dict]:

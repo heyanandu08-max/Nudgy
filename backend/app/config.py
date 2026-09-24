@@ -70,6 +70,10 @@ class Settings(BaseSettings):
     # LLM / STT / TTS providers; one address and key serve all three.
     gateway_url: str | None = None  # e.g. http://127.0.0.1:31415 (with or without /v1)
     gateway_key: str | None = None
+    # Optional: a different OpenAI-compatible service just for the LLM (e.g. a free vision
+    # model elsewhere), while speech-to-text and voice keep using the gateway above.
+    llm_base_url: str | None = None
+    llm_api_key: str | None = None
     llm_vision: bool = True  # false if the gateway's model can't read screenshots
     stt_model: str = ""  # gateway speech-to-text model name
     tts_model: str = ""  # gateway voice model name, e.g. @cf/deepgram/aura-2-en
@@ -87,6 +91,8 @@ class Settings(BaseSettings):
         "admin_token",
         "gateway_url",
         "gateway_key",
+        "llm_base_url",
+        "llm_api_key",
         mode="before",
     )
     @classmethod

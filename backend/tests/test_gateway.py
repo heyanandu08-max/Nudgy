@@ -58,6 +58,11 @@ def llm(server: Server, **kw) -> OpenAICompatibleLLM:
 def test_v1_url_accepts_base_with_or_without_v1():
     assert v1_url("http://h:1", "/audio/speech") == "http://h:1/v1/audio/speech"
     assert v1_url("http://h:1/v1/", "/audio/speech") == "http://h:1/v1/audio/speech"
+    gemini = "https://generativelanguage.googleapis.com/v1beta/openai"
+    assert v1_url(gemini, "/chat/completions") == f"{gemini}/chat/completions"
+    assert v1_url("https://api.groq.com/openai/v1", "/chat/completions").endswith(
+        "/openai/v1/chat/completions"
+    )
 
 
 @sync
@@ -210,3 +215,21 @@ def test_registry_builds_gateway_providers():
         build_tts(s.model_copy(update={"tts_model": ""}))
     with pytest.raises(ProviderError, match="NUDGY_GATEWAY_URL"):
         build_llm(s.model_copy(update={"gateway_url": None}))
+
+
+def test_llm_can_use_its_own_service_while_voice_uses_the_gateway():
+    s = Settings(
+        _env_file=None,
+        llm_provider="openai_compatible",
+        tts_provider="openai_compatible",
+        gateway_url="http://127.0.0.1:31415",
+        gateway_key=KEY,
+        llm_base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        llm_api_key="other-key",
+        llm_model="vision-model",
+        tts_model="@cf/deepgram/aura-2-en",
+    )
+    llm = build_llm(s)
+    assert llm.url == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    assert llm.headers["Authorization"] == "Bearer other-key"
+    assert build_tts(s).url == "http://127.0.0.1:31415/v1/audio/speech"
