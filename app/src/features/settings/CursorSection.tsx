@@ -6,7 +6,6 @@ import {
   fetchClientConfig,
   type ClientConfig,
 } from "../../lib/api";
-import { deviceVoices } from "../../lib/audioQueue";
 import type {
   CursorColor,
   CursorSize,
@@ -36,22 +35,6 @@ export function CursorSection() {
       .then(setConfig)
       .catch(() => setConfig(FALLBACK_CONFIG));
   }, [settings.backendUrl]);
-
-  // Device voice: the list is whatever this computer has installed (it loads asynchronously).
-  const [osVoices, setOsVoices] = useState<{ id: string; name: string }[]>([]);
-  useEffect(() => {
-    if (config.tts_provider !== "device" || typeof speechSynthesis === "undefined") return;
-    const read = () =>
-      setOsVoices(
-        deviceVoices()
-          .filter((v) => v.lang.toLowerCase().startsWith(settings.language.toLowerCase()))
-          .map((v) => ({ id: v.name, name: v.name })),
-      );
-    read();
-    speechSynthesis.addEventListener("voiceschanged", read);
-    return () => speechSynthesis.removeEventListener("voiceschanged", read);
-  }, [config.tts_provider, settings.language]);
-  const voices = config.tts_provider === "device" ? osVoices : config.voices;
 
   const addApp = () => {
     const name = adding.trim();
@@ -132,7 +115,7 @@ export function CursorSection() {
               onChange={(e) => void update({ voiceId: e.target.value || null })}
             >
               <option value="">{t("settings.voiceDefault")}</option>
-              {voices.map((v) => (
+              {config.voices.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>

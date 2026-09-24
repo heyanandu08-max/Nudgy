@@ -60,10 +60,6 @@ export function OverlayApp() {
   const [recording, setRecording] = useState({ recording: false, steps: 0 });
   const [looking, setLooking] = useState(false);
   const lookingSince = useRef(0);
-  // One player for the overlay's life; device voice follows the voice picked in Settings.
-  const player = useRef<ReturnType<typeof htmlAudioPlayer> | null>(null);
-  player.current ??= htmlAudioPlayer();
-  useEffect(() => player.current?.setVoice(settings.voiceId), [settings.voiceId]);
   const lookingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -80,7 +76,7 @@ export function OverlayApp() {
       if (st().mode === "talking" || st().mode === "thinking") st().setMode("idle");
       hideTimer.current = setTimeout(() => st().clearCaption(), CAPTION_LINGER_MS);
     };
-    audio.current = new AudioQueue(player.current!, (playing) => {
+    audio.current = new AudioQueue(htmlAudioPlayer(), (playing) => {
       setSpeaking(playing);
       void invoke("escape_listen", { on: playing }).catch(() => {});
       if (playing) st().setMode("talking");

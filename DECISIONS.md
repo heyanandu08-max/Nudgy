@@ -223,18 +223,3 @@ or a lockout.
 The upgrade screen and Account share one `startSubscription()` (TODO: connect billing provider).
 The Stripe checkout/webhook code stays in the backend; wiring it in is a one-function change.
 Until then, `PUT /v1/admin/users/{email}/plan` stands in for a subscription in QA.
-
-## D42 — OpenAI-compatible gateways as a first-class provider
-Many free, local and self-hosted AI services speak the OpenAI API. One `openai_compatible`
-provider per role (LLM, STT, TTS), sharing `NUDGY_GATEWAY_URL` + `NUDGY_GATEWAY_KEY`, lets a
-deployment swap vendors by config. The LLM is streamed over SSE with a fallback for gateways
-that ignore `stream`; screenshots go as data-URL images unless `NUDGY_LLM_VISION=false`. The
-voice request sends only `model` + `input` (+ `voice` if chosen), which is what Deepgram Aura
-through such gateways expects, and the audio type is taken from the response.
-
-## D43 — $0 setup: one free Gemini key + the computer's own voices
-For a free hosted launch, speech-to-text goes to the same chat model (`chat_audio`: the
-recording is sent as `input_audio`, which Gemini's OpenAI-compatible endpoint accepts) and
-the voice is `device`: the server sends sentence text only and the app speaks it with the
-Windows/macOS voices, so voice costs nothing and uses none of the shared AI quota. Measured on
-Gemini free: ~2.4 s to transcribe, ~5.6 s to the first words (above the 2.5 s paid target).

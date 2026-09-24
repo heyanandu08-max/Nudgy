@@ -103,15 +103,6 @@ NUDGY_STT_PROVIDER=deepgram    DEEPGRAM_API_KEY=…      # or openai_whisper + O
 NUDGY_TTS_PROVIDER=elevenlabs  ELEVENLABS_API_KEY=…    # or openai_tts + OPENAI_API_KEY
 ```
 
-Or use any **OpenAI-compatible gateway** (local or hosted) for all three with one key:
-
-```bash
-NUDGY_LLM_PROVIDER=openai_compatible  NUDGY_STT_PROVIDER=openai_compatible  NUDGY_TTS_PROVIDER=openai_compatible
-NUDGY_GATEWAY_URL=http://127.0.0.1:31415   NUDGY_GATEWAY_KEY=…
-NUDGY_LLM_MODEL=<vision model from /v1/models>   NUDGY_STT_MODEL=<speech-to-text model>
-NUDGY_TTS_MODEL=@cf/deepgram/aura-2-en
-```
-
 ## Environment variables
 
 Every variable is documented in [`.env.example`](.env.example) with a blank or safe value.
@@ -120,7 +111,6 @@ Every variable is documented in [`.env.example`](.env.example) with a blank or s
 | Group | Variables |
 |-------|-----------|
 | Server | `NUDGY_ENV` (`dev`/`production`), `NUDGY_DATABASE_URL`, `NUDGY_CORS_ORIGINS`, `NUDGY_PUBLIC_URL` |
-| Gateway | `NUDGY_GATEWAY_URL`, `NUDGY_GATEWAY_KEY`, `NUDGY_LLM_VISION`, `NUDGY_STT_MODEL`, `NUDGY_TTS_MODEL`, `NUDGY_TTS_VOICE` |
 | AI | `NUDGY_LLM_PROVIDER`, `NUDGY_STT_PROVIDER`, `NUDGY_TTS_PROVIDER`, `NUDGY_LLM_MODEL`, `NUDGY_LLM_THINKING`, `NUDGY_LLM_EFFORT`, `ANTHROPIC_API_KEY`, `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY`, `OPENAI_API_KEY` |
 | Accounts | `NUDGY_JWT_SECRET` (≥32 chars in production), `NUDGY_AUTH_REQUIRED`, `NUDGY_EMAIL_*`, `NUDGY_SMTP_*`, `NUDGY_GOOGLE_*`, `NUDGY_APPLE_*` |
 | Launch | `NUDGY_LAUNCH_DATE` (free year starts; blank in dev), `NUDGY_FREE_UNTIL_OVERRIDE`, `NUDGY_FREE_TIER_LESSONS_PER_MONTH` (initial value only), `NUDGY_ADMIN_TOKEN` |
