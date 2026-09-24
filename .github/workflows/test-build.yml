@@ -1,13 +1,15 @@
 name: Test build (Windows)
 
 # Unsigned Windows test build: the Nudgy installer plus the one-file server
-# (nudgy-server.exe). Push a tag like `test-1` to build; the files land in a DRAFT release
-# (only visible to people with access to this repository) and as a workflow artifact.
+# (nudgy-server.exe). Runs for a pushed `test-*` tag, a commit whose message contains
+# "[build windows]", or a manual run. The files land in a DRAFT release (only visible to people
+# with access to this repository) and as a workflow artifact.
 # Windows will warn about an unknown publisher: More info → Run anyway.
 
 on:
   push:
     tags: ["test-*"]
+    branches: ["**"]
   workflow_dispatch:
 
 permissions:
@@ -15,6 +17,9 @@ permissions:
 
 jobs:
   windows:
+    if: >-
+      startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[build windows]')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,12 +63,13 @@ jobs:
           path: out/
 
       - name: Draft release with the files
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           prerelease: true
-          name: Nudgy test build ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('test-build-{0}', github.run_number) }}
+          target_commitish: ${{ github.sha }}
+          name: Nudgy test build ${{ github.run_number }}
           files: out/*
           body: |
             Unsigned test build for Windows.
