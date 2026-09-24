@@ -54,6 +54,17 @@ def build_stt(s: Settings) -> STTProvider:
             from app.providers.http_stt import OpenAIWhisperSTT
 
             return OpenAIWhisperSTT(s.openai_api_key)
+        case "chat_audio":
+            from app.providers.openai_compat_llm import ChatAudioSTT, OpenAICompatibleLLM
+
+            return ChatAudioSTT(
+                OpenAICompatibleLLM(
+                    s.llm_base_url or s.gateway_url,
+                    s.llm_api_key or s.gateway_key,
+                    s.stt_model or s.llm_model,
+                    fallback_model=s.llm_fallback_model,
+                )
+            )
         case "openai_compatible":
             from app.providers.http_stt import OpenAIWhisperSTT
 
@@ -92,6 +103,10 @@ def build_tts(s: Settings) -> TTSProvider:
                 base_url=s.gateway_url,
                 default_voice=s.tts_voice or None,
             )
+        case "device":
+            from app.providers.fake import DeviceTTS
+
+            return DeviceTTS()
         case "fake":
             from app.providers.fake import FakeTTS
 

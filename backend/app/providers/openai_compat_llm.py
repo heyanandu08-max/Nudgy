@@ -17,7 +17,7 @@ from collections.abc import AsyncIterator
 
 import httpx
 
-from app.providers.base import ImagePart, Message, ProviderError, Usage
+from app.providers.base import AudioPart, ImagePart, Message, ProviderError, Usage
 
 
 def v1_url(base_url: str, path: str) -> str:
@@ -34,7 +34,8 @@ def to_openai(system: str, messages: list[Message], vision: bool) -> list[dict]:
     for m in messages:
         texts = [p for p in m.parts if isinstance(p, str)]
         images = [p for p in m.parts if isinstance(p, ImagePart)] if vision else []
-        if not images:
+        audio = [p for p in m.parts if isinstance(p, AudioPart)]
+        if not images and not audio:
             out.append({"role": m.role, "content": "\n\n".join(texts)})
             continue
         content: list[dict] = [{"type": "text", "text": t} for t in texts]
@@ -43,8 +44,47 @@ def to_openai(system: str, messages: list[Message], vision: bool) -> list[dict]:
             content.append(
                 {"type": "image_url", "image_url": {"url": f"data:{img.media_type};base64,{data}"}}
             )
+        for clip in audio:
+            data = base64.standard_b64encode(clip.data).decode("ascii")
+            content.append(
+                {"type": "input_audio", "input_audio": {"data": data, "format": clip.format}}
+            )
         out.append({"role": m.role, "content": content})
     return out
+
+
+TRANSCRIBE_PROMPT = (
+    "Transcribe the recording exactly, in {language}. Reply with only the words spoken, "
+    "no quotes or notes. If nobody speaks, reply with nothing."
+)
+
+
+class ChatAudioSTT:
+    """Speech-to-text by sending the recording to a chat model that can listen (e.g. Gemini
+    through its OpenAI-compatible endpoint). Shares the LLM's service, retries and fallback,
+    so one free key covers both."""
+
+    name = "chat_audio"
+
+    def __init__(self, llm: OpenAICompatibleLLM):
+        self.llm = llm
+
+    async def transcribe(self, audio: bytes, *, mime: str, language: str) -> str:
+        fmt = "mp3" if "mpeg" in mime or "mp3" in mime else "wav"
+        text = ""
+        try:
+            async for delta in self.llm.stream(
+                system=TRANSCRIBE_PROMPT.format(language=language),
+                messages=[Message("user", [AudioPart(audio, fmt)])],
+                max_tokens=400,
+                usage=Usage(),
+            ):
+                text += delta
+        except ProviderError as e:
+            raise ProviderError(
+                e.code.replace("llm_", "stt_", 1), str(e), retryable=e.retryable
+            ) from e
+        return text.strip().strip('"').strip()
 
 
 def _error(status: int) -> ProviderError:

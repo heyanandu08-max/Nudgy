@@ -23,7 +23,15 @@ class ImagePart:
     media_type: str = "image/jpeg"
 
 
-Part = str | ImagePart
+@dataclass(frozen=True)
+class AudioPart:
+    """A recording sent to a chat model that can listen (speech-to-text via the LLM)."""
+
+    data: bytes
+    format: str = "wav"  # "wav" | "mp3"
+
+
+Part = str | ImagePart | AudioPart
 
 
 @dataclass

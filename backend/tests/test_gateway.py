@@ -283,3 +283,54 @@ async def test_retry_recovers_without_fallback_and_auth_errors_are_not_retried()
     with pytest.raises(ProviderError, match="rejected"):
         await collect(llm, system="s", messages=MESSAGES, max_tokens=10, usage=Usage())
     assert len(denied.requests) == 1
+
+
+@sync
+async def test_chat_audio_stt_sends_the_recording_to_the_listening_model():
+    from app.providers.openai_compat_llm import ChatAudioSTT
+
+    server = Server(lambda r: sse(delta(' "how do I '), delta('change the font" ')))
+    stt = ChatAudioSTT(llm(server))
+    assert await stt.transcribe(b"RIFFwav", mime="audio/wav", language="en") == (
+        "how do I change the font"
+    )
+    body = json.loads(server.requests[0].content)
+    part = body["messages"][1]["content"][0]
+    assert part["type"] == "input_audio" and part["input_audio"]["format"] == "wav"
+    assert "Transcribe" in body["messages"][0]["content"]
+
+
+@sync
+async def test_chat_audio_stt_errors_are_stt_errors():
+    from app.providers.openai_compat_llm import ChatAudioSTT
+
+    stt = ChatAudioSTT(llm(Server(lambda r: httpx.Response(401))))
+    with pytest.raises(ProviderError) as e:
+        await stt.transcribe(b"RIFF", mime="audio/wav", language="en")
+    assert e.value.code == "stt_auth"
+
+
+@sync
+async def test_device_tts_sends_text_only():
+    from app.providers.fake import DEVICE_SPEECH_MIME, DeviceTTS
+
+    tts = DeviceTTS()
+    assert await tts.synthesize("Hello.", voice_id=None, language="en") == b""
+    assert tts.mime == DEVICE_SPEECH_MIME
+
+
+def test_registry_free_google_setup():
+    s = Settings(
+        _env_file=None,
+        llm_provider="openai_compatible",
+        stt_provider="chat_audio",
+        tts_provider="device",
+        llm_base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        llm_api_key="k",
+        llm_model="gemini-3.6-flash",
+        llm_fallback_model="gemini-flash-lite-latest",
+    )
+    stt = build_stt(s)
+    assert stt.name == "chat_audio" and stt.llm.model == "gemini-3.6-flash"
+    assert stt.llm.fallback_model == "gemini-flash-lite-latest"
+    assert build_tts(s).name == "device"

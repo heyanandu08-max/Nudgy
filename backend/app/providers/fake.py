@@ -214,6 +214,20 @@ class FakeSTT:
         return self.transcript if audio else ""
 
 
+DEVICE_SPEECH_MIME = "text/x-device-speech"
+
+
+class DeviceTTS:
+    """No server-side audio: the desktop app reads each sentence with the operating system's
+    own voices (Windows / macOS). Free, unlimited, and uses none of the AI quota."""
+
+    name = "device"
+    mime = DEVICE_SPEECH_MIME
+
+    async def synthesize(self, text: str, *, voice_id: str | None, language: str) -> bytes:
+        return b""
+
+
 class FakeTTS:
     name = "fake"
     mime = "audio/mpeg"
