@@ -14,13 +14,13 @@ mod nudges;
 mod overlay;
 mod permissions;
 mod privacy;
-mod updates;
 mod recorder;
 mod settings;
 mod sse;
 mod store;
 mod tray;
 mod uitree;
+mod updates;
 mod walkthrough;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow, WindowEvent};

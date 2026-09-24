@@ -32,7 +32,10 @@ fn err(e: impl std::fmt::Display) -> ApiError {
 #[tauri::command]
 pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<Option<UpdateInfo>, ApiError> {
     if !enabled(&app) {
-        return Err(ApiError::new("updates_disabled", "no update key in this build"));
+        return Err(ApiError::new(
+            "updates_disabled",
+            "no update key in this build",
+        ));
     }
     let update = app.updater().map_err(err)?.check().await.map_err(err)?;
     Ok(update.map(|u| UpdateInfo {
@@ -45,7 +48,10 @@ pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<Option<Update
 #[tauri::command]
 pub async fn update_install<R: Runtime>(app: AppHandle<R>) -> Result<(), ApiError> {
     if !enabled(&app) {
-        return Err(ApiError::new("update_failed", "updates are off in this build"));
+        return Err(ApiError::new(
+            "update_failed",
+            "updates are off in this build",
+        ));
     }
     let Some(update) = app.updater().map_err(err)?.check().await.map_err(err)? else {
         return Ok(());
