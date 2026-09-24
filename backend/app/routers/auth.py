@@ -17,11 +17,12 @@ from app.config import Settings, get_settings
 from app.db import get_db
 from app.deps import get_clock, optional_user, signed_in
 from app.models import Team, User
+from app.routers.billing import optional_paypal
 from app.services import access, account_data, auth
 from app.services.email import EmailSender, get_email_sender
 from app.services.pages import page
+from app.services.paypal_api import PayPalClient, PayPalError
 from app.services.plans import get_plan
-from app.services.stripe_api import StripeClient, StripeError
 from app.services.usage import effective_plan
 
 router = APIRouter()
@@ -248,27 +249,21 @@ def export_me(
     return account_data.export(db, user)
 
 
-def optional_stripe(settings: Annotated[Settings, Depends(get_settings)]) -> StripeClient | None:
-    try:
-        return StripeClient(settings.stripe_secret_key)
-    except StripeError:
-        return None
-
-
 @router.delete("/v1/me")
 def delete_me(
     user: Annotated[User, Depends(signed_in)],
     db: Annotated[Session, Depends(get_db)],
-    stripe: Annotated[StripeClient | None, Depends(optional_stripe)],
+    paypal: Annotated[PayPalClient | None, Depends(optional_paypal)],
 ) -> dict:
     """Deletes the account and all server-side data. A running subscription is cancelled first;
     if that fails nothing is deleted, so nobody keeps paying for an account that is gone."""
-    if user.stripe_subscription_id and user.subscription_status not in (None, "canceled"):
-        if stripe is None:
+    running = user.subscription_status in ("active", "past_due", "approval_pending")
+    if user.billing_subscription_id and running:
+        if paypal is None:
             raise HTTPException(503, {"code": "config", "message": "Billing is not configured."})
         try:
-            stripe.cancel_subscription(user.stripe_subscription_id)
-        except StripeError as e:
+            paypal.cancel_subscription(user.billing_subscription_id)
+        except PayPalError as e:
             raise HTTPException(502, {"code": "billing_error", "message": str(e)}) from e
     return {"deleted": True, **account_data.delete_user(db, user)}
 

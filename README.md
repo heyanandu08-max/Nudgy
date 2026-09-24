@@ -48,7 +48,7 @@ flowchart LR
   ASK -- "screenshot + UI elements + question<br/>(in memory only)" --> API
   API -- "transcript · speech · target · audio" --> ASK
   PROV --> V["AI vendors<br/>Anthropic · Deepgram / Whisper · ElevenLabs / OpenAI"]
-  API <-- webhooks --> STRIPE["Stripe"]
+  API <-- webhooks --> PAYPAL["PayPal"]
 ```
 
 - The desktop app never calls AI vendors directly; everything goes through the backend, which
@@ -114,7 +114,7 @@ Every variable is documented in [`.env.example`](.env.example) with a blank or s
 | AI | `NUDGY_LLM_PROVIDER`, `NUDGY_STT_PROVIDER`, `NUDGY_TTS_PROVIDER`, `NUDGY_LLM_MODEL`, `NUDGY_LLM_THINKING`, `NUDGY_LLM_EFFORT`, `ANTHROPIC_API_KEY`, `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY`, `OPENAI_API_KEY` |
 | Accounts | `NUDGY_JWT_SECRET` (≥32 chars in production), `NUDGY_AUTH_REQUIRED`, `NUDGY_EMAIL_*`, `NUDGY_SMTP_*`, `NUDGY_GOOGLE_*`, `NUDGY_APPLE_*` |
 | Launch | `NUDGY_LAUNCH_DATE` (free year starts; blank in dev), `NUDGY_FREE_UNTIL_OVERRIDE`, `NUDGY_FREE_TIER_LESSONS_PER_MONTH` (initial value only), `NUDGY_ADMIN_TOKEN` |
-| Billing | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_TEAM`, `STRIPE_COUPON_STUDENT` |
+| Billing (PayPal) | `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_PLAN_PRO` ($20/month), `PAYPAL_PLAN_PRO_YEARLY` ($40/year), `PAYPAL_PLAN_TEAM` |
 
 Outside `NUDGY_ENV=dev` the server refuses to start with fake providers, a weak JWT secret,
 sign-in turned off, console email, or a public URL that isn't `https://`.
@@ -142,5 +142,5 @@ macOS. Manual checks that need real hardware are in [`TESTING.md`](TESTING.md).
   plus the Apple and Windows signing secrets listed at the top of the workflow.
 - **Backend**: `docker build -f backend/Dockerfile -t nudgy-backend .` and run it with your env
   vars (a `/data` volume holds SQLite; point `NUDGY_DATABASE_URL` at Postgres to scale out).
-  Put it behind HTTPS and set `NUDGY_PUBLIC_URL`; the Stripe webhook goes to
+  Put it behind HTTPS and set `NUDGY_PUBLIC_URL`; the PayPal webhook goes to
   `/v1/billing/webhook`.

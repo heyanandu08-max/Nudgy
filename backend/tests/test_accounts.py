@@ -14,13 +14,13 @@ from app.main import create_app
 from app.models import UsageEvent, User
 from app.providers.fake import FakeLLM, FakeSTT, FakeTTS
 from app.providers.registry import Providers, get_providers
-from app.routers.auth import get_apple, get_google, get_mailer, get_oauth_http, optional_stripe
-from app.routers.billing import get_stripe
+from app.routers.auth import get_apple, get_google, get_mailer, get_oauth_http
+from app.routers.billing import get_paypal, optional_paypal
 from app.services import auth
 from app.services.email import ConsoleEmail
-from app.services.stripe_api import StripeClient, sign
+from app.services.paypal_api import PayPalClient
 
-WEBHOOK_SECRET = "whsec_test"
+WEBHOOK_ID = "WH-TEST"
 
 
 class FakeVerifier:
@@ -34,33 +34,63 @@ class FakeVerifier:
         return auth.Identity(email=self.email, name=self.name)
 
 
-class StripeRecorder:
-    """Mock Stripe REST API; records form posts."""
+class PayPalMock:
+    """Mock PayPal REST API: OAuth, subscriptions (with a fake buyer approval step) and
+    webhook verification (only deliveries signed "good" verify)."""
 
     def __init__(self):
-        self.calls: list[tuple[str, dict]] = []
+        self.calls: list[tuple[str, str, dict]] = []
+        self.subs: dict[str, dict] = {}
+        self.raw: list[bytes] = []
 
     def handler(self, req: httpx.Request) -> httpx.Response:
-        form = {k: v[0] for k, v in parse_qs(req.content.decode()).items()}
-        self.calls.append((req.url.path, form))
-        if req.url.path == "/v1/customers":
-            return httpx.Response(200, json={"id": "cus_123"})
-        if req.url.path == "/v1/checkout/sessions":
+        path = req.url.path
+        body = json.loads(req.content) if req.content and path != "/v1/oauth2/token" else {}
+        self.calls.append((req.method, path, body))
+        self.raw.append(req.content)
+        if path == "/v1/oauth2/token":
+            return httpx.Response(200, json={"access_token": "tok", "expires_in": 3600})
+        if path == "/v1/billing/subscriptions" and req.method == "POST":
+            sid = f"I-{len(self.subs) + 1}"
+            self.subs[sid] = {
+                "id": sid,
+                "plan_id": body["plan_id"],
+                "custom_id": body["custom_id"],
+                "quantity": body.get("quantity", "1"),
+                "status": "APPROVAL_PENDING",
+            }
             return httpx.Response(
-                200, json={"id": "cs_1", "url": "https://checkout.stripe.test/cs_1"}
+                201,
+                json={
+                    **self.subs[sid],
+                    "links": [{"rel": "approve", "href": f"https://paypal.test/approve/{sid}"}],
+                },
             )
-        if req.method == "DELETE" and req.url.path.startswith("/v1/subscriptions/"):
-            return httpx.Response(200, json={"id": req.url.path.rsplit("/", 1)[1]})
-        if req.url.path == "/v1/billing_portal/sessions":
-            return httpx.Response(200, json={"url": "https://billing.stripe.test/p"})
-        return httpx.Response(404, json={"error": {"message": "nope"}})
+        if path.startswith("/v1/billing/subscriptions/") and path.endswith("/cancel"):
+            self.subs.setdefault(path.split("/")[4], {})["status"] = "CANCELLED"
+            return httpx.Response(204)
+        if path.startswith("/v1/billing/subscriptions/"):
+            sub = self.subs.get(path.rsplit("/", 1)[1])
+            return (
+                httpx.Response(200, json=sub)
+                if sub
+                else httpx.Response(404, json={"name": "RESOURCE_NOT_FOUND"})
+            )
+        if path == "/v1/notifications/verify-webhook-signature":
+            ok = body.get("transmission_sig") == "good" and body.get("webhook_id") == WEBHOOK_ID
+            return httpx.Response(200, json={"verification_status": "SUCCESS" if ok else "FAILURE"})
+        return httpx.Response(404, json={"name": "NOT_FOUND"})
+
+    def approve(self, sid: str, next_billing: str = "2099-01-01T00:00:00Z") -> dict:
+        """What happens when the buyer approves on PayPal's page."""
+        self.subs[sid].update(status="ACTIVE", billing_info={"next_billing_time": next_billing})
+        return self.subs[sid]
 
 
 @pytest.fixture
 def env(monkeypatch):
-    monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
-    monkeypatch.setenv("STRIPE_PRICE_TEAM", "price_team")
-    monkeypatch.setenv("STRIPE_COUPON_STUDENT", "coupon_student")
+    monkeypatch.setenv("PAYPAL_PLAN_PRO", "P-PRO")
+    monkeypatch.setenv("PAYPAL_PLAN_TEAM", "P-TEAM")
     settings = Settings(
         jwt_secret="test-secret-0123456789-0123456789-abcdef",
         public_url="https://nudgy.test",
@@ -69,10 +99,10 @@ def env(monkeypatch):
         google_client_secret="gsecret",
         apple_client_id="app.nudgy.signin",
     )
-    settings.stripe_webhook_secret = WEBHOOK_SECRET
+    settings.paypal_webhook_id = WEBHOOK_ID
     mailer = ConsoleEmail()
     google, apple = FakeVerifier(), FakeVerifier(email="apple@example.com")
-    stripe = StripeRecorder()
+    paypal = PayPalMock()
     app = create_app()
     app.dependency_overrides.update(
         {
@@ -80,11 +110,11 @@ def env(monkeypatch):
             get_mailer: lambda: mailer,
             get_google: lambda: google,
             get_apple: lambda: apple,
-            get_stripe: lambda: StripeClient(
-                "sk_test", transport=httpx.MockTransport(stripe.handler)
+            get_paypal: lambda: PayPalClient(
+                "cid", "secret", "sandbox", transport=httpx.MockTransport(paypal.handler)
             ),
-            optional_stripe: lambda: StripeClient(
-                "sk_test", transport=httpx.MockTransport(stripe.handler)
+            optional_paypal: lambda: PayPalClient(
+                "cid", "secret", "sandbox", transport=httpx.MockTransport(paypal.handler)
             ),
             get_providers: lambda: Providers(llm=FakeLLM(), stt=FakeSTT(), tts=FakeTTS()),
             get_oauth_http: lambda: httpx.Client(
@@ -100,7 +130,7 @@ def env(monkeypatch):
             "settings": settings,
             "mailer": mailer,
             "google": google,
-            "stripe": stripe,
+            "paypal": paypal,
         }
 
 
@@ -133,13 +163,29 @@ def plan_lesson(env, token, goal="add up a column"):
     )
 
 
-def webhook(env, event: dict, secret=WEBHOOK_SECRET):
-    payload = json.dumps(event).encode()
-    return env["client"].post(
-        "/v1/billing/webhook",
-        content=payload,
-        headers={"Stripe-Signature": sign(payload, secret), "Content-Type": "application/json"},
+def webhook(env, event: dict, sig="good"):
+    headers = {
+        "paypal-auth-algo": "SHA256withRSA",
+        "paypal-cert-url": "https://api.paypal.test/cert",
+        "paypal-transmission-id": "t-1",
+        "paypal-transmission-sig": sig,
+        "paypal-transmission-time": "2027-01-01T00:00:00Z",
+        "Content-Type": "application/json",
+    }
+    return env["client"].post("/v1/billing/webhook", content=json.dumps(event), headers=headers)
+
+
+def sub_event(eid: str, etype: str, resource: dict) -> dict:
+    return {"id": eid, "event_type": etype, "resource": resource}
+
+
+def subscribe(env, token, **body) -> str:
+    """Starts a PayPal subscription through the API; returns its id."""
+    r = env["client"].post(
+        "/v1/billing/checkout", json={"plan": "pro", **body}, headers=bearer(token)
     )
+    assert r.status_code == 200, r.text
+    return r.json()["url"].rsplit("/", 1)[1]
 
 
 def use_up(user_email: str, kind: str, n: int):
@@ -292,130 +338,118 @@ def test_usage_tokens_recorded_after_stream(env):
 # --- billing ---
 
 
-def test_checkout_creates_customer_and_session(env):
+def test_checkout_creates_a_paypal_subscription(env):
     token = magic_sign_in(env)
+    uid = env["client"].get("/v1/me", headers=bearer(token)).json()["id"]
     r = env["client"].post("/v1/billing/checkout", json={"plan": "pro"}, headers=bearer(token))
-    assert r.json() == {"url": "https://checkout.stripe.test/cs_1"}
-    paths = [p for p, _ in env["stripe"].calls]
-    assert paths == ["/v1/customers", "/v1/checkout/sessions"]
-    form = env["stripe"].calls[1][1]
-    assert form["line_items[0][price]"] == "price_pro" and form["line_items[0][quantity]"] == "1"
-    assert form["mode"] == "subscription" and form["allow_promotion_codes"] == "true"
-    assert form["metadata[plan]"] == "pro" and form["success_url"].startswith(
-        "https://nudgy.test/billing/done"
-    )
-    # Second checkout reuses the customer; student discount applies the coupon.
-    env["client"].post(
-        "/v1/billing/checkout", json={"plan": "pro", "student": True}, headers=bearer(token)
-    )
-    assert [p for p, _ in env["stripe"].calls][2:] == ["/v1/checkout/sessions"]
-    assert env["stripe"].calls[2][1]["discounts[0][coupon]"] == "coupon_student"
-    assert "allow_promotion_codes" not in env["stripe"].calls[2][1]
+    assert r.json() == {"url": "https://paypal.test/approve/I-1"}
+    method, path, body = env["paypal"].calls[-1]
+    assert (method, path) == ("POST", "/v1/billing/subscriptions")
+    assert body["plan_id"] == "P-PRO" and body["custom_id"] == str(uid)
+    ctx = body["application_context"]
+    assert ctx["return_url"] == "https://nudgy.test/billing/done?status=success"
+    assert ctx["shipping_preference"] == "NO_SHIPPING" and "quantity" not in body
+    me = env["client"].get("/v1/me", headers=bearer(token)).json()
+    assert me["subscription_status"] == "approval_pending" and me["plan"] == "free"
 
 
-def test_checkout_needs_account_and_configured_price(env, monkeypatch):
+def test_checkout_needs_account_and_configured_plan(env, monkeypatch):
     assert env["client"].post("/v1/billing/checkout", json={"plan": "pro"}).status_code == 401
     token = magic_sign_in(env)
-    monkeypatch.delenv("STRIPE_PRICE_PRO")
+    monkeypatch.delenv("PAYPAL_PLAN_PRO")
     r = env["client"].post("/v1/billing/checkout", json={"plan": "pro"}, headers=bearer(token))
     assert r.status_code == 503 and r.json()["detail"]["code"] == "config"
 
 
-def test_webhook_rejects_bad_signatures(env):
-    ev = {"id": "evt_x", "type": "checkout.session.completed", "data": {"object": {}}}
-    assert webhook(env, ev, secret="wrong").status_code == 400
-    payload = json.dumps(ev).encode()
-    old = sign(payload, WEBHOOK_SECRET, ts=int(time.time()) - 3600)
-    r = env["client"].post(
-        "/v1/billing/webhook", content=payload, headers={"Stripe-Signature": old}
-    )
+def test_webhook_rejects_deliveries_paypal_does_not_verify(env):
+    ev = sub_event("WH-x", "BILLING.SUBSCRIPTION.ACTIVATED", {"id": "I-9", "status": "ACTIVE"})
+    assert webhook(env, ev, sig="forged").status_code == 400
+    r = env["client"].post("/v1/billing/webhook", content=json.dumps(ev))  # no PayPal headers
     assert r.status_code == 400
-    r = env["client"].post("/v1/billing/webhook", content=payload)
-    assert r.status_code == 400
+    env["settings"].paypal_webhook_id = None
+    assert webhook(env, ev).status_code == 503
 
 
 def test_signup_hit_limit_pay_and_get_upgraded(env):
-    """The Phase 7 'done when' scenario, end to end with a mocked Stripe."""
+    """Cap reached → subscribe on PayPal → back in Nudgy with Pro right away."""
     token = magic_sign_in(env, "grace@example.com")
     use_up("grace@example.com", "lessons", 5)
     assert plan_lesson(env, token).status_code == 402
 
-    assert (
-        env["client"]
-        .post("/v1/billing/checkout", json={"plan": "pro"}, headers=bearer(token))
-        .status_code
-        == 200
-    )
-    user_id = env["client"].get("/v1/me", headers=bearer(token)).json()["id"]
-    completed = {
-        "id": "evt_1",
-        "type": "checkout.session.completed",
-        "data": {
-            "object": {
-                "customer": "cus_123",
-                "subscription": "sub_1",
-                "client_reference_id": str(user_id),
-                "metadata": {"user_id": str(user_id), "plan": "pro"},
-            }
-        },
-    }
-    assert webhook(env, completed).json() == {"outcome": "upgraded:pro"}
-    assert webhook(env, completed).json() == {
-        "outcome": "duplicate"
-    }  # Stripe retries are idempotent
-
+    sid = subscribe(env, token)
+    env["paypal"].approve(sid)
+    # The return page confirms with PayPal (the URL alone is never trusted).
+    page = env["client"].get(f"/billing/done?status=success&subscription_id={sid}")
+    assert "Your plan is active" in page.text
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
     assert me["plan"] == "pro" and me["subscription_status"] == "active" and me["paid"]
     assert me["access"] == {"notice": None, "capped": False, "lessons": None, "offer": None}
     assert plan_lesson(env, token).status_code == 200
 
-    # Cancelling in the portal downgrades via the subscription webhook.
-    deleted = {
-        "id": "evt_2",
-        "type": "customer.subscription.deleted",
-        "data": {"object": {"id": "sub_1", "customer": "cus_123", "status": "canceled"}},
-    }
-    assert webhook(env, deleted).json() == {"outcome": "downgraded"}
+    # The webhook arriving later agrees, and PayPal retries are idempotent.
+    activated = sub_event("WH-1", "BILLING.SUBSCRIPTION.ACTIVATED", env["paypal"].subs[sid])
+    assert webhook(env, activated).json() == {"outcome": "active:pro"}
+    assert webhook(env, activated).json() == {"outcome": "duplicate"}
+
+    # Cancelling keeps Pro until the paid period ends…
+    cancelled = sub_event(
+        "WH-2",
+        "BILLING.SUBSCRIPTION.CANCELLED",
+        {**env["paypal"].subs[sid], "status": "CANCELLED"},
+    )
+    assert webhook(env, cancelled).json() == {"outcome": "canceled"}
+    me = env["client"].get("/v1/me", headers=bearer(token)).json()
+    assert me["plan"] == "pro" and me["subscription_status"] == "canceled"
+    # …and once it's over they're back on Free.
+    expired = sub_event("WH-3", "BILLING.SUBSCRIPTION.EXPIRED", {"id": sid, "status": "EXPIRED"})
+    assert webhook(env, expired).json() == {"outcome": "downgraded"}
     assert env["client"].get("/v1/me", headers=bearer(token)).json()["plan"] == "free"
 
 
-def test_subscription_updates_map_price_to_plan(env):
+def test_cancel_with_paid_period_already_over_is_free(env):
     token = magic_sign_in(env)
-    uid = env["client"].get("/v1/me", headers=bearer(token)).json()["id"]
-    upd = {
-        "id": "evt_3",
-        "type": "customer.subscription.updated",
-        "data": {
-            "object": {
-                "id": "sub_9",
-                "status": "active",
-                "metadata": {"user_id": str(uid)},
-                "items": {"data": [{"price": {"id": "price_pro"}, "quantity": 1}]},
-            }
-        },
-    }
-    assert webhook(env, upd).json() == {"outcome": "plan:pro"}
-    failed = {
-        "id": "evt_4",
-        "type": "invoice.payment_failed",
-        "data": {"object": {"customer": None, "metadata": {"user_id": str(uid)}}},
-    }
+    sid = subscribe(env, token)
+    sub = env["paypal"].approve(sid, next_billing="2020-01-01T00:00:00Z")
+    webhook(env, sub_event("WH-a", "BILLING.SUBSCRIPTION.ACTIVATED", sub))
+    webhook(
+        env,
+        sub_event("WH-c", "BILLING.SUBSCRIPTION.CANCELLED", {**sub, "status": "CANCELLED"}),
+    )
+    assert env["client"].get("/v1/me", headers=bearer(token)).json()["plan"] == "free"
+
+
+def test_failed_payment_keeps_the_plan_while_paypal_retries(env):
+    token = magic_sign_in(env)
+    sid = subscribe(env, token)
+    webhook(env, sub_event("WH-a", "BILLING.SUBSCRIPTION.ACTIVATED", env["paypal"].approve(sid)))
+    failed = sub_event("WH-f", "BILLING.SUBSCRIPTION.PAYMENT.FAILED", env["paypal"].subs[sid])
     assert webhook(env, failed).json() == {"outcome": "past_due"}
+    me = env["client"].get("/v1/me", headers=bearer(token)).json()
+    assert me["plan"] == "pro" and me["subscription_status"] == "past_due"
+    paid = sub_event("WH-p", "PAYMENT.SALE.COMPLETED", {"billing_agreement_id": sid})
+    assert webhook(env, paid).json() == {"outcome": "renewed"}
     assert (
-        env["client"].get("/v1/me", headers=bearer(token)).json()["plan"] == "pro"
-    )  # kept while Stripe retries
+        env["client"].get("/v1/me", headers=bearer(token)).json()["subscription_status"] == "active"
+    )
+    suspended = sub_event(
+        "WH-s", "BILLING.SUBSCRIPTION.SUSPENDED", {"id": sid, "status": "SUSPENDED"}
+    )
+    assert webhook(env, suspended).json() == {"outcome": "downgraded"}
 
 
-def test_portal(env):
+def test_manage_billing_opens_paypal_autopay(env):
     token = magic_sign_in(env)
     assert env["client"].post("/v1/billing/portal", headers=bearer(token)).status_code == 400
-    env["client"].post("/v1/billing/checkout", json={"plan": "pro"}, headers=bearer(token))
-    assert (
-        env["client"]
-        .post("/v1/billing/portal", headers=bearer(token))
-        .json()["url"]
-        .startswith("https://billing")
-    )
+    subscribe(env, token)
+    url = env["client"].post("/v1/billing/portal", headers=bearer(token)).json()["url"]
+    assert url == "https://www.sandbox.paypal.com/myaccount/autopay/"
+
+
+def test_return_page_without_paypal_confirmation_changes_nothing(env):
+    token = magic_sign_in(env)
+    sid = subscribe(env, token)  # never approved on PayPal
+    env["client"].get(f"/billing/done?status=success&subscription_id={sid}")
+    assert env["client"].get("/v1/me", headers=bearer(token)).json()["plan"] == "free"
 
 
 # --- teams ---
@@ -424,18 +458,18 @@ def test_portal(env):
 def test_team_plan_invites_and_shared_library(env):
     owner = magic_sign_in(env, "boss@acme.com")
     uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
-    team_paid = {
-        "id": "evt_t",
-        "type": "checkout.session.completed",
-        "data": {
-            "object": {
-                "customer": "cus_t",
-                "subscription": "sub_t",
-                "metadata": {"user_id": str(uid), "plan": "team", "seats": "2"},
-            }
+    team_paid = sub_event(
+        "WH-t",
+        "BILLING.SUBSCRIPTION.ACTIVATED",
+        {
+            "id": "I-T",
+            "plan_id": "P-TEAM",
+            "custom_id": str(uid),
+            "status": "ACTIVE",
+            "quantity": "2",
         },
-    }
-    assert webhook(env, team_paid).json()["outcome"] == "upgraded:team"
+    )
+    assert webhook(env, team_paid).json()["outcome"] == "active:team"
     team = env["client"].get("/v1/team", headers=bearer(owner)).json()
     assert (
         team["owner"]
@@ -504,17 +538,17 @@ def test_delete_account_cancels_billing_and_dissolves_team(env):
     uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
     webhook(
         env,
-        {
-            "id": "evt_d",
-            "type": "checkout.session.completed",
-            "data": {
-                "object": {
-                    "customer": "cus_d",
-                    "subscription": "sub_d",
-                    "metadata": {"user_id": str(uid), "plan": "team", "seats": "3"},
-                }
+        sub_event(
+            "WH-d",
+            "BILLING.SUBSCRIPTION.ACTIVATED",
+            {
+                "id": "I-D",
+                "plan_id": "P-TEAM",
+                "custom_id": str(uid),
+                "status": "ACTIVE",
+                "quantity": "3",
             },
-        },
+        ),
     )
     env["client"].post("/v1/team/invites", json={"email": "m@acme.com"}, headers=bearer(owner))
     member = magic_sign_in(env, "m@acme.com")
@@ -526,7 +560,9 @@ def test_delete_account_cancels_billing_and_dissolves_team(env):
     r = env["client"].delete("/v1/me", headers=bearer(owner))
     assert r.status_code == 200
     assert r.json()["deleted"] is True and r.json()["team_dissolved"] is True
-    assert ("/v1/subscriptions/sub_d", {}) in env["stripe"].calls
+    assert ("POST", "/v1/billing/subscriptions/I-D/cancel", {"reason": "Account deleted"}) in env[
+        "paypal"
+    ].calls
     assert env["client"].get("/v1/me", headers=bearer(owner)).status_code == 401
     me = env["client"].get("/v1/me", headers=bearer(member)).json()
     assert me["plan"] == "free" and me["team"] is None
@@ -543,38 +579,21 @@ def test_delete_free_account_without_billing(env):
 
 
 def test_monthly_and_yearly_pro_prices(env, monkeypatch):
-    monkeypatch.setenv("STRIPE_PRICE_PRO_YEARLY", "price_pro_year")
+    monkeypatch.setenv("PAYPAL_PLAN_PRO_YEARLY", "P-PRO-YEAR")
     token = magic_sign_in(env)
     # Capped free users are offered both prices (labels from plans.yaml).
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
     assert me["access"]["offer"] == {"month": "$20", "year": "$40"}
-    r = env["client"].post(
-        "/v1/billing/checkout", json={"plan": "pro", "interval": "year"}, headers=bearer(token)
-    )
-    assert r.status_code == 200
-    assert env["stripe"].calls[-1][1]["line_items[0][price]"] == "price_pro_year"
-    # A yearly subscription maps back to Pro in the webhook.
-    uid = me["id"]
-    upd = {
-        "id": "evt_y",
-        "type": "customer.subscription.updated",
-        "data": {
-            "object": {
-                "id": "sub_y",
-                "customer": "cus_123",
-                "status": "active",
-                "metadata": {"user_id": str(uid)},
-                "items": {"data": [{"price": {"id": "price_pro_year"}, "quantity": 1}]},
-            }
-        },
-    }
-    webhook(env, upd)
+    sid = subscribe(env, token, interval="year")
+    assert env["paypal"].subs[sid]["plan_id"] == "P-PRO-YEAR"
+    # A yearly subscription maps back to Pro.
+    webhook(env, sub_event("WH-y", "BILLING.SUBSCRIPTION.ACTIVATED", env["paypal"].approve(sid)))
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
     assert me["plan"] == "pro" and me["access"]["offer"] is None
 
 
 def test_offer_lists_only_prices_that_exist(env, monkeypatch):
-    monkeypatch.delenv("STRIPE_PRICE_PRO_YEARLY", raising=False)
+    monkeypatch.delenv("PAYPAL_PLAN_PRO_YEARLY", raising=False)
     token = magic_sign_in(env)
     assert env["client"].get("/v1/access", headers=bearer(token)).json()["offer"] == {
         "month": "$20"
@@ -583,3 +602,21 @@ def test_offer_lists_only_prices_that_exist(env, monkeypatch):
         "/v1/billing/checkout", json={"plan": "pro", "interval": "year"}, headers=bearer(token)
     )
     assert r.status_code == 503 and r.json()["detail"]["code"] == "config"
+
+
+def test_webhook_verification_sends_the_event_exactly_as_received(env):
+    ev = sub_event("WH-raw", "BILLING.SUBSCRIPTION.UPDATED", {"id": "I-404", "status": "ACTIVE"})
+    raw = json.dumps(ev, indent=3)  # unusual spacing must survive untouched
+    headers = {
+        "paypal-auth-algo": "a",
+        "paypal-cert-url": "c",
+        "paypal-transmission-id": "i",
+        "paypal-transmission-sig": "good",
+        "paypal-transmission-time": "t",
+    }
+    assert (
+        env["client"].post("/v1/billing/webhook", content=raw, headers=headers).status_code == 200
+    )
+    verify = [c for c in env["paypal"].calls if c[1].endswith("verify-webhook-signature")][-1]
+    assert verify[2]["webhook_event"] == ev and verify[2]["webhook_id"] == WEBHOOK_ID
+    assert raw.encode() in env["paypal"].raw[env["paypal"].calls.index(verify)]

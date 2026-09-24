@@ -44,7 +44,7 @@ the text of your recent questions (last 200), recorded walkthroughs, and your se
 Nothing here is uploaded unless you share it.
 
 **On the server, only if you create an account:** your email and name, plan and billing
-status (payments are handled by Stripe; we never see card numbers), a count of questions and
+status (payments are handled by PayPal; we never see card or bank details), a count of questions and
 lessons with token counts and timings for plan limits, your team membership, and walkthroughs
 you chose to share. Shared links are unlisted but anyone with the link can open them; shared
 copies leave out screenshots unless you choose to include them.

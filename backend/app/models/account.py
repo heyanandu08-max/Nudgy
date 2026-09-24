@@ -27,11 +27,13 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(200), default="")
     plan: Mapped[str] = mapped_column(String(32), default="free")
     team_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True, index=True)
-    stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    stripe_subscription_id: Mapped[str | None] = mapped_column(
+    # PayPal subscription ("I-…") and its state; `paid_until` is set after a cancel, when the
+    # plan stays on until the period already paid for ends.
+    billing_subscription_id: Mapped[str | None] = mapped_column(
         String(64), nullable=True, index=True
     )
     subscription_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    paid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -71,10 +73,10 @@ class UsedToken(Base):
     used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
-class StripeEvent(Base):
-    """Processed webhook event ids, for idempotency."""
+class BillingEvent(Base):
+    """Processed PayPal webhook event ids, for idempotency."""
 
-    __tablename__ = "stripe_events"
+    __tablename__ = "billing_events"
 
     id: Mapped[str] = mapped_column(String(80), primary_key=True)
     type: Mapped[str] = mapped_column(String(80))

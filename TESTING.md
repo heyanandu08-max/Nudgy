@@ -93,7 +93,10 @@ and listen to the clips.
 | Import the link on a **Mac** that was recorded on **Windows** (Chrome): steps match and point correctly | | |
 
 ## Phase 7 — Accounts, limits, billing
-Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost:8787/v1/billing/webhook`.
+Backend with PayPal **sandbox** credentials (`PAYPAL_ENV=sandbox`), sandbox plans for $20/month and
+$40/year, and a sandbox webhook pointing at the server's `/v1/billing/webhook` (use a tunnel such as
+`cloudflared tunnel --url http://localhost:8787` when testing locally). Pay with a PayPal
+sandbox *personal* test account.
 
 | Check | Win | Mac |
 |-------|-----|-----|
@@ -101,9 +104,10 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Continue with Google / Apple → same hand-off | | |
 | Relaunch after a day → still signed in (token rotated) | | |
 | Free plan (capped, see Billing below): questions are never limited; the lesson cap is covered in Billing | | |
-| Choose Pro → Stripe Checkout (card 4242 4242 4242 4242) → back in Nudgy, plan shows Pro within seconds | | |
-| Student discount applies the coupon in Checkout | | |
-| Manage billing → cancel → plan returns to Free when the period ends | | |
+| Subscribe · $20 a month → PayPal approval page → log in with the sandbox buyer → back in Nudgy, plan shows Pro within seconds | | |
+| Same with $40 a year → PayPal shows the yearly plan; Pro | | |
+| Cancel on PayPal's page before approving → "Nothing was charged", still Free | | |
+| Manage in PayPal → cancel the automatic payment → Pro stays until the paid period ends, then Free | | |
 | Team (3 seats) → invite 2 people → they sign in with those emails → appear as members; 4th invite refused | | |
 | Share a walkthrough with "Share with my team" → teammates see it under Team library → Import | | |
 
@@ -119,7 +123,7 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Idle for 10 min with network monitor open → no requests to the Nudgy server | | |
 | Settings → Privacy → Export → JSON contains lessons, asks, walkthroughs, settings (+ account if signed in) | | |
 | Delete learning history → Home shows the empty state | | |
-| Delete my account (signed in, Pro test subscription) → Stripe dashboard shows it cancelled; signed out | | |
+| Delete my account (signed in, Pro test subscription) → PayPal shows the subscription cancelled; signed out | | |
 | Server log after a session: no base64, no question text | | |
 
 ## Phase 9 — Polish & release

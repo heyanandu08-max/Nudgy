@@ -214,7 +214,7 @@
     "signedInAs": "Signed in as {{email}}",
     "signOut": "Sign out",
     "seats": "Seats",
-    "manage": "Manage billing",
+    "manage": "Manage in PayPal",
     "pastDue": "Your last payment failed. Update your card in billing to keep your plan.",
     "teamTitle": "Your team",
     "members": "Members",
@@ -406,7 +406,7 @@
       "year": "{{price}} a year"
     },
     "result": {
-      "opened": "checkout opened in your browser · Nudgy updates when you're done",
+      "opened": "PayPal opened in your browser · Nudgy updates when you're done",
       "not_connected": "subscriptions aren't open yet",
       "failed": "couldn't open checkout · try again in a minute"
     }

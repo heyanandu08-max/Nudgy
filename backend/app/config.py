@@ -54,10 +54,11 @@ class Settings(BaseSettings):
     # Enables /v1/admin/* (header X-Admin-Token). Unset = admin API off.
     admin_token: str | None = None
 
-    stripe_secret_key: str | None = Field(default=None, validation_alias="STRIPE_SECRET_KEY")
-    stripe_webhook_secret: str | None = Field(
-        default=None, validation_alias="STRIPE_WEBHOOK_SECRET"
-    )
+    # PayPal subscriptions (developer.paypal.com → Apps & Credentials). Plan IDs: plans.yaml.
+    paypal_client_id: str | None = Field(default=None, validation_alias="PAYPAL_CLIENT_ID")
+    paypal_client_secret: str | None = Field(default=None, validation_alias="PAYPAL_CLIENT_SECRET")
+    paypal_webhook_id: str | None = Field(default=None, validation_alias="PAYPAL_WEBHOOK_ID")
+    paypal_env: str = Field(default="sandbox", validation_alias="PAYPAL_ENV")  # sandbox | live
 
     llm_provider: str = "fake"
     stt_provider: str = "fake"
@@ -99,6 +100,8 @@ class Settings(BaseSettings):
         ]
         if fakes:
             problems.append(f"NUDGY_{'/'.join(fakes)}_PROVIDER is 'fake'")
+        if self.paypal_client_id and self.paypal_env != "live":
+            problems.append("PAYPAL_ENV must be 'live' in production (it is the test sandbox)")
         if self.admin_token is not None and len(self.admin_token) < 32:
             problems.append("NUDGY_ADMIN_TOKEN must be at least 32 characters")
         if not self.public_url.startswith("https://"):

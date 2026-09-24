@@ -210,15 +210,14 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
       token rotated on every launch
 - [x] Plans in `config/plans.yaml` (Free, Pro, Team per-seat; limits superseded by D38–D39); per-request
       usage metering (metadata only) + monthly limits → 402 `limit_reached`
-- [x] Stripe Checkout (student coupon or promo codes) + customer portal; webhook with signature check
-      (HMAC, 5-min tolerance), idempotent event handling, plan activation/downgrade/past_due
+- [x] PayPal subscriptions (D44, replaced Stripe): approval page, return-page confirmation, webhook
+      verified by PayPal, idempotent events, activate / cancel-at-period-end / suspend / expire / past_due
 - [x] Team plan: team created on purchase, seat-limited email invites (accepted on sign-in), shared
       walkthrough library; Account tab in the app
 - [x] Production refuses to start with a weak JWT secret, auth off, or console email
 - [~] **Done when:** signup → hit free limit → pay (test mode) → auto-upgrade
-  (covered end to end by `test_signup_hit_limit_pay_and_get_upgraded` with a mocked Stripe API and real
-  signature verification; magic-link → deep-link sign-in verified live on Linux; real Stripe test-mode
-  run needs keys)
+  (covered end to end by `test_signup_hit_limit_pay_and_get_upgraded` with a mocked PayPal API;
+  magic-link → deep-link sign-in verified live on Linux; a real PayPal sandbox run needs credentials)
 
 ### Redesign — nudgy-kit (between 7 and 8; see DESIGN_AUDIT.md)
 - [x] Tokens, local fonts, radii, icons from `brand/`

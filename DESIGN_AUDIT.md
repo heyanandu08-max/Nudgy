@@ -182,3 +182,13 @@ Both OSes now get the same thin styled scrollbar (`tokens.css`).
 Not verified: real Windows and macOS binaries weren't run side by side, because this was done in
 a Linux container. Both targets compile (`scripts/check_targets.sh`). The side-by-side hardware
 check is in `TESTING.md` → Billing.
+
+### Payments update (D44)
+Subscribe now opens **PayPal** (Nudgy Pro: $20 a month or $40 a year) instead of the stub /
+Stripe. Same shared components on both OSes: one button per price on the cap screen and in
+Account ("Subscribe · $20 a month", "$40 a year"), a mono status line under them, and
+"Manage in PayPal" for subscribers. Files: `backend/app/services/paypal_api.py` (new),
+`backend/app/services/billing.py`, `backend/app/routers/billing.py`, `backend/app/routers/auth.py`,
+`backend/app/models/account.py`, `backend/app/services/{plans,usage,account_data}.py`,
+`backend/config/plans.yaml`, `app/src/features/billing/{subscribe.ts,SubscribeButton.tsx}`,
+`app/src-tauri/src/account.rs`, `app/src/i18n/locales/en.json`.

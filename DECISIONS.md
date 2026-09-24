@@ -149,7 +149,7 @@ backend ends each sign-in on a page that opens `nudgy://auth?token=…`; the app
 `/v1/me` before storing it (0600 file on macOS/Linux, per-user AppData on Windows). No OAuth
 secrets or card data ever touch the desktop app. Sessions are 30-day HS256 JWTs, rotated on launch.
 
-## D28 — Stripe over plain HTTPS, not the SDK
+## D28 — Stripe over plain HTTPS, not the SDK (superseded by D44: PayPal)
 Three calls (customer, checkout session, portal session) and a webhook HMAC check are simpler to
 test with an httpx mock transport than to wrap the SDK; signature verification is implemented and
 tested explicitly. Multi-currency (local prices) is a Stripe Dashboard setting (Adaptive Pricing /
@@ -219,7 +219,19 @@ seeds it.
 an explanation with the reset date and an always-available "Not now", never a disabled button
 or a lockout.
 
-## D41 — Subscribe is a stub until billing is chosen
+## D41 — Subscribe is a stub until billing is chosen (superseded: PayPal, D44)
 The upgrade screen and Account share one `startSubscription()` (TODO: connect billing provider).
 The Stripe checkout/webhook code stays in the backend; wiring it in is a one-function change.
 Until then, `PUT /v1/admin/users/{email}/plan` stands in for a subscription in QA.
+
+## D44 — PayPal subscriptions instead of Stripe
+Payments go through PayPal (available where Stripe isn't; buyers can use a PayPal balance or
+card). Nudgy Pro is two PayPal plans, $20/month and $40/year, whose IDs come from the
+environment. Subscribing opens PayPal's approval page; the account turns Pro when PayPal says
+the subscription is ACTIVE, either when the buyer returns (the return page reads the
+subscription from PayPal, never trusting the URL) or from the webhook, whichever comes first.
+Webhooks are checked with PayPal's verify-webhook-signature API, passing the event bytes
+unchanged. A cancel keeps Pro until the paid period ends (`paid_until` = next billing time);
+suspended or expired subscriptions drop to Free; a failed payment keeps the plan while PayPal
+retries. PayPal has no merchant billing portal, so "Manage in PayPal" opens the buyer's
+automatic-payments page. There are no coupons (the student discount was Stripe-only).

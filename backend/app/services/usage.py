@@ -26,8 +26,13 @@ def next_month(d: datetime) -> datetime:
     return d.replace(year=d.year + 1, month=1) if d.month == 12 else d.replace(month=d.month + 1)
 
 
-def effective_plan(db: Session, user: User) -> str:
-    """Team members use the team plan while their team exists."""
+def effective_plan(db: Session, user: User, now: datetime | None = None) -> str:
+    """Team members use the team plan while their team exists. A cancelled subscription
+    keeps its plan until the period already paid for ends (`paid_until`)."""
+    if user.paid_until is not None:
+        until = user.paid_until if user.paid_until.tzinfo else user.paid_until.replace(tzinfo=UTC)
+        if (now or datetime.now(UTC)) >= until:
+            return "free"
     if user.team_id is not None and db.get(Team, user.team_id) is not None:
         return "team"
     return user.plan
