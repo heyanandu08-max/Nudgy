@@ -1,3 +1,4 @@
+import sys
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
@@ -9,12 +10,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = BACKEND_DIR / "config"
 PROMPTS_DIR = BACKEND_DIR / "prompts"
+# Packaged as one program (nudgy-server.exe): the .env sits next to the program.
+FROZEN_ENV = (Path(sys.executable).resolve().parent / ".env",) if getattr(sys, "frozen", False) else ()
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="NUDGY_",
-        env_file=(BACKEND_DIR.parent / ".env", BACKEND_DIR / ".env"),
+        env_file=(BACKEND_DIR.parent / ".env", BACKEND_DIR / ".env", *FROZEN_ENV),
         extra="ignore",
     )
 

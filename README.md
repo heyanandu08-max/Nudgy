@@ -133,6 +133,9 @@ macOS. Manual checks that need real hardware are in [`TESTING.md`](TESTING.md).
 
 ## Build and release
 
+- **Windows test build**: push a tag `test-N`; `.github/workflows/test-build.yml` builds the unsigned
+  installer and `nudgy-server.exe` (the backend as one program, `backend/nudgy-server.spec`) into a
+  draft release.
 - **Local installer**: `cd app && npm run tauri build` (MSI + NSIS on Windows, .app + DMG on macOS).
 - **Release**: bump `version` in `app/src-tauri/tauri.conf.json` and `app/package.json`, then
   push a tag `vX.Y.Z`. `.github/workflows/release.yml` builds signed, notarized installers and a
