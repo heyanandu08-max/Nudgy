@@ -10,6 +10,7 @@ and the voice (see http_stt.py / http_tts.py).
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 from collections.abc import AsyncIterator
@@ -64,6 +65,8 @@ class OpenAICompatibleLLM:
         model: str,
         *,
         vision: bool = True,
+        fallback_model: str | None = None,
+        retry_delay: float = 1.0,
         timeout: float = 60.0,
         transport: httpx.AsyncBaseTransport | None = None,
     ):
@@ -72,6 +75,8 @@ class OpenAICompatibleLLM:
         self.url = v1_url(base_url, "/chat/completions")
         self.headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self.model = model
+        self.fallback_model = fallback_model or None
+        self.retry_delay = retry_delay
         self.vision = vision
         self.timeout = timeout
         self.transport = transport
@@ -85,8 +90,30 @@ class OpenAICompatibleLLM:
         usage: Usage,
         effort: str | None = None,  # no portable equivalent; ignored
     ) -> AsyncIterator[str]:
+        """Free and shared models are often briefly overloaded (429/503). Before anything has
+        been said: retry once, then try the fallback model. Mid-answer failures aren't retried
+        (the words already went to the user)."""
+        attempts = [(self.model, 0.0), (self.model, self.retry_delay)]
+        if self.fallback_model and self.fallback_model != self.model:
+            attempts.append((self.fallback_model, 0.0))
+        for i, (model, delay) in enumerate(attempts):
+            if delay:
+                await asyncio.sleep(delay)
+            started = False
+            try:
+                async for text in self._stream_once(model, system, messages, max_tokens, usage):
+                    started = True
+                    yield text
+                return
+            except ProviderError as e:
+                if started or not e.retryable or i == len(attempts) - 1:
+                    raise
+
+    async def _stream_once(
+        self, model: str, system: str, messages: list[Message], max_tokens: int, usage: Usage
+    ) -> AsyncIterator[str]:
         body = {
-            "model": self.model,
+            "model": model,
             "max_tokens": max_tokens,
             "stream": True,
             "messages": to_openai(system, messages, self.vision),

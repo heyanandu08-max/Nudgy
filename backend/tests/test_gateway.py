@@ -233,3 +233,53 @@ def test_llm_can_use_its_own_service_while_voice_uses_the_gateway():
     assert llm.url == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
     assert llm.headers["Authorization"] == "Bearer other-key"
     assert build_tts(s).url == "http://127.0.0.1:31415/v1/audio/speech"
+
+
+@sync
+async def test_busy_model_is_retried_then_falls_back():
+    calls = []
+
+    def respond(req):
+        model = json.loads(req.content)["model"]
+        calls.append(model)
+        if model == "main":
+            return httpx.Response(503, json={"error": "high demand"})
+        return sse(delta("from backup"))
+
+    llm = OpenAICompatibleLLM(
+        "http://g",
+        KEY,
+        "main",
+        fallback_model="backup",
+        retry_delay=0,
+        transport=httpx.MockTransport(respond),
+    )
+    text = await collect(llm, system="s", messages=MESSAGES, max_tokens=10, usage=Usage())
+    assert text == "from backup" and calls == ["main", "main", "backup"]
+
+
+@sync
+async def test_retry_recovers_without_fallback_and_auth_errors_are_not_retried():
+    calls = []
+
+    def flaky(req):
+        calls.append(1)
+        return httpx.Response(429) if len(calls) == 1 else sse(delta("ok"))
+
+    llm = OpenAICompatibleLLM(
+        "http://g", KEY, "m", retry_delay=0, transport=httpx.MockTransport(flaky)
+    )
+    assert await collect(llm, system="s", messages=MESSAGES, max_tokens=10, usage=Usage()) == "ok"
+
+    denied = Server(lambda r: httpx.Response(401))
+    llm = OpenAICompatibleLLM(
+        "http://g",
+        KEY,
+        "m",
+        fallback_model="b",
+        retry_delay=0,
+        transport=httpx.MockTransport(denied),
+    )
+    with pytest.raises(ProviderError, match="rejected"):
+        await collect(llm, system="s", messages=MESSAGES, max_tokens=10, usage=Usage())
+    assert len(denied.requests) == 1

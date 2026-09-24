@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None
     llm_api_key: str | None = None
     llm_vision: bool = True  # false if the gateway's model can't read screenshots
+    llm_fallback_model: str = ""  # used when the main model is busy (429/503), e.g. a lite one
     stt_model: str = ""  # gateway speech-to-text model name
     tts_model: str = ""  # gateway voice model name, e.g. @cf/deepgram/aura-2-en
     tts_voice: str = ""  # optional; many gateway voice models need none

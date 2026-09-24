@@ -35,6 +35,7 @@ def build_llm(s: Settings) -> LLMProvider:
                 s.llm_api_key or s.gateway_key,
                 s.llm_model,
                 vision=s.llm_vision,
+                fallback_model=s.llm_fallback_model,
             )
         case "fake":
             from app.providers.fake import FakeLLM
