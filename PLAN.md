@@ -205,11 +205,20 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   guided lesson; cross-OS replay needs two real machines)
 
 ### Phase 7 — Accounts, limits, billing
-- [ ] Magic-link email, Google, Apple sign-in → JWT; app deep link `nudgy://auth`
-- [ ] Plans in `config/plans.yaml`; per-request usage metering + limits
-- [ ] Stripe Checkout + webhooks (signature verified); student coupon
-- [ ] Team plan: org + shared walkthrough library
-- [ ] **Done when:** signup → hit free limit → pay (test mode) → auto-upgrade
+- [x] Magic-link email (single-use, 15 min), Google (OIDC code flow) and Apple (form_post id_token)
+      sign-in → 30-day JWT → `nudgy://auth?token=…` deep link (single-instance forwarding on Win/Linux);
+      token rotated on every launch
+- [x] Plans in `config/plans.yaml` (Free 30 asks + 3 lessons/month, Pro, Team per-seat); per-request
+      usage metering (metadata only) + monthly limits → 402 `limit_reached`
+- [x] Stripe Checkout (student coupon or promo codes) + customer portal; webhook with signature check
+      (HMAC, 5-min tolerance), idempotent event handling, plan activation/downgrade/past_due
+- [x] Team plan: team created on purchase, seat-limited email invites (accepted on sign-in), shared
+      walkthrough library; Account tab in the app
+- [x] Production refuses to start with a weak JWT secret, auth off, or console email
+- [~] **Done when:** signup → hit free limit → pay (test mode) → auto-upgrade
+  (covered end to end by `test_signup_hit_limit_pay_and_get_upgraded` with a mocked Stripe API and real
+  signature verification; magic-link → deep-link sign-in verified live on Linux; real Stripe test-mode
+  run needs keys)
 
 ### Phase 8 — Privacy & safety
 - [ ] Capture only while hotkey held / step verifying (enforced in Rust)

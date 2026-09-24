@@ -5,6 +5,8 @@ from typing import Annotated, TypeVar
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, ValidationError
 
+from app.deps import current_user, metered
+from app.models import UsageEvent, User
 from app.providers.base import ProviderError, Usage
 from app.providers.registry import Providers, get_providers
 from app.routers.ask import MAX_SCREENSHOT, _read
@@ -38,6 +40,7 @@ def _provider_error(e: ProviderError) -> HTTPException:
 @router.post("/lessons/plan", response_model=LessonPlan)
 async def plan(
     providers: Annotated[Providers, Depends(get_providers)],
+    _usage: Annotated[UsageEvent | None, Depends(metered("lessons"))],
     context: Annotated[str, Form()],
     screenshot: Annotated[UploadFile | None, File()] = None,
 ) -> LessonPlan:
@@ -53,6 +56,7 @@ async def plan(
 @router.post("/lessons/verify", response_model=VerifyResult)
 async def verify(
     providers: Annotated[Providers, Depends(get_providers)],
+    _usage: Annotated[UsageEvent | None, Depends(metered("lesson_calls"))],
     context: Annotated[str, Form()],
     screenshot: Annotated[UploadFile | None, File()] = None,
 ) -> VerifyResult:
@@ -68,6 +72,7 @@ async def verify(
 @router.post("/lessons/locate")
 async def locate(
     providers: Annotated[Providers, Depends(get_providers)],
+    _usage: Annotated[UsageEvent | None, Depends(metered("lesson_calls"))],
     context: Annotated[str, Form()],
     screenshot: Annotated[UploadFile | None, File()] = None,
 ) -> dict:
@@ -82,7 +87,11 @@ async def locate(
 
 
 @router.post("/speak")
-async def speak(req: SpeakRequest, providers: Annotated[Providers, Depends(get_providers)]) -> dict:
+async def speak(
+    req: SpeakRequest,
+    providers: Annotated[Providers, Depends(get_providers)],
+    _user: Annotated[User | None, Depends(current_user)],
+) -> dict:
     try:
         clips = await lessons.speak(req.text, providers.tts, req.voice_id, req.language)
     except ProviderError as e:

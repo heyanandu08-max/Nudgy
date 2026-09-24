@@ -91,3 +91,18 @@ and listen to the clips.
 | Import file on another machine → Play → pointer finds the same buttons by name | | |
 | Share → link copied; opening it in a browser shows the steps and "Open in Nudgy" | | |
 | Import the link on a **Mac** that was recorded on **Windows** (Chrome): steps match and point correctly | | |
+
+## Phase 7 — Accounts, limits, billing
+Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost:8787/v1/billing/webhook`.
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| Account → email link → click it in the mail → browser page opens Nudgy → Account shows signed in | | |
+| Continue with Google / Apple → same hand-off | | |
+| Relaunch after a day → still signed in (token rotated) | | |
+| Free plan: 31st question → caption says the free questions are used up | | |
+| Choose Pro → Stripe Checkout (card 4242 4242 4242 4242) → back in Nudgy, plan shows Pro within seconds | | |
+| Student discount applies the coupon in Checkout | | |
+| Manage billing → cancel → plan returns to Free when the period ends | | |
+| Team (3 seats) → invite 2 people → they sign in with those emails → appear as members; 4th invite refused | | |
+| Share a walkthrough with "Share with my team" → teammates see it under Team library → Import | | |

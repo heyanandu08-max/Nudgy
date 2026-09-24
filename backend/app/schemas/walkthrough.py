@@ -94,6 +94,7 @@ CLEANED_SCHEMA = (
 class ShareRequest(BaseModel):
     walkthrough: Walkthrough
     include_screenshots: bool = False
+    team: bool = False  # also list it in the team library
 
 
 class ShareResponse(BaseModel):

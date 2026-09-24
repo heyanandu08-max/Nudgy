@@ -32,6 +32,7 @@ export function WalkthroughsPage() {
   const [link, setLink] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [withShots, setWithShots] = useState(false);
+  const [toTeam, setToTeam] = useState(false);
   const [open, setOpen] = useState<Doc | null>(null);
 
   const refresh = useCallback(() => {
@@ -76,7 +77,7 @@ export function WalkthroughsPage() {
 
   const share = async (r: Row) => {
     try {
-      const url = await invoke<string>("walkthrough_share", { id: r.id, includeScreenshots: withShots });
+      const url = await invoke<string>("walkthrough_share", { id: r.id, includeScreenshots: withShots, team: toTeam });
       await navigator.clipboard?.writeText(url).catch(() => {});
       setStatus(t("walkthroughs.shared", { url }));
       refresh();
@@ -149,6 +150,11 @@ export function WalkthroughsPage() {
           {t("walkthroughs.includeScreenshots")}
           <span className="block text-xs text-slate-500">{t("walkthroughs.screenshotsHelp")}</span>
         </span>
+      </label>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={toTeam} onChange={(e) => setToTeam(e.target.checked)} />
+        {t("walkthroughs.shareTeam")}
       </label>
 
       {status && (

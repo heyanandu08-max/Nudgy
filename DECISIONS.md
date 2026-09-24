@@ -142,3 +142,20 @@ optional JPEG data URLs (≤300 KB each) and are dropped on export/share unless 
 ## D26 — Share links are unlisted, not secret
 Slugs are 72-bit random tokens; anyone with the link can view the walkthrough (that's the point
 of sharing). Team libraries with access control arrive with accounts in Phase 7.
+
+## D27 — Browser does auth and payment; the app only holds a session token
+Sign-in (magic link, Google, Apple) and Stripe Checkout happen in the user's browser. The
+backend ends each sign-in on a page that opens `nudgy://auth?token=…`; the app verifies it with
+`/v1/me` before storing it (0600 file on macOS/Linux, per-user AppData on Windows). No OAuth
+secrets or card data ever touch the desktop app. Sessions are 30-day HS256 JWTs, rotated on launch.
+
+## D28 — Stripe over plain HTTPS, not the SDK
+Three calls (customer, checkout session, portal session) and a webhook HMAC check are simpler to
+test with an httpx mock transport than to wrap the SDK; signature verification is implemented and
+tested explicitly. Multi-currency (local prices) is a Stripe Dashboard setting (Adaptive Pricing /
+multi-currency Prices) — no code needed.
+
+## D29 — What is metered
+`asks` = /v1/ask; `lessons` = new lesson plans; `lesson_calls` = step checks, target lookups and
+walkthrough cleaning (fair-use cap). Reviews and walkthrough playback reuse stored plans, so they
+only consume lesson_calls. Anonymous use is allowed only when `NUDGY_AUTH_REQUIRED=false` (dev).

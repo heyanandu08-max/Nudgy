@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
-from app.models import SharedWalkthrough
+from app.deps import current_user, metered
+from app.models import SharedWalkthrough, UsageEvent, User
 from app.providers.base import ProviderError, Usage
 from app.providers.registry import Providers, get_providers
 from app.routers.ask import MAX_AUDIO, _read
@@ -25,7 +26,11 @@ router = APIRouter()
 
 
 @router.post("/v1/walkthroughs/clean", response_model=CleanedWalkthrough)
-async def clean(req: CleanRequest, providers: Annotated[Providers, Depends(get_providers)]):
+async def clean(
+    req: CleanRequest,
+    providers: Annotated[Providers, Depends(get_providers)],
+    _usage: Annotated[UsageEvent | None, Depends(metered("lesson_calls"))],
+):
     try:
         return await svc.clean(req, providers, Usage())
     except ProviderError as e:
@@ -40,10 +45,23 @@ def share(
     req: ShareRequest,
     db: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[User | None, Depends(current_user)],
 ) -> ShareResponse:
     doc = req.walkthrough if req.include_screenshots else req.walkthrough.without_screenshots()
+    team_id = None
+    if req.team:
+        if user is None or user.team_id is None:
+            raise HTTPException(
+                403, {"code": "no_team", "message": "Sharing to a team needs the Team plan."}
+            )
+        team_id = user.team_id
     row = SharedWalkthrough(
-        slug=svc.new_slug(), title=doc.title, app=doc.app, document=doc.model_dump_json()
+        slug=svc.new_slug(),
+        title=doc.title,
+        app=doc.app,
+        document=doc.model_dump_json(),
+        owner_id=user.id if user else None,
+        team_id=team_id,
     )
     db.add(row)
     db.commit()
@@ -87,6 +105,7 @@ p.meta{{color:#64748b}}</style></head><body>
 @router.post("/v1/transcribe")
 async def transcribe(
     providers: Annotated[Providers, Depends(get_providers)],
+    _user: Annotated[User | None, Depends(current_user)],
     audio: Annotated[UploadFile, File()],
     language: str = "en",
 ) -> dict:

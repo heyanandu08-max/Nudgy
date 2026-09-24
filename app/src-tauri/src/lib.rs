@@ -1,3 +1,4 @@
+mod account;
 mod activity;
 mod ask;
 mod audio;
@@ -113,6 +114,13 @@ pub fn run() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     tauri::Builder::default()
+        // Must be first: a second launch (e.g. from a nudgy:// link on Windows/Linux)
+        // forwards its URL to the running instance instead of starting another app.
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            tray::show_main(app);
+        }))
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
@@ -134,6 +142,25 @@ pub fn run() {
 
             tray::create(app.handle())?;
             overlay::init(app.handle())?;
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                #[cfg(any(target_os = "windows", target_os = "linux"))]
+                if let Err(e) = app.deep_link().register_all() {
+                    log::warn!("could not register nudgy:// links: {e}");
+                }
+                let handle = app.handle().clone();
+                app.deep_link().on_open_url(move |event| {
+                    let urls = event.urls().into_iter().map(|u| u.to_string()).collect();
+                    account::handle_urls(&handle, urls);
+                });
+                if let Ok(Some(urls)) = app.deep_link().get_current() {
+                    account::handle_urls(
+                        app.handle(),
+                        urls.into_iter().map(|u| u.to_string()).collect(),
+                    );
+                }
+            }
+            account::rotate_on_start(app.handle());
             let accelerator = app.state::<SettingsStore>().get().hotkey;
             if let Err(e) = hotkey::register(app.handle(), &accelerator) {
                 log::error!("could not register hotkey {accelerator}: {e}");
@@ -203,6 +230,17 @@ pub fn run() {
             walkthrough::walkthrough_share,
             walkthrough::walkthrough_fetch,
             open_note_box,
+            account::auth_state,
+            account::auth_send_magic,
+            account::auth_open_provider,
+            account::auth_sign_out,
+            account::account_me,
+            account::billing_checkout,
+            account::billing_portal,
+            account::team_get,
+            account::team_invite,
+            account::team_remove,
+            account::team_walkthroughs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");

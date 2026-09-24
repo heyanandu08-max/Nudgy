@@ -335,10 +335,15 @@ pub async fn walkthrough_share(
     app: AppHandle,
     id: String,
     include_screenshots: bool,
+    team: Option<bool>,
 ) -> Result<String, ApiError> {
     let store = app.state::<Store>();
     let w = load(&store, &id).map_err(|e| ApiError::new("not_found", e))?;
-    let body = json!({"walkthrough": w, "include_screenshots": include_screenshots});
+    let body = json!({
+        "walkthrough": w,
+        "include_screenshots": include_screenshots,
+        "team": team.unwrap_or(false),
+    });
     let resp = backend::post_json(&app, "/v1/walkthroughs", &body).await?;
     let url = resp["url"]
         .as_str()

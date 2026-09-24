@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Shell, type Tab } from "./components/Shell";
+import { AccountPage } from "./features/account/AccountPage";
 import { AskBox } from "./features/ask/AskBox";
 import { HomePage } from "./features/home/HomePage";
 import { SettingsPage } from "./features/settings/SettingsPage";
@@ -14,6 +15,7 @@ import { useSettings } from "./stores/settings";
 const TABS: Tab[] = [
   { id: "home", labelKey: "nav.home", render: () => <HomePage /> },
   { id: "walkthroughs", labelKey: "nav.walkthroughs", render: () => <WalkthroughsPage /> },
+  { id: "account", labelKey: "nav.account", render: () => <AccountPage /> },
   { id: "settings", labelKey: "nav.settings", render: () => <SettingsPage /> },
 ];
 

@@ -14,6 +14,11 @@ export function errorKey(code: string | undefined): string {
     "bad_link",
     "not_found",
     "input_permission",
+    "auth_expired",
+    "no_seats",
+    "billing_error",
+    "config",
+    "no_team",
   ];
   if (exact.includes(code)) return `errors.${code}`;
   for (const prefix of ["stt", "llm", "tts"]) {

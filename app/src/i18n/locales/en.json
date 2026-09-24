@@ -7,7 +7,8 @@
     "home": "Home",
     "settings": "Settings",
     "walkthroughs": "Walkthroughs",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "account": "Account"
   },
   "settings": {
     "title": "Settings",
@@ -54,7 +55,12 @@
     "empty_recording": "Nothing was recorded. Try again and click through the task.",
     "bad_link": "That doesn't look like a Nudgy link.",
     "not_found": "That link doesn't point to a walkthrough anymore.",
-    "input_permission": "Nudgy needs the Input Monitoring / Accessibility permission to record."
+    "input_permission": "Nudgy needs the Input Monitoring / Accessibility permission to record.",
+    "auth_expired": "Please sign in again.",
+    "no_seats": "All seats are taken. Add seats in billing.",
+    "billing_error": "Billing is having trouble right now. Please try again.",
+    "config": "This isn't set up on the server yet.",
+    "no_team": "That needs the Team plan."
   },
   "askBox": {
     "placeholder": "Ask Nudgy anything… (Enter to send, Esc to close)",
@@ -163,6 +169,51 @@
       "stop": "Stop",
       "cancel": "Cancel",
       "hint": "Do the task normally. Hold your hotkey to add a voice note."
-    }
+    },
+    "shareTeam": "Share with my team"
+  },
+  "account": {
+    "title": "Account",
+    "signInTitle": "Sign in",
+    "signInHelp": "Sign in to keep your plan and usage across computers and to share walkthroughs with your team.",
+    "email": "Email",
+    "sendLink": "Email me a sign-in link",
+    "linkSent": "Check your inbox — the link signs you in and opens Nudgy.",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "signedInAs": "Signed in as {{email}}",
+    "signOut": "Sign out",
+    "plan": "Plan",
+    "usageTitle": "This month",
+    "usage": {
+      "asks": "Questions",
+      "lessons": "New lessons",
+      "lesson_calls": "Lesson checks"
+    },
+    "unlimited": "{{used}} used",
+    "usedOf": "{{used}} of {{limit}}",
+    "resets": "Resets {{date}}",
+    "upgradeTitle": "Upgrade",
+    "pro": "Pro",
+    "proBlurb": "Plenty of questions and lessons for daily use.",
+    "team": "Team",
+    "teamBlurb": "For companies: a shared walkthrough library for onboarding.",
+    "seats": "Seats",
+    "student": "I'm a student (discount)",
+    "choose": "Choose {{plan}}",
+    "checkoutOpened": "Checkout opened in your browser. Nudgy updates automatically when you're done.",
+    "manage": "Manage billing",
+    "pastDue": "Your last payment failed. Update your card in billing to keep your plan.",
+    "teamTitle": "Your team",
+    "members": "Members",
+    "invite": "Invite",
+    "invitePlaceholder": "teammate@company.com",
+    "invited": "Invitation sent to {{email}}.",
+    "pending": "Pending: {{emails}}",
+    "remove": "Remove",
+    "seatsUsed": "{{used}} of {{seats}} seats used",
+    "library": "Team library",
+    "noLibrary": "Nothing shared with the team yet. Share a walkthrough and tick “Share with team”.",
+    "import": "Import"
   }
 }

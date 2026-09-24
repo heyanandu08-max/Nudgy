@@ -16,3 +16,19 @@ def test_client_config_lists_english_default(client):
 def test_cors_allows_tauri_origin(client):
     r = client.get("/health", headers={"Origin": "tauri://localhost"})
     assert r.headers.get("access-control-allow-origin") == "tauri://localhost"
+
+
+def test_production_refuses_unsafe_defaults():
+    import pytest
+
+    from app.config import Settings
+
+    with pytest.raises(RuntimeError, match="JWT_SECRET"):
+        Settings(env="prod").check_production_safety()
+    Settings(
+        env="prod",
+        jwt_secret="x" * 40,
+        auth_required=True,
+        email_provider="smtp",
+    ).check_production_safety()
+    Settings(env="dev").check_production_safety()  # dev stays key-less

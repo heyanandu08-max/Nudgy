@@ -4,9 +4,12 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
 
+from app.deps import metered
+from app.models import UsageEvent
 from app.providers.registry import Providers, get_providers
 from app.schemas.ask import AskContext
 from app.services.ask import AskInput, run_ask
+from app.services.usage import finish
 from app.sse import sse
 
 router = APIRouter(prefix="/v1")
@@ -27,6 +30,7 @@ async def _read(upload: UploadFile | None, limit: int, what: str) -> bytes | Non
 @router.post("/ask")
 async def ask(
     providers: Annotated[Providers, Depends(get_providers)],
+    usage: Annotated[UsageEvent | None, Depends(metered("asks"))],
     context: Annotated[str, Form()],
     audio: Annotated[UploadFile | None, File()] = None,
     screenshot: Annotated[UploadFile | None, File()] = None,
@@ -43,8 +47,18 @@ async def ask(
         screenshot_mime=(screenshot.content_type if screenshot else None) or "image/jpeg",
     )
 
+    usage_id = usage.id if usage else None
+
     async def stream():
         async for event, data in run_ask(inp, providers):
+            if event == "done" and usage_id is not None:
+                u, t = data.get("usage", {}), data.get("timings", {})
+                finish(
+                    usage_id,
+                    u.get("input_tokens", 0),
+                    u.get("output_tokens", 0),
+                    t.get("total_ms", 0),
+                )
             yield sse(event, data)
 
     return StreamingResponse(

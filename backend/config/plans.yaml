@@ -1,0 +1,26 @@
+# Plans live in config, not code. Stripe price/coupon IDs come from the environment
+# (STRIPE_PRICE_PRO, STRIPE_PRICE_TEAM, STRIPE_COUPON_STUDENT) so test/live modes differ by env.
+#
+# Limits are per calendar month (UTC). `null` = unlimited.
+#   asks          push-to-talk / typed questions (/v1/ask)
+#   lessons       new lesson plans (/v1/lessons/plan)
+#   lesson_calls  step checks, target lookups, walkthrough cleaning (keeps lessons fair-use)
+plans:
+  free:
+    name: Free
+    limits: { asks: 30, lessons: 3, lesson_calls: 150 }
+    features: { share_links: true, team_library: false }
+  pro:
+    name: Pro
+    stripe_price_env: STRIPE_PRICE_PRO
+    limits: { asks: 1500, lessons: 100, lesson_calls: 5000 }
+    features: { share_links: true, team_library: false }
+  team:
+    name: Team
+    stripe_price_env: STRIPE_PRICE_TEAM
+    per_seat: true
+    limits: { asks: 2500, lessons: 200, lesson_calls: 8000 }
+    features: { share_links: true, team_library: true }
+
+coupons:
+  student: { stripe_coupon_env: STRIPE_COUPON_STUDENT }
