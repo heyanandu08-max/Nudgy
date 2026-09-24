@@ -14,11 +14,13 @@
       {
         "label": "main",
         "title": "Nudgy",
-        "width": 560,
-        "height": 720,
+        "width": 980,
+        "height": 780,
         "resizable": true,
         "visible": false,
-        "center": true
+        "center": true,
+        "minWidth": 760,
+        "minHeight": 560
       }
     ],
     "security": {

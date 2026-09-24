@@ -38,11 +38,20 @@ pub struct WeakSpot {
     pub skips: i64,
 }
 
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct RecentAsk {
+    pub question: String,
+    pub app: String,
+    pub duration_ms: i64,
+    pub at: i64,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Dashboard {
     pub skills: Vec<SkillCard>,
     pub recent: Vec<RecentLesson>,
     pub weak_spots: Vec<WeakSpot>,
+    pub recent_asks: Vec<RecentAsk>,
 }
 
 impl Store {
@@ -124,10 +133,45 @@ impl Store {
             rows.collect::<rusqlite::Result<Vec<_>>>()
         })?;
 
+        let recent_asks = self.with(|c| {
+            let mut st = c.prepare(
+                "SELECT question, app, duration_ms, at FROM asks ORDER BY at DESC, id DESC LIMIT 10",
+            )?;
+            let rows = st.query_map([], |r| {
+                Ok(RecentAsk {
+                    question: r.get(0)?,
+                    app: r.get(1)?,
+                    duration_ms: r.get(2)?,
+                    at: r.get(3)?,
+                })
+            })?;
+            rows.collect::<rusqlite::Result<Vec<_>>>()
+        })?;
+
         Ok(Dashboard {
             skills,
             recent,
             weak_spots,
+            recent_asks,
+        })
+    }
+
+    /// Remembers a quick question locally (for the Recent list). Keeps the last 200.
+    pub fn record_ask(&self, question: &str, app: &str, duration_ms: i64, now: i64) -> Result<()> {
+        let q: String = question.trim().chars().take(300).collect();
+        if q.is_empty() {
+            return Ok(());
+        }
+        self.with(|c| {
+            c.execute(
+                "INSERT INTO asks (question, app, duration_ms, at) VALUES (?1, ?2, ?3, ?4)",
+                rusqlite::params![q, app, duration_ms, now],
+            )?;
+            c.execute(
+                "DELETE FROM asks WHERE id NOT IN (SELECT id FROM asks ORDER BY at DESC, id DESC LIMIT 200)",
+                [],
+            )?;
+            Ok(())
         })
     }
 }
@@ -182,6 +226,13 @@ mod tests {
             (totals.steps_passed, totals.steps_total, totals.hints),
             (2, 3, 3)
         );
+
+        st.record_ask("  how do I change the font?  ", "Notepad", 1200, 30)
+            .unwrap();
+        st.record_ask("", "Notepad", 1, 31).unwrap(); // ignored
+        let d2 = st.dashboard(14 + 2 * DAY).unwrap();
+        assert_eq!(d2.recent_asks.len(), 1);
+        assert_eq!(d2.recent_asks[0].question, "how do I change the font?");
 
         let weak: Vec<_> = d
             .weak_spots

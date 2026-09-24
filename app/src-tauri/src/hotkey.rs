@@ -81,6 +81,27 @@ pub fn register<R: Runtime>(app: &AppHandle<R>, accelerator: &str) -> Result<(),
         .map_err(|e| e.to_string())
 }
 
+/// While Nudgy is speaking, Esc stops it. Registered only for that moment so Esc keeps
+/// working normally in the user's app the rest of the time.
+#[tauri::command]
+pub fn escape_listen(app: AppHandle, on: bool) -> Result<(), String> {
+    let gs = app.global_shortcut();
+    let esc = Shortcut::from_str("Escape").map_err(|e| e.to_string())?;
+    if on {
+        if !gs.is_registered(esc) {
+            gs.on_shortcut(esc, |app, _s, event| {
+                if event.state == ShortcutState::Pressed {
+                    let _ = app.emit("escape-pressed", ());
+                }
+            })
+            .map_err(|e| e.to_string())?;
+        }
+    } else if gs.is_registered(esc) {
+        gs.unregister(esc).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 fn on_event<R: Runtime>(app: &AppHandle<R>, event: ShortcutEvent) {
     let settings = app.state::<SettingsStore>().get();
     let hk = app.state::<HotkeyState>();

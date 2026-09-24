@@ -11,7 +11,14 @@ export interface Settings {
   responseLength: ResponseLength;
   language: string;
   paused: boolean;
+  blocklist: string[];
+  cursorColor: CursorColor;
+  cursorSize: CursorSize;
+  hideCursorIdle: boolean;
 }
+
+export type CursorColor = "black" | "white" | "red" | "blue";
+export type CursorSize = "s" | "m" | "l";
 
 export const DEFAULT_SETTINGS: Settings = {
   backendUrl: "http://127.0.0.1:8787",
@@ -21,6 +28,10 @@ export const DEFAULT_SETTINGS: Settings = {
   responseLength: "brief",
   language: "en",
   paused: false,
+  blocklist: ["1Password", "Bitwarden", "LastPass", "KeePass", "KeePassXC", "Dashlane", "Keeper", "Keychain Access", "Passwords", "Enpass"],
+  cursorColor: "black",
+  cursorSize: "m",
+  hideCursorIdle: false,
 };
 
 const BROWSER_KEY = "nudgy.settings";

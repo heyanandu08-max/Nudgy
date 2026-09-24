@@ -16,6 +16,10 @@ export interface TutorDeps {
   recordStep(lessonId: string, result: StepResult): Promise<void>;
   recordFinish(lessonId: string, status: "completed" | "abandoned"): Promise<void>;
   setContext(ctx: { title: string; step_index: number; step_count: number; instruction: string } | null): Promise<void>;
+  /** Brings the lesson's app to the front (launching it if needed); false if it couldn't. */
+  focusApp(app: string): Promise<boolean>;
+  /** Waits for the learner to open `app` themselves; false on timeout. */
+  waitForApp(app: string): Promise<boolean>;
   watchActivity(on: boolean): Promise<void>;
   publish(view: TutorView): void;
   now(): number;
@@ -25,6 +29,7 @@ export interface TutorDeps {
 }
 
 export interface TutorText {
+  openApp: (app: string) => string;
   planning: string;
   quizIntro: string;
   planFailed: string;
@@ -76,11 +81,19 @@ export class Tutor {
       stepCount: this.plan?.steps.length ?? 0,
       instruction: s?.instruction ?? "",
       hintLevel: this.step?.hintLevel ?? 0,
+      app: this.plan?.app ?? "",
+      hint: this.step?.mistakes.at(-1) ?? "",
     };
   }
 
   get active(): boolean {
-    return this.phase === "planning" || this.phase === "instructing" || this.phase === "waiting" || this.phase === "verifying";
+    return (
+      this.phase === "planning" ||
+      this.phase === "waiting_app" ||
+      this.phase === "instructing" ||
+      this.phase === "waiting" ||
+      this.phase === "verifying"
+    );
   }
 
   private set(phase: TutorPhase) {
@@ -121,8 +134,22 @@ export class Tutor {
   }
 
   private async run(plan: LessonPlan, goal: string, quiz: boolean): Promise<void> {
+    const gen = ++this.gen;
     this.plan = plan;
     this.quiz = quiz;
+    // Lessons happen inside the learner's app, never inside Nudgy.
+    if (plan.app && !(await this.deps.focusApp(plan.app))) {
+      this.set("waiting_app");
+      await this.deps.say(this.deps.text.openApp(plan.app));
+      const opened = await this.deps.waitForApp(plan.app);
+      if (gen !== this.gen) return;
+      if (!opened) {
+        this.plan = null;
+        this.set("idle");
+        return;
+      }
+    }
+    if (gen !== this.gen) return;
     this.lessonId = await this.deps.recordStart(plan, goal);
     await this.deps.watchActivity(true);
     await this.enterStep(0);

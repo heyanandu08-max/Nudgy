@@ -26,9 +26,9 @@ interface Team {
   invites: string[];
 }
 
-const btn = "rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:border-nudgy-500 dark:border-slate-600";
-const primary = "rounded-md bg-nudgy-500 px-4 py-2 text-sm font-medium text-white hover:bg-nudgy-600 disabled:opacity-50";
-const input = "w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-600";
+const btn = "rounded-btn border border-line-2 bg-white px-3 py-1.5 text-[13px] hover:border-ink-3";
+const primary = "rounded-btn bg-ink px-4 py-2 text-[13px] font-medium text-white hover:bg-black disabled:opacity-40";
+const input = "w-full rounded-btn border border-line-2 bg-transparent px-3 py-2 text-sm";
 
 export function AccountPage() {
   const { t } = useTranslation();
@@ -58,10 +58,10 @@ export function AccountPage() {
   const fail = (e: unknown) => setStatus(t(errorKey(errorCode(e)), { defaultValue: String(e) }));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-xl font-semibold">{t("account.title")}</h1>
+    <div className="space-y-5">
+      <h2 className="text-2xl font-semibold tracking-[-.01em]">{t("account.title")}</h2>
       {status && (
-        <p role="status" className="rounded-md bg-nudgy-50 px-3 py-2 text-sm text-nudgy-600">
+        <p role="status" className="rounded-btn border border-line bg-paper px-3 py-2 font-mono text-xs text-ink-2">
           {status}
         </p>
       )}
@@ -74,9 +74,9 @@ function SignIn({ onStatus, onError }: { onStatus: (s: string) => void; onError:
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   return (
-    <section className="space-y-4 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-      <h2 className="text-lg font-semibold">{t("account.signInTitle")}</h2>
-      <p className="text-sm text-slate-500">{t("account.signInHelp")}</p>
+    <section className="space-y-4 rounded-card border border-line-2 p-4">
+      <h2 className="text-[15px] font-semibold">{t("account.signInTitle")}</h2>
+      <p className="text-sm text-ink-3">{t("account.signInHelp")}</p>
       <form
         className="flex gap-2"
         onSubmit={(e) => {
@@ -110,11 +110,11 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
     <div>
       <div className="flex justify-between text-sm">
         <span>{label}</span>
-        <span className="text-slate-500">{limit === null ? t("account.unlimited", { used }) : t("account.usedOf", { used, limit })}</span>
+        <span className="font-mono text-[11px] text-ink-3">{limit === null ? t("account.unlimited", { used }) : t("account.usedOf", { used, limit })}</span>
       </div>
       {limit !== null && (
-        <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className={`h-full rounded-full ${pct >= 100 ? "bg-red-500" : "bg-nudgy-500"}`} style={{ width: `${pct}%` }} />
+        <div className="mt-1.5 h-1 overflow-hidden rounded bg-line" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <div className={`h-full rounded-full ${pct >= 100 ? "bg-accent" : "bg-ink"}`} style={{ width: `${pct}%` }} />
         </div>
       )}
     </div>
@@ -133,7 +133,7 @@ function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => vo
 
   return (
     <>
-      <section className="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+      <section className="space-y-3 rounded-card border border-line-2 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm">{t("account.signedInAs", { email: me.email })}</p>
           <button type="button" className={btn} onClick={() => invoke("auth_sign_out").catch(onError)}>
@@ -143,12 +143,12 @@ function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => vo
         <p className="text-sm">
           {t("account.plan")}: <strong>{me.plan_name}</strong>
         </p>
-        {me.subscription_status === "past_due" && <p className="text-sm text-red-600">{t("account.pastDue")}</p>}
+        {me.subscription_status === "past_due" && <p className="text-sm text-accent">{t("account.pastDue")}</p>}
         <h3 className="pt-2 text-sm font-semibold">{t("account.usageTitle")}</h3>
         {(["asks", "lessons", "lesson_calls"] as Kind[]).map((k) => (
           <Meter key={k} label={t(`account.usage.${k}`)} used={me.usage[k]} limit={me.limits[k]} />
         ))}
-        <p className="text-xs text-slate-500">{t("account.resets", { date: resets })}</p>
+        <p className="text-xs text-ink-3">{t("account.resets", { date: resets })}</p>
         {me.plan !== "free" && (
           <button type="button" className={btn} onClick={() => invoke("billing_portal").catch(onError)}>
             {t("account.manage")}
@@ -157,22 +157,22 @@ function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => vo
       </section>
 
       {me.plan === "free" && (
-        <section className="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-          <h2 className="text-lg font-semibold">{t("account.upgradeTitle")}</h2>
+        <section className="space-y-3 rounded-card border border-line-2 p-4">
+          <h2 className="text-[15px] font-semibold">{t("account.upgradeTitle")}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <div className="space-y-2 rounded-lg border border-line-2 p-3">
               <p className="font-medium">{t("account.pro")}</p>
-              <p className="text-sm text-slate-500">{t("account.proBlurb")}</p>
+              <p className="text-sm text-ink-3">{t("account.proBlurb")}</p>
               <button type="button" className={primary} onClick={() => void checkout("pro")}>
                 {t("account.choose", { plan: t("account.pro") })}
               </button>
             </div>
-            <div className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <div className="space-y-2 rounded-lg border border-line-2 p-3">
               <p className="font-medium">{t("account.team")}</p>
-              <p className="text-sm text-slate-500">{t("account.teamBlurb")}</p>
+              <p className="text-sm text-ink-3">{t("account.teamBlurb")}</p>
               <label className="flex items-center gap-2 text-sm">
                 {t("account.seats")}
-                <input className="w-20 rounded-md border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-600" type="number" min={1} max={500} value={seats} onChange={(e) => setSeats(Math.max(1, Number(e.target.value) || 1))} />
+                <input className="w-20 rounded-btn border border-line-2 bg-transparent px-2 py-1" type="number" min={1} max={500} value={seats} onChange={(e) => setSeats(Math.max(1, Number(e.target.value) || 1))} />
               </label>
               <button type="button" className={primary} onClick={() => void checkout("team")}>
                 {t("account.choose", { plan: t("account.team") })}
@@ -205,24 +205,24 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
 
   if (!team) return null;
   return (
-    <section className="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-      <h2 className="text-lg font-semibold">
+    <section className="space-y-3 rounded-card border border-line-2 p-4">
+      <h2 className="text-[15px] font-semibold">
         {t("account.teamTitle")}: {team.name}
       </h2>
-      <p className="text-xs text-slate-500">{t("account.seatsUsed", { used: team.members.length + team.invites.length, seats: team.seats })}</p>
+      <p className="text-xs text-ink-3">{t("account.seatsUsed", { used: team.members.length + team.invites.length, seats: team.seats })}</p>
       <ul className="space-y-1 text-sm">
         {team.members.map((m) => (
           <li key={m.id} className="flex items-center justify-between">
             <span>{m.email}</span>
             {team.owner && !m.owner && (
-              <button type="button" className="text-xs text-red-600 underline" onClick={() => invoke("team_remove", { memberId: m.id }).then(load).catch(onError)}>
+              <button type="button" className="text-xs text-accent underline" onClick={() => invoke("team_remove", { memberId: m.id }).then(load).catch(onError)}>
                 {t("account.remove")}
               </button>
             )}
           </li>
         ))}
       </ul>
-      {team.invites.length > 0 && <p className="text-xs text-slate-500">{t("account.pending", { emails: team.invites.join(", ") })}</p>}
+      {team.invites.length > 0 && <p className="text-xs text-ink-3">{t("account.pending", { emails: team.invites.join(", ") })}</p>}
       {team.owner && (
         <form
           className="flex gap-2"
@@ -245,13 +245,13 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
       )}
       <h3 className="pt-2 text-sm font-semibold">{t("account.library")}</h3>
       {library.length === 0 ? (
-        <p className="text-sm text-slate-500">{t("account.noLibrary")}</p>
+        <p className="text-sm text-ink-3">{t("account.noLibrary")}</p>
       ) : (
         <ul className="space-y-1 text-sm">
           {library.map((w) => (
             <li key={w.slug} className="flex items-center justify-between gap-2">
               <span>
-                {w.title} <span className="text-xs text-slate-500">{w.app}</span>
+                {w.title} <span className="text-xs text-ink-3">{w.app}</span>
               </span>
               <button type="button" className={btn} onClick={() => invoke("walkthrough_fetch", { link: w.slug }).catch(onError)}>
                 {t("account.import")}

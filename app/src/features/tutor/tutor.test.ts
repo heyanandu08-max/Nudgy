@@ -37,6 +37,8 @@ function harness(verdicts: VerifyResult[] = []) {
     recordStep: async (_id, r) => void steps.push(r),
     recordFinish: async (_id, status) => void finished.push(status),
     setContext: async (c) => void contexts.push(c),
+    focusApp: async () => true,
+    waitForApp: async () => true,
     watchActivity: async (on) => void activity.push(on),
     publish: (v) => void views.push(v),
     now: () => clock,
@@ -46,6 +48,7 @@ function harness(verdicts: VerifyResult[] = []) {
       return () => (t.live = false);
     },
     text: {
+      openApp: (app) => `Open ${app} and I'll take it from there.`,
       planning: "planning",
       quizIntro: "Quick review!",
       planFailed: "plan failed",
@@ -213,5 +216,27 @@ describe("Tutor", () => {
     expect(h.pointed).toEqual([]); // hint 1 is verbal
     await t.command("done");
     expect(h.pointed).toEqual(["Do step 1."]); // hint 2 points
+  });
+
+  it("asks the learner to open the app when it can't be brought to the front", async () => {
+    const h = harness();
+    const order: string[] = [];
+    h.deps.focusApp = async (app) => (order.push(`focus:${app}`), false);
+    h.deps.waitForApp = async (app) => (order.push(`wait:${app}`), true);
+    const t = new Tutor(h.deps);
+    await t.startReview(PLAN, "r");
+    expect(order).toEqual(["focus:Excel", "wait:Excel"]);
+    expect(h.said[0]).toBe("Open Excel and I'll take it from there.");
+    expect(t.view.phase).toBe("waiting");
+  });
+
+  it("gives up quietly if the app never shows up", async () => {
+    const h = harness();
+    h.deps.focusApp = async () => false;
+    h.deps.waitForApp = async () => false;
+    const t = new Tutor(h.deps);
+    await t.startReview(PLAN, "r");
+    expect(t.view.phase).toBe("idle");
+    expect(h.steps).toEqual([]);
   });
 });

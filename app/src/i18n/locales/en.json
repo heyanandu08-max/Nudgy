@@ -1,150 +1,160 @@
 {
   "app": {
     "name": "Nudgy",
-    "tagline": "Your buddy next to the cursor."
+    "version": "nudgy v{{version}}"
   },
   "nav": {
     "home": "Home",
-    "settings": "Settings",
     "walkthroughs": "Walkthroughs",
-    "privacy": "Privacy",
-    "account": "Account"
+    "settings": "Settings"
   },
   "settings": {
-    "title": "Settings",
-    "backendUrl": "Backend URL",
-    "backendUrlHelp": "Where Nudgy's server runs. Leave the default unless you host your own.",
-    "voiceEnabled": "Speak answers out loud",
+    "sections": {
+      "cursor": "Cursor & voice",
+      "hotkey": "Hotkey",
+      "privacy": "Privacy",
+      "account": "Account",
+      "about": "About"
+    },
+    "cursorTitle": "Your",
+    "cursorTitleEm": "cursor",
+    "cursorSub": "How the Nudgy cursor looks, and how it sounds.",
+    "cursorColor": "Cursor color",
+    "cursorColorHelp": "So you can tell it apart from your own",
+    "colors": {
+      "black": "Black",
+      "white": "White",
+      "red": "Red",
+      "blue": "Blue"
+    },
+    "cursorSize": "Cursor size",
+    "cursorSizeHelp": "Bigger is easier to follow on large screens",
     "voice": "Voice",
-    "voiceUnavailable": "Voices load when the backend is reachable.",
-    "hotkey": "Push-to-talk hotkey",
-    "hotkeyHelp": "Hold to talk, release to send. Example: Ctrl+Alt+Space",
-    "responseLength": "Answer length",
-    "responseLengthBrief": "Brief",
-    "responseLengthDetailed": "Detailed",
+    "voiceHelp": "Used when Nudgy talks back",
+    "voiceDefault": "Default voice",
+    "speak": "Speak answers out loud",
+    "speakHelp": "Captions always show",
+    "length": "Answer length",
+    "lengthHelp": "Short is best while you work",
+    "short": "Short",
+    "detailed": "Detailed",
+    "blocklist": "Never look at these apps",
+    "blocklistHelp": "Nudgy skips them even if you press the hotkey",
+    "add": "+ Add",
+    "more": "+{{count}} more",
+    "addPlaceholder": "App or window name",
+    "remove": "Remove {{app}}",
+    "hideIdle": "Hide the Nudgy cursor when idle",
+    "hideIdleHelp": "Only shows up when you call it",
+    "hotkeyTitle": "Your",
+    "hotkeyTitleEm": "hotkey",
+    "hotkeySub": "Hold it to talk. Tap it twice to type.",
+    "hotkey": "Push-to-talk",
+    "hotkeyHelp": "Click, then press the keys you want",
+    "hotkeyRecording": "press keys…",
+    "hotkeyChange": "Change",
     "language": "Language",
-    "save": "Save",
-    "saved": "Saved",
-    "saveFailed": "Couldn't save settings: {{error}}",
-    "paused": "Nudgy is paused"
+    "languageHelp": "What Nudgy speaks and writes",
+    "aboutTitle": "About",
+    "aboutEm": "Nudgy",
+    "aboutSub": "Versions and where Nudgy's server lives.",
+    "server": "Server",
+    "serverHelp": "Leave the default unless you host your own",
+    "serverStatus": "Server status",
+    "version": "Version",
+    "saved": "saved",
+    "saveFailed": "couldn't save: {{error}}",
+    "paused": "Nudgy is paused. Resume it from the tray icon."
   },
   "health": {
-    "label": "Backend",
-    "checking": "Checking…",
-    "ok": "Connected (v{{version}})",
-    "down": "Can't reach the backend",
-    "retry": "Check again"
+    "checking": "connecting",
+    "ok": "connected · v{{version}}",
+    "down": "can't reach the server",
+    "retry": "Try again"
   },
   "caption": {
-    "you": "You",
-    "withheld": "I skipped looking at your screen here to keep it private."
+    "label": "nudgy",
+    "you": "you",
+    "withheld": "I didn't look at your screen here, to keep it private."
   },
   "errors": {
     "no_speech": "I didn't catch that. Hold the hotkey while you talk.",
-    "no_microphone": "I can't hear you — no microphone is available. Check your mic permission.",
-    "backend_unreachable": "I can't reach my server right now. Are you online?",
-    "backend_error": "My server had a hiccup. Please try again.",
-    "auth_required": "Please sign in to keep asking.",
-    "limit_reached": "You've used this month's free questions. Upgrade to keep going!",
-    "stt": "I couldn't transcribe that. Mind trying again?",
-    "llm": "My brain is a bit busy right now. Please try again in a moment.",
+    "no_microphone": "I can't hear you. Check that Nudgy can use your microphone.",
+    "backend_unreachable": "I can't reach my server. Are you online?",
+    "backend_error": "Something broke on my side. Try again in a moment.",
+    "auth_required": "Sign in to keep going.",
+    "limit_reached": "That's this month's free questions. You can upgrade in Settings → Account.",
+    "stt": "I couldn't make that out. Try once more?",
+    "llm": "I'm slow right now. Try again in a moment.",
     "llm_refused": "I can't help with that one.",
-    "tts": "My voice isn't working right now, so I'll just show captions.",
-    "internal": "Something went wrong on our side.",
+    "tts": "My voice isn't working, so I'll stick to captions.",
+    "internal": "Something broke on my side.",
     "generic": "Something went wrong.",
     "empty_recording": "Nothing was recorded. Try again and click through the task.",
     "bad_link": "That doesn't look like a Nudgy link.",
     "not_found": "That link doesn't point to a walkthrough anymore.",
-    "input_permission": "Nudgy needs the Input Monitoring / Accessibility permission to record.",
+    "input_permission": "Nudgy needs the Accessibility / Input Monitoring permission to record.",
     "auth_expired": "Please sign in again.",
     "no_seats": "All seats are taken. Add seats in billing.",
-    "billing_error": "Billing is having trouble right now. Please try again.",
+    "billing_error": "Billing isn't responding. Try again in a minute.",
     "config": "This isn't set up on the server yet.",
     "no_team": "That needs the Team plan."
   },
   "askBox": {
-    "placeholder": "Ask Nudgy anything… (Enter to send, Esc to close)",
+    "placeholder": "Ask anything · Enter to send · Esc to close",
     "label": "Your question",
-    "notePlaceholder": "Add a note to the last step… (Enter to save, Esc to close)"
+    "notePlaceholder": "Add a note to the last step · Enter to save · Esc to close"
   },
   "tutor": {
-    "startTitle": "Learn something new",
-    "startHelp": "Tell Nudgy what you want to learn. It will plan a short hands-on lesson and watch you do each step.",
-    "goalPlaceholder": "e.g. Add up a column and format it as currency in Excel",
-    "start": "Start lesson",
-    "orSay": "Or hold your hotkey and say \"teach me…\"",
-    "suggestions": [
-      "Add up a column and format it as currency in Excel",
-      "Change the font and size in Notepad",
-      "Open a new incognito window in Chrome",
-      "Cut a clip in DaVinci Resolve"
-    ],
-    "panel": {
-      "step": "Step {{current}} of {{total}}",
-      "planning": "Planning your lesson…",
-      "checking": "Checking…",
-      "done": "Done",
+    "card": {
+      "lesson": "lesson",
+      "of": "{{current}} / {{total}}",
+      "planning": "planning the steps",
+      "checking": "checking",
+      "waiting": "Do it in {{app}}. I'll check when you pause.",
+      "waitingNoApp": "Your turn. I'll check when you pause.",
       "showMe": "Show me",
       "skip": "Skip",
-      "stop": "Stop",
-      "finished": "Lesson complete!",
-      "failed": "Couldn't plan that lesson"
+      "done": "I did it",
+      "stop": "stop",
+      "finished": "Done. That's the whole lesson.",
+      "failed": "I couldn't plan that one.",
+      "openApp": "Open {{app}} and I'll take it from there."
     },
     "say": {
-      "planning": "Great, give me a moment to plan this.",
-      "planFailed": "Sorry, I couldn't put that lesson together. Could you try describing it differently?",
-      "firstStep": "Let's start.",
+      "openApp": "Open {{app}} and I'll take it from there.",
+      "planning": "Okay, give me a second to plan this.",
+      "planFailed": "I couldn't put that lesson together. Try describing it a bit differently?",
+      "firstStep": "First step:",
       "stuck": "If you're stuck, say skip and we'll move on.",
-      "verifyFailed": "I couldn't check that just now. Say done when you're ready and I'll look again.",
-      "stopped": "Okay, we'll stop here. Nice effort!",
-      "finished": "You did it! That's the whole lesson: {{title}}.",
+      "verifyFailed": "I couldn't check that just now. Say done when you're ready.",
+      "stopped": "Okay, we'll stop here.",
+      "finished": "That's it. You just did the whole thing: {{title}}.",
       "praise": [
-        "Nice work!",
-        "Exactly right!",
-        "Perfect, you've got it.",
-        "Great, that's it!",
-        "Spot on!"
+        "Nice.",
+        "That's it.",
+        "Exactly right.",
+        "Good, got it.",
+        "Yep, that's the one."
       ],
-      "quizIntro": "Quick review! Let's see if you still remember this one."
+      "quizIntro": "Quick review. Let's see if this one stuck."
     }
   },
   "review": {
-    "nudgeTitle": "Quick review?",
+    "nudgeTitle": "quick review",
     "nudgeBody": "Can you still {{skill}}? It takes about a minute.",
     "nudgeMore": "{{count}} skills are due for a refresher.",
-    "start": "Let's do it",
+    "start": "Let's go",
     "later": "Later"
-  },
-  "dashboard": {
-    "skills": "Your skills",
-    "noSkills": "No skills yet — finish a lesson and it shows up here.",
-    "progress": "{{value}}% mastered",
-    "lessons_one": "{{count}} lesson",
-    "lessons_other": "{{count}} lessons",
-    "due": "Review due",
-    "dueOn": "Next review {{date}}",
-    "review": "Review now",
-    "practice": "Practice",
-    "recent": "Recent lessons",
-    "noRecent": "Nothing yet.",
-    "status": {
-      "completed": "Completed",
-      "abandoned": "Stopped",
-      "active": "In progress"
-    },
-    "stepsHints": "{{passed}}/{{total}} steps · {{hints}} hints",
-    "weak": "Weak spots",
-    "noWeak": "No weak spots yet. Nice!",
-    "weakDetail": "{{hints}} hints, {{skips}} skips"
   },
   "walkthroughs": {
     "title": "Walkthroughs",
-    "help": "Record how you do something once. Nudgy turns it into a guided lesson anyone can replay — on their own computer, even on a different OS.",
-    "record": "Record new",
+    "help": "Do a task once. Nudgy turns it into a guided lesson anyone can follow, on their own computer.",
+    "record": "Start recording",
     "importFile": "Import file…",
     "linkPlaceholder": "Paste a Nudgy link",
     "importLink": "Import",
-    "empty": "No walkthroughs yet.",
+    "empty": "No walkthroughs yet. Record one, or paste a link someone shared.",
     "steps_one": "{{count}} step",
     "steps_other": "{{count}} steps",
     "play": "Play",
@@ -170,7 +180,9 @@
       "cancel": "Cancel",
       "hint": "Do the task normally. Hold your hotkey to add a voice note."
     },
-    "shareTeam": "Share with my team"
+    "shareTeam": "Share with my team",
+    "titleEm": "walkthroughs",
+    "titleBefore": "Your "
   },
   "account": {
     "title": "Account",
@@ -178,7 +190,7 @@
     "signInHelp": "Sign in to keep your plan and usage across computers and to share walkthroughs with your team.",
     "email": "Email",
     "sendLink": "Email me a sign-in link",
-    "linkSent": "Check your inbox — the link signs you in and opens Nudgy.",
+    "linkSent": "Check your inbox. The link signs you in and opens Nudgy.",
     "google": "Continue with Google",
     "apple": "Continue with Apple",
     "signedInAs": "Signed in as {{email}}",
@@ -213,7 +225,92 @@
     "remove": "Remove",
     "seatsUsed": "{{used}} of {{seats}} seats used",
     "library": "Team library",
-    "noLibrary": "Nothing shared with the team yet. Share a walkthrough and tick “Share with team”.",
+    "noLibrary": "Nothing shared with the team yet. Share a walkthrough and tick “Share with my team”.",
     "import": "Import"
+  },
+  "titlebar": {
+    "ready": "Ready",
+    "offline": "Offline",
+    "checking": "Connecting",
+    "paused": "Paused",
+    "account": "Account"
+  },
+  "home": {
+    "greeting": {
+      "morning": "good morning",
+      "afternoon": "good afternoon",
+      "evening": "good evening",
+      "night": "good night"
+    },
+    "headlineBefore": "What should we ",
+    "headlineEm": "learn",
+    "headlineAfter": " today?",
+    "askPlaceholder": "e.g. how do I cut a clip in DaVinci Resolve",
+    "askLabel": "What do you want to learn?",
+    "teachMe": "Teach me",
+    "hintBefore": "or just hold",
+    "hintAfter": "anywhere and say “teach me…”",
+    "chips": [
+      {
+        "app": "Excel",
+        "code": "XL",
+        "label": "Add up a column as money",
+        "goal": "Add up a column and format it as currency in Excel"
+      },
+      {
+        "app": "DaVinci Resolve",
+        "code": "DR",
+        "label": "Cut a clip",
+        "goal": "Cut a clip in DaVinci Resolve"
+      },
+      {
+        "app": "Chrome",
+        "code": "CH",
+        "label": "Open an incognito window",
+        "goal": "Open a new incognito window in Chrome"
+      },
+      {
+        "app": "Figma",
+        "code": "FG",
+        "label": "Make a button in Figma",
+        "goal": "Make a simple button in Figma"
+      }
+    ],
+    "skills": "Your skills",
+    "seeAll": "See all →",
+    "seeLess": "Show less",
+    "emptySkill": "Your next skill shows up here after your first lesson in a new app.",
+    "reviewDue": "review due",
+    "recent": "Recent",
+    "history": "History →",
+    "historyLess": "Show less",
+    "noRecent": "Nothing yet. Ask something with the hotkey or start a lesson above.",
+    "lessonMeta": "{{passed}}/{{total}} steps · {{hints}} hints · {{when}}",
+    "askMeta": "asked · {{secs}}s · {{when}}",
+    "qa": "Q&A",
+    "stopped": "stopped",
+    "today": "today",
+    "yesterday": "yesterday",
+    "recordTitle": "Record a walkthrough",
+    "recordBody": "Do a task once. Nudgy turns it into a guided lesson anyone can follow.",
+    "recordButton": "Start recording",
+    "footerPrivacy": "screen is only seen while you hold the hotkey",
+    "weak": "Needs practice",
+    "weakMeta": "{{skill}} · {{hints}} hints · {{skips}} skips"
+  },
+  "cursor": {
+    "listening": "listening",
+    "thinking": "thinking",
+    "talking": "talking",
+    "watching": "watching",
+    "nice": "nice ✓",
+    "checking": "checking"
+  },
+  "pill": {
+    "speaking": "speaking",
+    "toStop": "to stop",
+    "yourTurn": "your turn · I'm watching this window only",
+    "openApp": "open {{app}} and I'll take it from there",
+    "planning": "planning your lesson"
   }
 }

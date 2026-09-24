@@ -58,10 +58,19 @@ const MIGRATIONS: &[&str] = &[
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
      );",
+    // 3 — local history of quick questions (shown under Recent; wiped by "Delete my data")
+    "CREATE TABLE asks (
+        id INTEGER PRIMARY KEY,
+        question TEXT NOT NULL,
+        app TEXT NOT NULL,
+        duration_ms INTEGER NOT NULL,
+        at INTEGER NOT NULL
+     );
+     CREATE INDEX asks_at ON asks(at);",
 ];
 
 pub const WIPE: &str = "DELETE FROM mistakes; DELETE FROM lesson_steps; DELETE FROM reviews;
-    DELETE FROM lessons; DELETE FROM skills; DELETE FROM walkthroughs; VACUUM;";
+    DELETE FROM lessons; DELETE FROM skills; DELETE FROM walkthroughs; DELETE FROM asks; VACUUM;";
 
 pub fn migrate(conn: &Connection) -> Result<(), String> {
     let current: usize = conn

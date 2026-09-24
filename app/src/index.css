@@ -1,9 +1,23 @@
 @import "tailwindcss";
 
+/* Nudgy brand tokens — see brand/BRAND.md. Dark mode: TODO (not in v1 design). */
 @theme {
-  --color-nudgy-50: #fff7ed;
-  --color-nudgy-500: #f97316;
-  --color-nudgy-600: #ea580c;
+  --color-bg: #ffffff;
+  --color-paper: #fafaf7;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #55544f;
+  --color-ink-3: #9a988f;
+  --color-line: #eceae4;
+  --color-line-2: #dad7cf;
+  --color-accent: #ff4a1c;
+  --color-good: #1f9d55;
+
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-card: 14px;
+  --radius-btn: 10px;
 }
 
 html,
@@ -13,14 +27,26 @@ body,
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    @apply bg-slate-900 text-slate-100;
-  }
+/* Keyboard focus: 2px black outline, 2px offset, everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+button,
+a,
+input,
+select {
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 body.ask-box {

@@ -37,6 +37,8 @@ export function getTutor(): Tutor {
     recordStep: (lessonId, result) => invoke("lesson_record_step", { lessonId, result }),
     recordFinish: (lessonId, status) => invoke("lesson_record_finish", { lessonId, status }),
     setContext: (context) => invoke("lesson_set_context", { context }),
+    focusApp: (app) => invoke<boolean>("focus_app", { app }),
+    waitForApp: (name) => invoke<boolean>("wait_for_app", { name, timeoutSecs: 300 }),
     watchActivity: (on) => invoke("activity_watch", { on }),
     publish: (view) => {
       void emit("lesson-state", view);
@@ -48,6 +50,7 @@ export function getTutor(): Tutor {
       return () => clearTimeout(id);
     },
     text: {
+      openApp: (app) => t("tutor.say.openApp", { app }),
       get planning() {
         return t("tutor.say.planning");
       },

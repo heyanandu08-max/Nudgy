@@ -1,31 +1,33 @@
 import { useEffect, useRef, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { emit } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
+import { emit, listen } from "@tauri-apps/api/event";
+import { useTranslation } from "react-i18next";
 import type { TutorView } from "../features/tutor/types";
 import { AudioQueue, htmlAudioPlayer, type Clip } from "../lib/audioQueue";
 import { errorKey } from "../lib/errors";
 import { follow, type Vec } from "../lib/motion";
-import type { Settings } from "../lib/settings";
+import { DEFAULT_SETTINGS, type Settings } from "../lib/settings";
 import { CaptionBubble } from "./CaptionBubble";
-import { LessonPanel } from "./LessonPanel";
+import { LessonCard } from "./LessonCard";
+import { NudgyCursor, StateLabel, type CursorLabel } from "./NudgyCursor";
+import { Pointer } from "./Pointer";
 import { RecorderBar } from "./RecorderBar";
 import { ReviewNudge, type Nudge } from "./ReviewNudge";
-import { Companion } from "./Companion";
-import { Pointer } from "./Pointer";
+import { StatusPill, type PillState } from "./StatusPill";
 import { useOverlay, type CompanionMode, type Rect } from "./store";
 
-const ACTIVE_PHASES = ["planning", "instructing", "waiting", "verifying"];
+const ACTIVE_PHASES = ["planning", "waiting_app", "instructing", "waiting", "verifying"];
 /** Cursor positions are re-sent every 500 ms, so one second always includes one. */
 const CLAIM_WINDOW_MS = 1000;
-
-/** Where the companion sits relative to the cursor (CSS px). */
-const OFFSET = { x: 22, y: 22 };
+/** Where the Nudgy cursor trails relative to the real one (CSS px). */
+const OFFSET = { x: 16, y: 14 };
 /** Caption lingers this long after the answer finished (and audio stopped). */
 const CAPTION_LINGER_MS = 6000;
-/** Flip the caption to the left of the companion when this close to the right edge. */
-const CAPTION_FLIP_PX = 360;
-/** …and above it when this close to the bottom edge. */
-const CAPTION_FLIP_Y_PX = 200;
+/** An idle Nudgy cursor fades away after this long without mouse movement. */
+const IDLE_FADE_MS = 5000;
+const NICE_MS = 1400;
+const FLIP_X = 340;
+const FLIP_Y = 200;
 
 interface PointPayload {
   rect: Rect;
@@ -34,25 +36,34 @@ interface PointPayload {
 }
 
 export function OverlayApp() {
+  const { t } = useTranslation();
   const s = useOverlay();
-  const companion = useRef<HTMLDivElement>(null);
+  const anchor = useRef<HTMLDivElement>(null);
   const cursor = useRef<Vec>({ x: -100, y: -100 });
   const pos = useRef<Vec>({ x: -100, y: -100 });
+  const lastMove = useRef(performance.now());
+  const [idle, setIdle] = useState(false);
   const [pointerFrom, setPointerFrom] = useState<Vec>({ x: 0, y: 0 });
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [speaking, setSpeaking] = useState(false);
   const audio = useRef<AudioQueue | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const answerDone = useRef(false);
   const [lesson, setLesson] = useState<TutorView | null>(null);
-  /** Whether this monitor shows the lesson panel (the one under the cursor at start). */
   const [ownsLesson, setOwnsLesson] = useState(false);
   const lessonRef = useRef<TutorView | null>(null);
-  /** A lesson started before this overlay heard where the cursor is: claim on first sight. */
   const claimUntil = useRef(0);
+  const [nice, setNice] = useState(false);
   const [nudge, setNudge] = useState<Nudge | null>(null);
-  const [recording, setRecording] = useState<{ recording: boolean; steps: number }>({ recording: false, steps: 0 });
+  const [recording, setRecording] = useState({ recording: false, steps: 0 });
 
   useEffect(() => {
     const st = useOverlay.getState;
+    void invoke<Settings>("get_settings").then((v) => {
+      setSettings(v);
+      st().setPaused(v.paused);
+    });
+
     const scheduleHide = () => {
       clearTimeout(hideTimer.current);
       if (!answerDone.current || audio.current?.isPlaying) return;
@@ -61,13 +72,24 @@ export function OverlayApp() {
       hideTimer.current = setTimeout(() => st().clearCaption(), CAPTION_LINGER_MS);
     };
     audio.current = new AudioQueue(htmlAudioPlayer(), (playing) => {
+      setSpeaking(playing);
+      void invoke("escape_listen", { on: playing }).catch(() => {});
       if (playing) st().setMode("talking");
       else scheduleHide();
     });
+    const stopTalking = () => {
+      audio.current?.reset();
+      answerDone.current = true;
+      st().clearCaption();
+      st().setMode("idle");
+      void invoke("escape_listen", { on: false }).catch(() => {});
+    };
 
     const subs = [
       listen<Vec>("cursor", (e) => {
+        const moved = Math.abs(e.payload.x - cursor.current.x) + Math.abs(e.payload.y - cursor.current.y) > 1;
         cursor.current = e.payload;
+        if (moved) lastMove.current = performance.now();
         st().setActive(true);
         if (claimUntil.current > Date.now()) {
           claimUntil.current = 0;
@@ -110,7 +132,11 @@ export function OverlayApp() {
         }
       }),
       listen("ask-notice", () => st().setNotice("caption.withheld")),
-      listen<Settings>("settings-changed", (e) => st().setPaused(e.payload.paused)),
+      listen("escape-pressed", stopTalking),
+      listen<Settings>("settings-changed", (e) => {
+        setSettings(e.payload);
+        st().setPaused(e.payload.paused);
+      }),
       listen<{ text: string; clips: Clip[] }>("lesson-say", (e) => {
         answerDone.current = false;
         clearTimeout(hideTimer.current);
@@ -125,15 +151,21 @@ export function OverlayApp() {
       listen<{ recording: boolean; steps: number }>("recorder-state", (e) => setRecording(e.payload)),
       listen<TutorView>("lesson-state", (e) => {
         const v = e.payload;
-        const wasActive = !!lessonRef.current && ACTIVE_PHASES.includes(lessonRef.current.phase);
+        const prev = lessonRef.current;
+        const wasActive = !!prev && ACTIVE_PHASES.includes(prev.phase);
         lessonRef.current = v;
         setLesson(v);
-        // Claim the panel when a lesson (or review) starts, or on reload mid-lesson.
+        // Claim the card when a lesson (or review) starts, or on reload mid-lesson.
         if (!wasActive && ACTIVE_PHASES.includes(v.phase)) {
           setOwnsLesson(st().active);
           if (!st().active) claimUntil.current = Date.now() + CLAIM_WINDOW_MS;
         }
         if (v.phase === "idle") setOwnsLesson(false);
+        // A passed step: brief "nice ✓" on the cursor.
+        if (prev && prev.phase === "verifying" && (v.stepIndex > prev.stepIndex || v.phase === "finished")) {
+          setNice(true);
+          setTimeout(() => setNice(false), NICE_MS);
+        }
       }),
     ];
     void emit("lesson-state-request");
@@ -144,49 +176,79 @@ export function OverlayApp() {
     };
   }, []);
 
-  // Companion follows the cursor with a slight, frame-rate independent lag.
+  // The Nudgy cursor trails the real one with a slight, frame-rate independent lag.
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
       const dt = now - last;
       last = now;
-      const goal = { x: cursor.current.x + OFFSET.x, y: cursor.current.y + OFFSET.y };
-      pos.current = follow(pos.current, goal, dt);
-      const el = companion.current;
+      pos.current = follow(pos.current, { x: cursor.current.x + OFFSET.x, y: cursor.current.y + OFFSET.y }, dt, 55);
+      const el = anchor.current;
       if (el) {
         el.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px)`;
-        el.dataset.flip = pos.current.x > window.innerWidth - CAPTION_FLIP_PX ? "left" : "right";
-        el.dataset.flipY = pos.current.y > window.innerHeight - CAPTION_FLIP_Y_PX ? "up" : "down";
+        el.dataset.flip = pos.current.x > window.innerWidth - FLIP_X ? "left" : "right";
+        el.dataset.flipY = pos.current.y > window.innerHeight - FLIP_Y ? "up" : "down";
       }
+      const isIdle = now - lastMove.current > IDLE_FADE_MS;
+      setIdle((was) => (was === isIdle ? was : isIdle));
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const showPanel = ownsLesson && !!lesson && lesson.phase !== "idle" && !s.paused;
   useEffect(() => {
     if (lesson?.phase !== "finished" && lesson?.phase !== "failed") return;
     const id = setTimeout(() => setOwnsLesson(false), CAPTION_LINGER_MS);
     return () => clearTimeout(id);
   }, [lesson?.phase]);
 
-  const shownMode: CompanionMode = s.target ? "pointing" : s.mode;
-  const visible = s.active && !s.paused;
+  const showCard = ownsLesson && !!lesson && lesson.phase !== "idle" && !s.paused;
+  const inLesson = showCard && lesson && ACTIVE_PHASES.includes(lesson.phase);
+
+  let label: CursorLabel = null;
+  if (nice) label = "nice";
+  else if (s.mode === "listening") label = "listening";
+  else if (s.mode === "thinking") label = "thinking";
+  else if (s.mode === "talking" || speaking) label = "talking";
+  else if (inLesson && lesson?.phase === "verifying") label = "checking";
+  else if (inLesson && lesson?.phase === "waiting") label = "watching";
+
+  const busy = label !== null || !!s.caption;
+  const hidden = !s.active || s.paused || !!s.target;
+  const faded = !busy && !inLesson && (idle || settings.hideCursorIdle);
+  const opacity = hidden || faded ? 0 : busy || inLesson ? 1 : 0.55;
+
+  let pill: PillState = null;
+  if (speaking) pill = { kind: "speaking" };
+  else if (showCard && lesson?.phase === "waiting") pill = { kind: "your_turn" };
+  else if (showCard && lesson?.phase === "waiting_app") pill = { kind: "open_app", app: lesson.app };
+  else if (showCard && lesson?.phase === "planning") pill = { kind: "planning" };
 
   return (
     <div className="overlay-root">
-      <div ref={companion} className={`companion-anchor ${visible ? "" : "companion-anchor--hidden"}`}>
-        <Companion mode={shownMode} />
+      <div ref={anchor} className="anchor" style={{ opacity }}>
+        <div className={`anchor__cursor ${nice ? "hop" : ""}`}>
+          <NudgyCursor color={settings.cursorColor} size={settings.cursorSize} />
+          <StateLabel label={label} text={label ? t(`cursor.${label}`) : ""} />
+        </div>
         {s.caption && <CaptionBubble caption={s.caption} />}
       </div>
-      {showPanel && lesson && <LessonPanel view={lesson} />}
-      {recording.recording && s.active && <RecorderBar steps={recording.steps} />}
-      {nudge && !s.paused && !showPanel && <ReviewNudge nudge={nudge} onClose={() => setNudge(null)} />}
       {s.target && !s.paused && (
-        <Pointer key={s.target.seq} target={s.target} from={pointerFrom} onDone={s.clearTarget} />
+        <Pointer
+          key={s.target.seq}
+          target={s.target}
+          from={pointerFrom}
+          color={settings.cursorColor}
+          size={settings.cursorSize}
+          onDone={s.clearTarget}
+        />
       )}
+      {showCard && lesson && <LessonCard view={lesson} />}
+      {s.active && !s.paused && <StatusPill state={pill} />}
+      {nudge && !s.paused && !showCard && <ReviewNudge nudge={nudge} onClose={() => setNudge(null)} />}
+      {recording.recording && s.active && <RecorderBar steps={recording.steps} />}
     </div>
   );
 }

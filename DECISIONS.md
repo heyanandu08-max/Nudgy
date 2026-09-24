@@ -159,3 +159,17 @@ multi-currency Prices) — no code needed.
 `asks` = /v1/ask; `lessons` = new lesson plans; `lesson_calls` = step checks, target lookups and
 walkthrough cleaning (fair-use cap). Reviews and walkthrough playback reuse stored plans, so they
 only consume lesson_calls. Anonymous use is allowed only when `NUDGY_AUTH_REQUIRED=false` (dev).
+
+## D30 — Esc is a global shortcut only while Nudgy is speaking
+The kit's "speaking · Esc to stop" needs Esc even when another app has focus. Grabbing Esc
+permanently would break every other app, so the overlay registers it (`escape_listen`) when audio
+starts and releases it the moment audio stops.
+
+## D31 — Lesson card says "I did it · stop" instead of "Esc to stop"
+During a lesson the user is working in their own app, where Esc means something (close dialog,
+cancel edit). We don't grab it there; stopping is a click on the card or saying "stop".
+
+## D32 — Guide inside the user's app, don't imitate it
+Lessons bring the real app to the front (`focus_app`) and hide Nudgy's window. If we can't open
+it, we ask the user to ("Open Excel and I'll take it from there") and wait (`wait_for_app`),
+rather than showing a mock of the app.

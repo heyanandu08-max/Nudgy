@@ -17,6 +17,7 @@ from app.deps import signed_in
 from app.models import Team, User
 from app.services import auth
 from app.services.email import EmailSender, get_email_sender
+from app.services.pages import page
 from app.services.usage import summary
 
 router = APIRouter()
@@ -41,13 +42,12 @@ def get_oauth_http() -> httpx.Client:
 def _handoff(token: str, email: str) -> HTMLResponse:
     """Page shown in the browser after sign-in; it opens the app with the session token."""
     link = "nudgy://auth?" + urlencode({"token": token})
-    html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Signed in · Nudgy</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{{font:16px/1.5 system-ui,sans-serif;max-width:520px;margin:60px auto;padding:0 16px;color:#0f172a}}
-a{{display:inline-block;background:#f97316;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none}}</style>
-</head><body><h1>You're signed in</h1><p>Signed in as {escape(email)}. Nudgy should open by itself.</p>
-<p><a href="{escape(link)}">Open Nudgy</a></p><p>You can close this tab.</p>
-<script>location.href = {link!r};</script></body></html>"""
+    html = page(
+        "Signed in · Nudgy",
+        f"""<h1>You're signed in</h1><p>Signed in as {escape(email)}. Nudgy should open by itself.</p>
+<p><a class="btn" href="{escape(link)}">Open Nudgy</a></p><p class="meta">You can close this tab.</p>
+<script>location.href = {link!r};</script>""",
+    )
     return HTMLResponse(
         html, headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"}
     )

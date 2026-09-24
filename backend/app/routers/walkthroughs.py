@@ -21,6 +21,7 @@ from app.schemas.walkthrough import (
     Walkthrough,
 )
 from app.services import walkthroughs as svc
+from app.services.pages import page
 
 router = APIRouter()
 
@@ -89,16 +90,14 @@ def share_page(slug: str, db: Annotated[Session, Depends(get_db)]) -> HTMLRespon
     doc = Walkthrough.model_validate_json(_load(db, slug).document)
     steps = "".join(f"<li>{escape(s.instruction)}</li>" for s in doc.steps)
     title = escape(doc.title)
-    html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · Nudgy</title>
-<style>body{{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#0f172a}}
-a.btn{{display:inline-block;background:#f97316;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none}}
-p.meta{{color:#64748b}}</style></head><body>
-<h1>{title}</h1><p class="meta">{escape(doc.app)} · {len(doc.steps)} steps</p>
+    html = page(
+        f"{doc.title} · Nudgy",
+        f"""<h1>{title}</h1><p class="meta">{escape(doc.app)} · {len(doc.steps)} steps</p>
 <p>{escape(doc.summary)}</p>
 <p><a class="btn" href="nudgy://w/{escape(slug)}">Open in Nudgy</a></p>
-<p class="meta">Nudgy will guide you through it live, step by step, in your own copy of the app.</p>
-<ol>{steps}</ol></body></html>"""
+<p class="meta">Nudgy guides you through it step by step, in your own copy of the app.</p>
+<ol>{steps}</ol>""",
+    )
     return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
 

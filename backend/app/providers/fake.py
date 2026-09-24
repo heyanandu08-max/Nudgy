@@ -98,7 +98,7 @@ class FakeLLM:
         changed = "(no element changes detected)" not in text
         second_try = "attempt 1." not in system
         if changed or second_try:
-            return json.dumps({"passed": True, "hint": "Nice work, that's exactly it!"})
+            return json.dumps({"passed": True, "hint": "That's it."})
         return json.dumps({"passed": False, "hint": "Not quite yet. Look for it near the top."})
 
     @staticmethod
@@ -168,7 +168,7 @@ class FakeLLM:
         for phrase, intent in _INTENTS:
             if low.startswith(phrase):
                 goal = said[len(phrase) :].strip(" .?!") if intent == "start_lesson" else None
-                speech = "Let's do it together!" if goal else "Okay!"
+                speech = "Okay, one step at a time." if goal else "Okay."
                 return json.dumps(
                     {"speech": speech, "target": None, "intent": intent, "lesson_goal": goal}
                 )
@@ -177,7 +177,7 @@ class FakeLLM:
             target = {"element_id": best[0]}
             hint = "click"
         else:
-            speech = "I couldn't spot that on screen, but I'm happy to explain it."
+            speech = "I can't see that on screen. Open the window it's in and ask again."
             target, hint = None, None
         return json.dumps({"speech": speech, "target": target, "action_hint": hint})
 

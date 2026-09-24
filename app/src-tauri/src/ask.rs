@@ -380,6 +380,16 @@ pub async fn run<R: Runtime>(
                         "server": data["timings"],
                     });
                     *state.last_timings.lock().unwrap() = Some(timings.clone());
+                    if data["intent"].is_null() {
+                        let total = started.elapsed().as_millis() as i64;
+                        let _ = app.state::<crate::store::Store>().record_ask(
+                            &transcript,
+                            &captured.snapshot.app_name,
+                            total,
+                            crate::nudges::now(),
+                        );
+                        let _ = app.emit_to("main", "progress-changed", "ask");
+                    }
                     let _ = app.emit_to("main", "ask-timings", &timings);
                     emit(
                         &app,

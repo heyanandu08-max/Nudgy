@@ -29,6 +29,12 @@ pub struct Settings {
     pub paused: bool,
     /// Apps/window titles never captured (password managers, banking…).
     pub blocklist: Vec<String>,
+    /// Nudgy cursor look: "black" | "white" | "red" | "blue".
+    pub cursor_color: String,
+    /// "s" | "m" | "l".
+    pub cursor_size: String,
+    /// Only show the Nudgy cursor when called (hotkey, lesson, pointing).
+    pub hide_cursor_idle: bool,
 }
 
 impl Default for Settings {
@@ -45,6 +51,9 @@ impl Default for Settings {
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
+            cursor_color: "black".into(),
+            cursor_size: "m".into(),
+            hide_cursor_idle: false,
         }
     }
 }
@@ -60,6 +69,15 @@ impl Settings {
         }
         if self.language.trim().is_empty() {
             return Err("language must not be empty".into());
+        }
+        if !matches!(
+            self.cursor_color.as_str(),
+            "black" | "white" | "red" | "blue"
+        ) {
+            return Err("unknown cursor color".into());
+        }
+        if !matches!(self.cursor_size.as_str(), "s" | "m" | "l") {
+            return Err("unknown cursor size".into());
         }
         Ok(())
     }

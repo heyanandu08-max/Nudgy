@@ -1,5 +1,6 @@
 mod account;
 mod activity;
+mod apps;
 mod ask;
 mod audio;
 mod auth;
@@ -230,6 +231,9 @@ pub fn run() {
             walkthrough::walkthrough_share,
             walkthrough::walkthrough_fetch,
             open_note_box,
+            apps::focus_app,
+            hotkey::escape_listen,
+            apps::wait_for_app,
             account::auth_state,
             account::auth_send_magic,
             account::auth_open_provider,

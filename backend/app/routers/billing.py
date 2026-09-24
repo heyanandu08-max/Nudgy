@@ -14,6 +14,7 @@ from app.db import get_db
 from app.deps import signed_in
 from app.models import User
 from app.services import billing
+from app.services.pages import page
 from app.services.plans import coupon, get_plan
 from app.services.stripe_api import StripeClient, StripeError, verify_signature
 
@@ -106,10 +107,13 @@ async def webhook(
 @router.get("/billing/done", response_class=HTMLResponse, include_in_schema=False)
 def billing_done(status: str = "") -> HTMLResponse:
     msg = {
-        "success": "Thanks! Your plan is active.",
+        "success": "Thanks. Your plan is active.",
         "cancel": "No problem — nothing was charged.",
     }.get(status, "You're all set.")
     return HTMLResponse(
-        f"""<!doctype html><title>Nudgy</title><div style="font:16px/1.5 system-ui;max-width:520px;margin:60px auto">
-<h1>{escape(msg)}</h1><p><a href="nudgy://billing?status={escape(status)}">Back to Nudgy</a></p></div>"""
+        page(
+            "Nudgy",
+            f"""<h1>{escape(msg)}</h1>
+<p><a class="btn" href="nudgy://billing?status={escape(status)}">Back to Nudgy</a></p>""",
+        )
     )

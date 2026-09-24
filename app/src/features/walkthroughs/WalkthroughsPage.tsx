@@ -3,7 +3,9 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import { errorCode, errorKey } from "../../lib/errors";
-import { hideMainWindow, playWalkthrough } from "../tutor/host";
+import { AppBadge } from "../../components/ui";
+import { startRecording } from "../home/HomePage";
+import { playWalkthrough } from "../tutor/host";
 
 interface Row {
   id: string;
@@ -50,8 +52,7 @@ export function WalkthroughsPage() {
 
   const record = async () => {
     setStatus(null);
-    hideMainWindow();
-    await invoke("recorder_start").catch(fail);
+    await startRecording().catch(fail);
   };
 
   const importFile = async () => {
@@ -109,18 +110,21 @@ export function WalkthroughsPage() {
   };
 
   const date = (s: number) => new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium" }).format(new Date(s * 1000));
-  const btn = "rounded-md border border-slate-300 px-3 py-1 text-sm hover:border-nudgy-500 dark:border-slate-600";
+  const btn = "rounded-btn border border-line-2 bg-white px-3 py-1.5 text-[13px] hover:border-ink-3";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 p-6">
-      <header className="space-y-2">
-        <h1 className="text-xl font-semibold">{t("walkthroughs.title")}</h1>
-        <p className="text-sm text-slate-500">{t("walkthroughs.help")}</p>
+    <div className="space-y-5 px-14 pt-11 pb-10">
+      <header>
+        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-.02em]">
+          {t("walkthroughs.titleBefore")}
+          <em className="font-serif font-medium">{t("walkthroughs.titleEm")}</em>
+        </h1>
+        <p className="mt-2 text-[13px] text-ink-2">{t("walkthroughs.help")}</p>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={record} className="rounded-md bg-nudgy-500 px-4 py-2 text-sm font-medium text-white hover:bg-nudgy-600">
-          ● {t("walkthroughs.record")}
+        <button type="button" onClick={record} className="inline-flex items-center gap-2 rounded-btn bg-ink px-4 py-2 text-[13px] font-medium text-white hover:bg-black">
+          <span aria-hidden className="h-2 w-2 rounded-full bg-accent" /> {t("walkthroughs.record")}
         </button>
         <button type="button" onClick={importFile} className={btn}>
           {t("walkthroughs.importFile")}
@@ -133,7 +137,7 @@ export function WalkthroughsPage() {
           }}
         >
           <input
-            className="min-w-0 flex-1 rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm dark:border-slate-600"
+            className="min-w-0 flex-1 rounded-btn border border-line-2 bg-transparent px-3 py-1 text-sm"
             placeholder={t("walkthroughs.linkPlaceholder")}
             value={link}
             onChange={(e) => setLink(e.target.value)}
@@ -148,7 +152,7 @@ export function WalkthroughsPage() {
         <input type="checkbox" className="mt-1" checked={withShots} onChange={(e) => setWithShots(e.target.checked)} />
         <span>
           {t("walkthroughs.includeScreenshots")}
-          <span className="block text-xs text-slate-500">{t("walkthroughs.screenshotsHelp")}</span>
+          <span className="block text-xs text-ink-3">{t("walkthroughs.screenshotsHelp")}</span>
         </span>
       </label>
 
@@ -158,27 +162,28 @@ export function WalkthroughsPage() {
       </label>
 
       {status && (
-        <p role="status" className="break-all rounded-md bg-nudgy-50 px-3 py-2 text-sm text-nudgy-600">
+        <p role="status" className="break-all rounded-btn border border-line bg-paper px-3 py-2 font-mono text-xs text-ink-2">
           {status}
         </p>
       )}
 
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">{t("walkthroughs.empty")}</p>
+        <p className="rounded-card border border-dashed border-line-2 bg-paper p-4 text-[13px] text-ink-2">{t("walkthroughs.empty")}</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="overflow-hidden rounded-card border border-line-2 bg-white">
           {rows.map((r) => (
-            <li key={r.id} className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div>
-                  <p className="font-medium">{r.title}</p>
-                  <p className="text-xs text-slate-500">
+            <li key={r.id} className="border-b border-line px-4 py-3.5 last:border-b-0">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <AppBadge app={r.app || "?"} />
+                <div className="mr-auto min-w-0">
+                  <p className="text-[13.5px] font-medium">{r.title}</p>
+                  <p className="mt-0.5 font-mono text-[11px] text-ink-3">
                     {[r.app, t("walkthroughs.steps", { count: r.steps }), date(r.created_at)].filter(Boolean).join(" · ")}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void playWalkthrough(r.id)} className="rounded-md bg-nudgy-500 px-3 py-1 text-sm text-white">
-                    ▶ {t("walkthroughs.play")}
+                  <button type="button" onClick={() => void playWalkthrough(r.id)} className="rounded-btn bg-ink px-3 py-1.5 text-[13px] font-medium text-white hover:bg-black">
+                    {t("walkthroughs.play")}
                   </button>
                   <button type="button" onClick={() => void exportFile(r)} className={btn}>
                     {t("walkthroughs.export")}
@@ -186,12 +191,12 @@ export function WalkthroughsPage() {
                   <button type="button" onClick={() => void share(r)} className={btn}>
                     {t("walkthroughs.share")}
                   </button>
-                  <button type="button" onClick={() => void remove(r)} className={`${btn} text-red-600`}>
+                  <button type="button" onClick={() => void remove(r)} className={`${btn} text-accent`}>
                     {t("walkthroughs.delete")}
                   </button>
                 </div>
               </div>
-              {r.share_url && <p className="mt-1 break-all text-xs text-slate-500">{r.share_url}</p>}
+              {r.share_url && <p className="mt-1 break-all text-xs text-ink-3">{r.share_url}</p>}
               <button type="button" onClick={() => void toggle(r)} className="mt-2 text-xs underline underline-offset-2">
                 {open?.id === r.id ? t("walkthroughs.hideSteps") : t("walkthroughs.showSteps")}
               </button>
@@ -199,11 +204,11 @@ export function WalkthroughsPage() {
                 <ol className="mt-3 space-y-3">
                   {open.steps.map((s, i) => (
                     <li key={i} className="flex gap-3 text-sm">
-                      <span className="w-5 shrink-0 text-right text-slate-500">{i + 1}.</span>
+                      <span className="w-5 shrink-0 text-right text-ink-3">{i + 1}.</span>
                       <div className="min-w-0 flex-1">
                         <p>{s.instruction}</p>
-                        {s.note && <p className="text-xs text-slate-500">“{s.note}”</p>}
-                        {s.screenshot && <img src={s.screenshot} alt="" className="mt-2 max-h-40 rounded border border-slate-200" />}
+                        {s.note && <p className="text-xs text-ink-3">“{s.note}”</p>}
+                        {s.screenshot && <img src={s.screenshot} alt="" className="mt-2 max-h-40 rounded border border-line-2" />}
                       </div>
                     </li>
                   ))}

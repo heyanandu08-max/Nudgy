@@ -36,17 +36,17 @@ export function AskBox() {
 
   return (
     <form
-      className="flex h-full items-center gap-2 rounded-xl bg-slate-900 px-4 text-slate-50"
+      className="flex h-full items-center gap-3 rounded-card border-[1.5px] border-ink bg-white px-4 text-ink"
       onSubmit={(e) => {
         e.preventDefault();
         void submit();
       }}
     >
-      <span aria-hidden className="h-3 w-3 shrink-0 rounded-full bg-nudgy-500" />
+      <span aria-hidden className="font-mono text-[11px] text-ink-3 uppercase">{mode === "note" ? "note" : "ask"}</span>
       <input
         ref={input}
         aria-label={t("askBox.label")}
-        className="w-full bg-transparent text-base outline-none placeholder:text-slate-400"
+        className="w-full bg-transparent text-base outline-none placeholder:text-ink-3"
         placeholder={mode === "note" ? t("askBox.notePlaceholder") : t("askBox.placeholder")}
         value={text}
         onChange={(e) => setText(e.target.value)}

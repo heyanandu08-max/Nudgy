@@ -220,6 +220,14 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
   signature verification; magic-link → deep-link sign-in verified live on Linux; real Stripe test-mode
   run needs keys)
 
+### Redesign — nudgy-kit (between 7 and 8; see DESIGN_AUDIT.md)
+- [x] Tokens, local fonts, radii, icons from `brand/`
+- [x] Title bar, Home, Settings (cursor color/size), Walkthroughs, Account restyled
+- [x] Nudgy cursor with state labels, flying pointer + ring, caption, status pill, lesson card
+- [x] Guide inside the user's app (`focus_app` / `wait_for_app`, "Open <app>…")
+- [x] Copy rules applied to UI strings, prompts, fake provider, backend pages
+- [ ] Dark mode (TODO)
+
 ### Phase 8 — Privacy & safety
 - [ ] Capture only while hotkey held / step verifying (enforced in Rust)
 - [ ] Screenshots processed in memory only; metadata-only logging (enforced + tested)

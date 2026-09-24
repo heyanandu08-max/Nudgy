@@ -35,7 +35,7 @@ export interface StepResult {
   mistakes: string[];
 }
 
-export type TutorPhase = "idle" | "planning" | "instructing" | "waiting" | "verifying" | "finished" | "failed";
+export type TutorPhase = "idle" | "planning" | "waiting_app" | "instructing" | "waiting" | "verifying" | "finished" | "failed";
 
 export type TutorCommand = "done" | "skip" | "show_me" | "stop";
 
@@ -47,4 +47,8 @@ export interface TutorView {
   stepCount: number;
   instruction: string;
   hintLevel: number;
+  /** App the lesson happens in (for the lesson card). */
+  app: string;
+  /** Last hint said for this step, shown under the instruction. */
+  hint: string;
 }
