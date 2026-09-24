@@ -155,7 +155,7 @@ test with an httpx mock transport than to wrap the SDK; signature verification i
 tested explicitly. Multi-currency (local prices) is a Stripe Dashboard setting (Adaptive Pricing /
 multi-currency Prices) — no code needed.
 
-## D29 — What is metered
+## D29 — What is metered (limits superseded by D38–D39; everything is still logged)
 `asks` = /v1/ask; `lessons` = new lesson plans; `lesson_calls` = step checks, target lookups and
 walkthrough cleaning (fair-use cap). Reviews and walkthrough playback reuse stored plans, so they
 only consume lesson_calls. Anonymous use is allowed only when `NUDGY_AUTH_REQUIRED=false` (dev).
@@ -199,3 +199,27 @@ It teaches the hotkey by having you use it rather than with a canned tour.
 Outside `dev`, the server won't start with fake AI providers, a weak JWT secret, auth off,
 console email (would log sign-in links) or a non-https public URL (sign-in links and Stripe
 redirects would break or leak).
+
+## D38 — One global free year, then a capped free tier (not per-user trials)
+Everyone's unlimited access ends on the same date, FREE_UNTIL = LAUNCH_DATE + 365 days, so
+there's one story to tell and one date to move (admin override). The server computes it from
+its own clock; the app never decides access, so changing the system clock does nothing.
+Without a launch date (dev) there is no free window at all, so caps can be exercised locally.
+
+## D39 — The only thing payment changes is the monthly lesson cap
+Questions, lesson step checks, reviews and walkthrough replays are never limited, only
+logged. A "lesson" is a newly planned lesson (`/v1/lessons/plan`); a plan that fails is
+refunded. The cap resets on the 1st (UTC) and ignores lessons from the free window. The cap
+number lives in a settings-table row so it can change without a redeploy; its env var only
+seeds it.
+
+## D40 — Nothing about limits reaches the app before it matters
+`/v1/access` returns an empty shape during the free year and only adds the notice in the last
+30 days, so no screen can leak a counter or price early by accident. At the cap, the user gets
+an explanation with the reset date and an always-available "Not now", never a disabled button
+or a lockout.
+
+## D41 — Subscribe is a stub until billing is chosen
+The upgrade screen and Account share one `startSubscription()` (TODO: connect billing provider).
+The Stripe checkout/webhook code stays in the backend; wiring it in is a one-function change.
+Until then, `PUT /v1/admin/users/{email}/plan` stands in for a subscription in QA.

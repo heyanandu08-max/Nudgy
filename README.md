@@ -113,6 +113,7 @@ Every variable is documented in [`.env.example`](.env.example) with a blank or s
 | Server | `NUDGY_ENV` (`dev`/`production`), `NUDGY_DATABASE_URL`, `NUDGY_CORS_ORIGINS`, `NUDGY_PUBLIC_URL` |
 | AI | `NUDGY_LLM_PROVIDER`, `NUDGY_STT_PROVIDER`, `NUDGY_TTS_PROVIDER`, `NUDGY_LLM_MODEL`, `NUDGY_LLM_THINKING`, `NUDGY_LLM_EFFORT`, `ANTHROPIC_API_KEY`, `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY`, `OPENAI_API_KEY` |
 | Accounts | `NUDGY_JWT_SECRET` (≥32 chars in production), `NUDGY_AUTH_REQUIRED`, `NUDGY_EMAIL_*`, `NUDGY_SMTP_*`, `NUDGY_GOOGLE_*`, `NUDGY_APPLE_*` |
+| Launch | `NUDGY_LAUNCH_DATE` (free year starts; blank in dev), `NUDGY_FREE_UNTIL_OVERRIDE`, `NUDGY_FREE_TIER_LESSONS_PER_MONTH` (initial value only), `NUDGY_ADMIN_TOKEN` |
 | Billing | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_TEAM`, `STRIPE_COUPON_STUDENT` |
 
 Outside `NUDGY_ENV=dev` the server refuses to start with fake providers, a weak JWT secret,

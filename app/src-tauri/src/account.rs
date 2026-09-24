@@ -204,6 +204,13 @@ pub async fn account_me(app: AppHandle) -> Result<Value, ApiError> {
     refresh(&app).await
 }
 
+/// Free-window notice and lesson allowance, always decided by the server (never the local
+/// clock). Signed-out callers get the global notice only.
+#[tauri::command]
+pub async fn access_get(app: AppHandle) -> Result<Value, ApiError> {
+    backend::get_json(&app, "/v1/access").await
+}
+
 #[tauri::command]
 pub async fn billing_checkout(
     app: AppHandle,

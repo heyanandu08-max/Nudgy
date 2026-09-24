@@ -1,24 +1,6 @@
 @import "tailwindcss";
 
-/* Nudgy brand tokens — see brand/BRAND.md. Dark mode: TODO (not in v1 design). */
-@theme {
-  --color-bg: #ffffff;
-  --color-paper: #fafaf7;
-  --color-ink: #0a0a0a;
-  --color-ink-2: #55544f;
-  --color-ink-3: #9a988f;
-  --color-line: #eceae4;
-  --color-line-2: #dad7cf;
-  --color-accent: #ff4a1c;
-  --color-good: #1f9d55;
-
-  --font-sans: "Poppins", system-ui, sans-serif;
-  --font-serif: "Lora", Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  --radius-card: 14px;
-  --radius-btn: 10px;
-}
+@import "./tokens.css";
 
 html,
 body,

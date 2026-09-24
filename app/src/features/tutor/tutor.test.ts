@@ -27,6 +27,7 @@ function harness(verdicts: VerifyResult[] = []) {
   const contexts: unknown[] = [];
   const activity: boolean[] = [];
   const verifyCalls: number[] = [];
+  const limits: boolean[] = [];
   const deps: TutorDeps = {
     plan: async () => PLAN,
     beginStep: async () => {},
@@ -39,6 +40,7 @@ function harness(verdicts: VerifyResult[] = []) {
     setContext: async (c) => void contexts.push(c),
     focusApp: async () => true,
     waitForApp: async () => true,
+    onLimit: () => void limits.push(true),
     watchActivity: async (on) => void activity.push(on),
     publish: (v) => void views.push(v),
     now: () => clock,
@@ -52,6 +54,7 @@ function harness(verdicts: VerifyResult[] = []) {
       planning: "planning",
       quizIntro: "Quick review!",
       planFailed: "plan failed",
+      limitReached: "limit reached",
       firstStep: "Let's start.",
       stuck: "Say skip if stuck.",
       verifyFailed: "couldn't check",
@@ -68,7 +71,7 @@ function harness(verdicts: VerifyResult[] = []) {
     }
     await flush();
   };
-  return { deps, said, pointed, steps, finished, views, contexts, activity, verifyCalls, tick };
+  return { deps, said, pointed, steps, finished, views, contexts, activity, verifyCalls, limits, tick };
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -184,6 +187,28 @@ describe("Tutor", () => {
     await t.start("x");
     expect(t.view.phase).toBe("failed");
     expect(h.said.at(-1)).toBe("plan failed");
+  });
+
+  it("the monthly cap opens the explanation instead of failing", async () => {
+    const h = harness();
+    h.deps.plan = async () => {
+      throw { code: "limit_reached", message: "used up" };
+    };
+    const t = new Tutor(h.deps);
+    await t.start("x");
+    expect(t.view.phase).toBe("idle");
+    expect(h.said.at(-1)).toBe("limit reached");
+    expect(h.limits).toEqual([true]);
+    expect(h.steps).toEqual([]);
+  });
+
+  it("carries the plan's quota into the view for the lesson card", async () => {
+    const h = harness();
+    const quota = { used: 4, limit: 5, left: 1, resets_at: "2027-11-01T00:00:00+00:00" };
+    h.deps.plan = async () => ({ ...PLAN, quota });
+    const t = new Tutor(h.deps);
+    await t.start("x");
+    expect(t.view.quota).toEqual(quota);
   });
 
   it("'done' during the instruction is checked once the step is ready", async () => {

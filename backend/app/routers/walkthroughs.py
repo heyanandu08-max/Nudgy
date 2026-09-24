@@ -1,3 +1,4 @@
+import time
 from html import escape
 from typing import Annotated
 
@@ -22,6 +23,7 @@ from app.schemas.walkthrough import (
 )
 from app.services import walkthroughs as svc
 from app.services.pages import page
+from app.services.usage import finish, record, wav_ms
 
 router = APIRouter()
 
@@ -30,10 +32,15 @@ router = APIRouter()
 async def clean(
     req: CleanRequest,
     providers: Annotated[Providers, Depends(get_providers)],
-    _usage: Annotated[UsageEvent | None, Depends(metered("lesson_calls"))],
+    event: Annotated[UsageEvent | None, Depends(metered("lesson_calls"))],
 ):
+    usage, started = Usage(), time.perf_counter()
     try:
-        return await svc.clean(req, providers, Usage())
+        result = await svc.clean(req, providers, usage)
+        if event is not None:
+            ms = int((time.perf_counter() - started) * 1000)
+            finish(event.id, usage.input_tokens, usage.output_tokens, ms)
+        return result
     except ProviderError as e:
         # The recording is the author's work: never lose it to an LLM outage.
         if e.code == "config":
@@ -104,13 +111,16 @@ def share_page(slug: str, db: Annotated[Session, Depends(get_db)]) -> HTMLRespon
 @router.post("/v1/transcribe")
 async def transcribe(
     providers: Annotated[Providers, Depends(get_providers)],
-    _user: Annotated[User | None, Depends(current_user)],
+    user: Annotated[User | None, Depends(current_user)],
+    db: Annotated[Session, Depends(get_db)],
     audio: Annotated[UploadFile, File()],
     language: str = "en",
 ) -> dict:
     data = await _read(audio, MAX_AUDIO, "audio")
     if not data:
         return {"text": ""}
+    if user is not None:
+        record(db, user, "transcribe", audio_ms=wav_ms(data))
     try:
         text = await providers.stt.transcribe(
             data, mime=audio.content_type or "audio/wav", language=language

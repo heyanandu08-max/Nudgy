@@ -99,7 +99,7 @@
     "backend_unreachable": "I can't reach my server. Are you online?",
     "backend_error": "Something broke on my side. Try again in a moment.",
     "auth_required": "Sign in to keep going.",
-    "limit_reached": "That's this month's free questions. You can upgrade in Settings → Account.",
+    "limit_reached": "You've used this month's free lessons.",
     "stt": "I couldn't make that out. Try once more.",
     "llm": "I'm slow right now. Try again in a moment.",
     "llm_refused": "I can't help with that one.",
@@ -154,7 +154,8 @@
         "Good, got it.",
         "Yep, that's the one."
       ],
-      "quizIntro": "Quick review. Let's see if this one stuck."
+      "quizIntro": "Quick review. Let's see if this one stuck.",
+      "limitReached": "That's this month's free lessons. The details are on screen."
     }
   },
   "review": {
@@ -212,25 +213,7 @@
     "apple": "Continue with Apple",
     "signedInAs": "Signed in as {{email}}",
     "signOut": "Sign out",
-    "plan": "Plan",
-    "usageTitle": "This month",
-    "usage": {
-      "asks": "Questions",
-      "lessons": "New lessons",
-      "lesson_calls": "Lesson checks"
-    },
-    "unlimited": "{{used}} used",
-    "usedOf": "{{used}} of {{limit}}",
-    "resets": "Resets {{date}}",
-    "upgradeTitle": "Upgrade",
-    "pro": "Pro",
-    "proBlurb": "Plenty of questions and lessons for daily use.",
-    "team": "Team",
-    "teamBlurb": "For companies: a shared walkthrough library for onboarding.",
     "seats": "Seats",
-    "student": "I'm a student (discount)",
-    "choose": "Choose {{plan}}",
-    "checkoutOpened": "Checkout opened in your browser. Nudgy updates automatically when you're done.",
     "manage": "Manage billing",
     "pastDue": "Your last payment failed. Update your card in billing to keep your plan.",
     "teamTitle": "Your team",
@@ -396,5 +379,28 @@
     "tryDone": "✓ that's it. You're set.",
     "finish": "Go to Nudgy",
     "finishLater": "Skip for now"
+  },
+  "billing": {
+    "notice_one": "free access changes on {{date}} · you'll keep {{count}} lesson a month, unlimited if you subscribe",
+    "notice_other": "free access changes on {{date}} · you'll keep {{count}} lessons a month, unlimited if you subscribe",
+    "left_one": "{{count}} lesson left this month · resets {{date}}",
+    "left_other": "{{count}} lessons left this month · resets {{date}}",
+    "noneLeft": "no lessons left this month · resets {{date}}",
+    "lastOne": "last free lesson this month · resets {{date}}",
+    "meta": "lessons · this month",
+    "titleBefore": "You've used this month's ",
+    "titleEm": "free lessons",
+    "titleAfter": ".",
+    "resets_one": "Your {{count}} free lesson comes back on {{date}}.",
+    "resets_other": "Your {{count}} free lessons come back on {{date}}.",
+    "stillWorks": "Until then, questions, reviews and walkthroughs work as usual.",
+    "subscribeRemoves": "Subscribing removes the monthly cap. Nothing else changes.",
+    "subscribe": "Subscribe",
+    "notNow": "Not now",
+    "notConnected": "subscriptions aren't open yet",
+    "plan": "Plan",
+    "free": "Free",
+    "capped_one": "{{left}} of {{count}} lesson left this month · resets {{date}}",
+    "capped_other": "{{left}} of {{count}} lessons left this month · resets {{date}}"
   }
 }

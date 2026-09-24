@@ -3,18 +3,17 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import { errorCode, errorKey } from "../../lib/errors";
-
-type Kind = "asks" | "lessons" | "lesson_calls";
+import { formatDay, type Access } from "../billing/access";
+import { useSubscribe } from "../billing/SubscribeButton";
 
 interface Me {
   id: number;
   email: string;
   plan: string;
   plan_name: string;
+  paid: boolean;
   subscription_status: string | null;
-  usage: Record<Kind, number>;
-  limits: Record<Kind, number | null>;
-  resets_at: string;
+  access: Access;
   team: { id: number; name: string; seats: number; owner: boolean } | null;
 }
 
@@ -103,33 +102,10 @@ function SignIn({ onStatus, onError }: { onStatus: (s: string) => void; onError:
   );
 }
 
-function Meter({ label, used, limit }: { label: string; used: number; limit: number | null }) {
-  const { t } = useTranslation();
-  const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-  return (
-    <div>
-      <div className="flex justify-between text-sm">
-        <span>{label}</span>
-        <span className="font-mono text-[11px] text-ink-3">{limit === null ? t("account.unlimited", { used }) : t("account.usedOf", { used, limit })}</span>
-      </div>
-      {limit !== null && (
-        <div className="mt-1.5 h-1 overflow-hidden rounded bg-line" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className={`h-full rounded-full ${pct >= 100 ? "bg-accent" : "bg-ink"}`} style={{ width: `${pct}%` }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => void; onError: (e: unknown) => void }) {
   const { t, i18n } = useTranslation();
-  const [seats, setSeats] = useState(3);
-  const [student, setStudent] = useState(false);
-  const checkout = (plan: "pro" | "team") =>
-    invoke("billing_checkout", { plan, seats: plan === "team" ? seats : 1, student })
-      .then(() => onStatus(t("account.checkoutOpened")))
-      .catch(onError);
-  const resets = new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium" }).format(new Date(me.resets_at));
+  const q = me.access.lessons;
+  const subscribe = useSubscribe();
 
   return (
     <>
@@ -140,51 +116,30 @@ function Signed({ me, onStatus, onError }: { me: Me; onStatus: (s: string) => vo
             {t("account.signOut")}
           </button>
         </div>
-        <p className="text-sm">
-          {t("account.plan")}: <strong>{me.plan_name}</strong>
-        </p>
-        {me.subscription_status === "past_due" && <p className="text-sm text-accent">{t("account.pastDue")}</p>}
-        <h3 className="pt-2 text-sm font-semibold">{t("account.usageTitle")}</h3>
-        {(["asks", "lessons", "lesson_calls"] as Kind[]).map((k) => (
-          <Meter key={k} label={t(`account.usage.${k}`)} used={me.usage[k]} limit={me.limits[k]} />
-        ))}
-        <p className="text-xs text-ink-3">{t("account.resets", { date: resets })}</p>
-        {me.plan !== "free" && (
-          <button type="button" className={btn} onClick={() => invoke("billing_portal").catch(onError)}>
-            {t("account.manage")}
-          </button>
+        {/* Nothing about plans or limits during the free window: paid or capped only. */}
+        {me.paid && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm">
+              {t("billing.plan")}: <strong>{me.plan_name}</strong>
+            </p>
+            <button type="button" className={btn} onClick={() => invoke("billing_portal").catch(onError)}>
+              {t("account.manage")}
+            </button>
+          </div>
+        )}
+        {me.subscription_status === "past_due" && <p className="text-sm text-ink-2">{t("account.pastDue")}</p>}
+        {!me.paid && me.access.capped && q && (
+          <div className="space-y-3 border-t border-line pt-3">
+            <p className="text-sm">
+              {t("billing.plan")}: <strong>{t("billing.free")}</strong>
+            </p>
+            <p className="font-mono text-[11px] text-ink-3">{t("billing.capped", { left: q.left, count: q.limit, date: formatDay(q.resets_at, i18n.language) })}</p>
+            <p className="text-[13px] text-ink-2">{t("billing.subscribeRemoves")}</p>
+            <div className="flex flex-wrap items-center gap-2">{subscribe.button}</div>
+            {subscribe.status}
+          </div>
         )}
       </section>
-
-      {me.plan === "free" && (
-        <section className="space-y-3 rounded-card border border-line-2 p-4">
-          <h2 className="text-[15px] font-semibold">{t("account.upgradeTitle")}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2 rounded-lg border border-line-2 p-3">
-              <p className="font-medium">{t("account.pro")}</p>
-              <p className="text-sm text-ink-3">{t("account.proBlurb")}</p>
-              <button type="button" className={primary} onClick={() => void checkout("pro")}>
-                {t("account.choose", { plan: t("account.pro") })}
-              </button>
-            </div>
-            <div className="space-y-2 rounded-lg border border-line-2 p-3">
-              <p className="font-medium">{t("account.team")}</p>
-              <p className="text-sm text-ink-3">{t("account.teamBlurb")}</p>
-              <label className="flex items-center gap-2 text-sm">
-                {t("account.seats")}
-                <input className="w-20 rounded-btn border border-line-2 bg-transparent px-2 py-1" type="number" min={1} max={500} value={seats} onChange={(e) => setSeats(Math.max(1, Number(e.target.value) || 1))} />
-              </label>
-              <button type="button" className={primary} onClick={() => void checkout("team")}>
-                {t("account.choose", { plan: t("account.team") })}
-              </button>
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={student} onChange={(e) => setStudent(e.target.checked)} />
-            {t("account.student")}
-          </label>
-        </section>
-      )}
 
       {me.team && <TeamSection onStatus={onStatus} onError={onError} />}
     </>

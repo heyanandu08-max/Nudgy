@@ -1,7 +1,9 @@
-"""Shared FastAPI dependencies: who is calling, and metering against their plan."""
+"""Shared FastAPI dependencies: who is calling, the clock, and usage metering."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException
@@ -10,8 +12,9 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.models import UsageEvent, User
+from app.services import access
 from app.services.auth import AuthError, user_id_from_session
-from app.services.usage import LimitReached, check_and_record
+from app.services.usage import record
 
 
 def optional_user(
@@ -50,27 +53,36 @@ def signed_in(user: Annotated[User | None, Depends(optional_user)]) -> User:
     return user
 
 
+def get_clock() -> Callable[[], datetime]:
+    """The server's clock (UTC). Tests override it to step across FREE_UNTIL and months."""
+    return lambda: datetime.now(UTC)
+
+
 def metered(kind: str):
-    """Counts one call of `kind` against the caller's monthly plan limit (402 when used up)."""
+    """Logs one call of `kind` for cost tracking. For `lessons` it first enforces the free-tier
+    monthly cap (402 `limit_reached`); nothing else is ever limited."""
 
     def dep(
         user: Annotated[User | None, Depends(current_user)],
         db: Annotated[Session, Depends(get_db)],
+        settings: Annotated[Settings, Depends(get_settings)],
+        clock: Annotated[Callable[[], datetime], Depends(get_clock)],
     ) -> UsageEvent | None:
         if user is None:
             return None
-        try:
-            return check_and_record(db, user, kind)
-        except LimitReached as e:
-            raise HTTPException(
-                402,
-                {
-                    "code": "limit_reached",
-                    "message": f"You've used this month's {e.kind.replace('_', ' ')} on the {e.plan} plan.",
-                    "kind": e.kind,
-                    "limit": e.limit,
-                    "plan": e.plan,
-                },
-            ) from e
+        now = clock()
+        if kind == "lessons":
+            quota = access.lesson_quota(db, settings, user, now)
+            if quota is not None and quota.left == 0:
+                raise HTTPException(
+                    402,
+                    {
+                        "code": "limit_reached",
+                        "message": "This month's free lessons are used up.",
+                        "kind": kind,
+                        **quota.as_dict(),
+                    },
+                )
+        return record(db, user, kind, now)
 
     return dep

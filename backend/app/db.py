@@ -39,7 +39,30 @@ def _sessionmaker() -> sessionmaker[Session]:
 def init_db() -> None:
     from app import models  # noqa: F401 — register tables
 
-    Base.metadata.create_all(get_engine())
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+    _add_missing_columns(engine)
+
+
+def _add_missing_columns(engine: Engine) -> None:
+    """create_all never alters existing tables; add new columns that have a server default
+    (e.g. usage cost fields) so older databases keep working without a migration tool."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            have = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in have or col.server_default is None:
+                    continue
+                ddl = col.type.compile(engine.dialect)
+                default = col.server_default.arg
+                conn.execute(
+                    text(f"ALTER TABLE {table.name} ADD COLUMN {col.name} {ddl} DEFAULT {default}")
+                )
 
 
 def get_db() -> Iterator[Session]:

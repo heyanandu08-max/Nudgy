@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import type { TutorCommand, TutorView } from "../features/tutor/types";
+import { QuotaNote } from "../features/billing/QuotaNote";
 import { useInteractiveRegion } from "./interactive";
 
 /** The lesson card (top-right of the learner's screen), with a hard offset shadow. */
@@ -39,6 +40,7 @@ export function LessonCard({ view }: { view: TutorView }) {
           ))}
         </div>
       )}
+      {view.stepIndex === 0 && view.phase !== "finished" && <QuotaNote quota={view.quota} during className="mt-3" />}
       {running && (
         <div className="lesson__acts">
           <button type="button" className="b1" disabled={busy} onClick={() => send("show_me")}>

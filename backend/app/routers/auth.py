@@ -1,6 +1,8 @@
 """Sign-in: email magic link, Google, Apple. Each ends by handing a session token to the
 desktop app through the nudgy:// deep link."""
 
+from collections.abc import Callable
+from datetime import datetime
 from html import escape
 from typing import Annotated
 from urllib.parse import urlencode
@@ -13,13 +15,14 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
-from app.deps import signed_in
+from app.deps import get_clock, optional_user, signed_in
 from app.models import Team, User
-from app.services import account_data, auth
+from app.services import access, account_data, auth
 from app.services.email import EmailSender, get_email_sender
 from app.services.pages import page
+from app.services.plans import get_plan
 from app.services.stripe_api import StripeClient, StripeError
-from app.services.usage import summary
+from app.services.usage import effective_plan
 
 router = APIRouter()
 
@@ -197,8 +200,14 @@ def apple_callback(
 
 
 @router.get("/v1/me")
-def me(user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends(get_db)]) -> dict:
+def me(
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+) -> dict:
     team = db.get(Team, user.team_id) if user.team_id else None
+    plan_id = effective_plan(db, user)
     return {
         "id": user.id,
         "email": user.email,
@@ -212,8 +221,23 @@ def me(user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends
         }
         if team
         else None,
-        **summary(db, user),
+        "plan": plan_id,
+        "plan_name": get_plan(plan_id).name,
+        "paid": get_plan(plan_id).paid,
+        "access": access.state(db, settings, user, clock()),
     }
+
+
+@router.get("/v1/access")
+def access_state(
+    user: Annotated[User | None, Depends(optional_user)],
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+) -> dict:
+    """Free-window notice and (for capped accounts) the monthly lesson allowance. Signed-out
+    callers get the global part only."""
+    return access.state(db, settings, user, clock())
 
 
 @router.get("/v1/me/export")

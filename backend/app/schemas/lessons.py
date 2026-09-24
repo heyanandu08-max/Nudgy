@@ -35,6 +35,19 @@ class LessonPlan(BaseModel):
     steps: list[LessonStep] = Field(min_length=1, max_length=15)
 
 
+class LessonQuota(BaseModel):
+    used: int
+    limit: int
+    left: int
+    resets_at: str
+
+
+class PlannedLesson(LessonPlan):
+    """The plan as sent to the app, plus the monthly allowance when the user is capped."""
+
+    quota: LessonQuota | None = None
+
+
 LESSON_PLAN_SCHEMA = (
     '{"title": "...", "app": "...", "skill": "...", "skill_name": "...", "steps": '
     '[{"instruction": "...", "target": {"role": "...", "name": "..."} | null, '

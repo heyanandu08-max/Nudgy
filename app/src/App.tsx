@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Footer } from "./components/Footer";
+import { useAccess } from "./features/billing/access";
+import { UpgradePrompt } from "./features/billing/UpgradePrompt";
 import { TitleBar, type Tab } from "./components/TitleBar";
 import { AskBox } from "./features/ask/AskBox";
 import { Onboarding } from "./features/onboarding/Onboarding";
@@ -28,9 +30,13 @@ function MainWindow() {
   const { settings, loaded, load, replace } = useSettings();
   const [tab, setTab] = useState("home");
   const [section, setSection] = useState<SettingsSection>("cursor");
+  const [upgrade, setUpgrade] = useState(false);
+  const refreshAccess = useAccess((s) => s.refresh);
 
   // "account", "privacy"… open Settings on that section; others are tabs.
   const navigate = (to: string) => {
+    if (to === "upgrade") return setUpgrade(true);
+    setUpgrade(false);
     if (["cursor", "hotkey", "privacy", "account", "about"].includes(to)) {
       setSection(to as SettingsSection);
       setTab("settings");
@@ -42,24 +48,36 @@ function MainWindow() {
   useEffect(() => {
     void load();
     if (!isTauri()) return;
+    // Access is re-read from the server at launch and whenever it could have changed; the
+    // local clock never decides it.
+    void refreshAccess();
     getTutor(); // the main window hosts the lesson runner, even while hidden
     const subs = [
       listen<Settings>("settings-changed", (e) => replace(e.payload)),
       listen<string>("navigate", (e) => navigate(e.payload)),
       listen("recorder-stop", () => void finishRecording(navigate)),
+      listen("auth-changed", () => void refreshAccess()),
+      listen("progress-changed", () => void refreshAccess()),
+      listen("tauri://focus", () => void refreshAccess()),
     ];
     return () => subs.forEach((p) => p.then((f) => f()));
-  }, [load, replace]);
+  }, [load, replace, refreshAccess]);
 
   if (!loaded) return null;
   if (!settings.onboarded) return <Onboarding />;
   return (
     <div className="flex h-full min-w-[760px] flex-col bg-bg">
-      <TitleBar tabs={TABS} active={tab} onChange={setTab} onAccount={() => navigate("account")} />
+      <TitleBar tabs={TABS} active={upgrade ? "" : tab} onChange={navigate} onAccount={() => navigate("account")} />
       <main className="flex-1 overflow-auto">
-        {tab === "home" && <HomePage onRecord={() => void startRecording()} />}
-        {tab === "walkthroughs" && <WalkthroughsPage />}
-        {tab === "settings" && <SettingsPage section={section} />}
+        {upgrade ? (
+          <UpgradePrompt onClose={() => setUpgrade(false)} />
+        ) : (
+          <>
+            {tab === "home" && <HomePage onRecord={() => void startRecording()} onUpgrade={() => setUpgrade(true)} />}
+            {tab === "walkthroughs" && <WalkthroughsPage />}
+            {tab === "settings" && <SettingsPage section={section} />}
+          </>
+        )}
       </main>
       <Footer />
     </div>

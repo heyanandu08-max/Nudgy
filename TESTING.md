@@ -100,7 +100,7 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Account → email link → click it in the mail → browser page opens Nudgy → Account shows signed in | | |
 | Continue with Google / Apple → same hand-off | | |
 | Relaunch after a day → still signed in (token rotated) | | |
-| Free plan: 31st question → caption says the free questions are used up | | |
+| Free plan (capped, see Billing below): questions are never limited; the lesson cap is covered in Billing | | |
 | Choose Pro → Stripe Checkout (card 4242 4242 4242 4242) → back in Nudgy, plan shows Pro within seconds | | |
 | Student discount applies the coupon in Checkout | | |
 | Manage billing → cancel → plan returns to Free when the period ends | | |
@@ -137,3 +137,21 @@ Backend with Stripe **test-mode** keys and `stripe listen --forward-to localhost
 | Tag `v0.1.1` → release workflow → draft release has signed MSI/NSIS + notarized DMG + latest.json | | |
 | Install 0.1.0, publish 0.1.1 → About → Check now → "Install 0.1.1 and restart" → relaunches on 0.1.1 | | |
 | Installed app launches with no console window (Win) and passes Gatekeeper without warnings (Mac) | | |
+
+## Billing — free year and capped tier
+Backend with `NUDGY_ADMIN_TOKEN` set. Move time with `PUT /v1/admin/access {"free_until": "…"}`
+instead of changing clocks. Run every row on **Windows and Mac side by side** and note any
+visual difference in DESIGN_AUDIT.md → Billing.
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| `NUDGY_LAUNCH_DATE` = a year ago + 60 days (FREE_UNTIL 60 days out): no plan, price, counter or upgrade text anywhere (Home, Settings, Account, lesson card) | | |
+| FREE_UNTIL 20 days out: one mono line under the Settings sidebar with the date and the monthly number; nothing on Home, no popup | | |
+| Set the local clock a year ahead: nothing changes (the server decides) | | |
+| FREE_UNTIL yesterday, relaunch: Account shows Free + "n of N lessons left"; with 1 left, the note shows under the ask box and on the lesson card | | |
+| Use the last lesson, then Teach me: explanation screen with the reset date; Not now goes back to Home; questions still get answered | | |
+| Ask "teach me …" with the hotkey at the cap: spoken one-liner + the same screen | | |
+| Subscribe shows "subscriptions aren't open yet" (stub) | | |
+| `PUT /v1/admin/users/<email>/plan {"plan":"pro"}`, relaunch: no notes, lessons unlimited | | |
+| `PUT /v1/admin/access {"free_tier_lessons_per_month": 3}`: new limit shows after the next launch/focus | | |
+| Same screens pixel-compared Win vs Mac: only the title-bar and hint keycaps differ | | |

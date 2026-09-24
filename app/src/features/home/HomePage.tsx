@@ -6,6 +6,8 @@ import { useSettings } from "../../stores/settings";
 import { getTutor, hideMainWindow, startReview, subscribeTutor } from "../tutor/host";
 import type { TutorView } from "../tutor/types";
 import { useDashboard, type RecentAsk, type RecentLesson, type SkillCard } from "./useDashboard";
+import { outOfLessons, useAccess } from "../billing/access";
+import { QuotaNote } from "../billing/QuotaNote";
 
 interface Chip {
   app: string;
@@ -41,8 +43,9 @@ function Greeting() {
   );
 }
 
-export function HomePage({ onRecord }: { onRecord: () => void }) {
+export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgrade: () => void }) {
   const { t } = useTranslation();
+  const access = useAccess((s) => s.access);
   const { settings } = useSettings();
   const data = useDashboard();
   const [goal, setGoal] = useState("");
@@ -60,6 +63,9 @@ export function HomePage({ onRecord }: { onRecord: () => void }) {
       askInput.current?.focus();
       return;
     }
+    // Known to be used up: explain here instead of capturing the screen for a refused plan.
+    // (The server decides either way; this only saves a round trip.)
+    if (outOfLessons(access)) return onUpgrade();
     setGoal("");
     hideMainWindow();
     void getTutor().start(q);
@@ -102,6 +108,7 @@ export function HomePage({ onRecord }: { onRecord: () => void }) {
       <p className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-2">
         {t("home.hintBefore")} <Hotkey accelerator={settings.hotkey} /> {t("home.hintAfter")}
       </p>
+      <QuotaNote quota={access.lessons} className="mt-2" />
 
       <div className="mt-5.5 flex flex-wrap gap-2">
         {chips.map((c) => (

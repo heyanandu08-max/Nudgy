@@ -57,6 +57,9 @@ class UsageEvent(Base):
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    # Cost metadata (never content): seconds of audio sent to STT, characters sent to TTS.
+    audio_ms: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    tts_chars: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 class UsedToken(Base):

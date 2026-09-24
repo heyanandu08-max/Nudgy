@@ -7,7 +7,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import __version__
 from app.config import get_settings
 from app.db import init_db
-from app.routers import ask, auth, billing, client_config, health, lessons, teams, walkthroughs
+from app.routers import (
+    admin,
+    ask,
+    auth,
+    billing,
+    client_config,
+    health,
+    lessons,
+    teams,
+    walkthroughs,
+)
 
 
 def create_app() -> FastAPI:
@@ -35,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(billing.router)
     app.include_router(teams.router)
+    app.include_router(admin.router)
     return app
 
 

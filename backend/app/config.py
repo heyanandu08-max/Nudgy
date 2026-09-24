@@ -1,8 +1,9 @@
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,18 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key: str = ""  # contents of the .p8 key (PEM)
 
+    # --- Launch and free access (DECISIONS D38) ---
+    # The day Nudgy ships to real users. Everyone has unlimited use until FREE_UNTIL =
+    # LAUNCH_DATE + 365 days, the same calendar date for every account. Unset (the dev default)
+    # means there is no free window: free accounts are on the capped tier straight away.
+    launch_date: date | None = None
+    # Pushes FREE_UNTIL to this date instead (the admin API can also set it without a restart).
+    free_until_override: date | None = None
+    # Only seeds the app_settings row on first start; change the row via the admin API.
+    free_tier_lessons_per_month: int = Field(default=5, ge=0)
+    # Enables /v1/admin/* (header X-Admin-Token). Unset = admin API off.
+    admin_token: str | None = None
+
     stripe_secret_key: str | None = Field(default=None, validation_alias="STRIPE_SECRET_KEY")
     stripe_webhook_secret: str | None = Field(
         default=None, validation_alias="STRIPE_WEBHOOK_SECRET"
@@ -58,6 +71,11 @@ class Settings(BaseSettings):
     deepgram_api_key: str | None = Field(default=None, validation_alias="DEEPGRAM_API_KEY")
     elevenlabs_api_key: str | None = Field(default=None, validation_alias="ELEVENLABS_API_KEY")
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
+
+    @field_validator("launch_date", "free_until_override", "admin_token", mode="before")
+    @classmethod
+    def _blank_is_none(cls, v: object) -> object:
+        return None if v == "" else v
 
     def check_production_safety(self) -> None:
         """Refuses to start a non-dev deployment with unsafe defaults."""
@@ -81,6 +99,8 @@ class Settings(BaseSettings):
         ]
         if fakes:
             problems.append(f"NUDGY_{'/'.join(fakes)}_PROVIDER is 'fake'")
+        if self.admin_token is not None and len(self.admin_token) < 32:
+            problems.append("NUDGY_ADMIN_TOKEN must be at least 32 characters")
         if not self.public_url.startswith("https://"):
             problems.append("NUDGY_PUBLIC_URL must be the server's https:// address")
         if problems:

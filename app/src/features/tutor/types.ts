@@ -11,7 +11,16 @@ export interface LessonStep {
   why: string;
 }
 
+/** Monthly lesson allowance, sent with a plan only when the account is capped. */
+export interface LessonQuota {
+  used: number;
+  limit: number;
+  left: number;
+  resets_at: string;
+}
+
 export interface LessonPlan {
+  quota?: LessonQuota | null;
   title: string;
   app: string;
   skill: string;
@@ -51,4 +60,6 @@ export interface TutorView {
   app: string;
   /** Last hint said for this step, shown under the instruction. */
   hint: string;
+  /** Allowance after this lesson (capped accounts only), for the lesson card's note. */
+  quota: LessonQuota | null;
 }

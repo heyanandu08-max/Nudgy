@@ -127,6 +127,12 @@ def ask(env, token, text="how do I change the font?"):
     )
 
 
+def plan_lesson(env, token, goal="add up a column"):
+    return env["client"].post(
+        "/v1/lessons/plan", data={"context": json.dumps({"goal": goal})}, headers=bearer(token)
+    )
+
+
 def webhook(env, event: dict, secret=WEBHOOK_SECRET):
     payload = json.dumps(event).encode()
     return env["client"].post(
@@ -150,7 +156,7 @@ def test_magic_link_signs_in_once(env):
     token = magic_sign_in(env)
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
     assert me["email"] == "ada@example.com"
-    assert me["plan"] == "free" and me["limits"]["asks"] == 30 and me["usage"]["asks"] == 0
+    assert me["plan"] == "free" and me["paid"] is False and "usage" not in me
     # The same link cannot be used twice.
     _, _, body = env["mailer"].sent[-1]
     link = re.search(r"/auth/magic\?token=\S+", body).group(0)
@@ -253,29 +259,26 @@ def test_auth_required_blocks_anonymous_ai_calls(env):
 # --- limits ---
 
 
-def test_free_ask_limit_then_402(env):
+def test_questions_are_never_capped(env):
     token = magic_sign_in(env)
-    use_up("ada@example.com", "asks", 29)
-    assert ask(env, token).status_code == 200  # the 30th
-    r = ask(env, token)
-    assert r.status_code == 402
-    assert r.json()["detail"] | {"message": ""} == {
-        "code": "limit_reached",
-        "kind": "asks",
-        "limit": 30,
-        "plan": "free",
-        "message": "",
-    }
+    use_up("ada@example.com", "asks", 500)
+    use_up("ada@example.com", "lesson_calls", 2000)
+    assert ask(env, token).status_code == 200
 
 
-def test_lesson_limit_is_separate(env):
+def test_free_tier_lesson_cap_without_launch_date(env):
+    """Dev default (no NUDGY_LAUNCH_DATE): no free window, free accounts are capped."""
     token = magic_sign_in(env)
-    use_up("ada@example.com", "lessons", 3)
+    use_up("ada@example.com", "lessons", 5)
     r = env["client"].post(
         "/v1/lessons/plan", data={"context": json.dumps({"goal": "x"})}, headers=bearer(token)
     )
-    assert r.status_code == 402 and r.json()["detail"]["kind"] == "lessons"
-    assert ask(env, token).status_code == 200
+    assert r.status_code == 402
+    detail = r.json()["detail"]
+    assert detail["code"] == "limit_reached" and detail["kind"] == "lessons"
+    assert (detail["used"], detail["limit"], detail["left"]) == (5, 5, 0)
+    assert detail["resets_at"].endswith("-01T00:00:00+00:00")
+    assert ask(env, token).status_code == 200  # questions keep working
 
 
 def test_usage_tokens_recorded_after_stream(env):
@@ -334,8 +337,8 @@ def test_webhook_rejects_bad_signatures(env):
 def test_signup_hit_limit_pay_and_get_upgraded(env):
     """The Phase 7 'done when' scenario, end to end with a mocked Stripe."""
     token = magic_sign_in(env, "grace@example.com")
-    use_up("grace@example.com", "asks", 30)
-    assert ask(env, token).status_code == 402
+    use_up("grace@example.com", "lessons", 5)
+    assert plan_lesson(env, token).status_code == 402
 
     assert (
         env["client"]
@@ -362,12 +365,9 @@ def test_signup_hit_limit_pay_and_get_upgraded(env):
     }  # Stripe retries are idempotent
 
     me = env["client"].get("/v1/me", headers=bearer(token)).json()
-    assert (
-        me["plan"] == "pro"
-        and me["subscription_status"] == "active"
-        and me["limits"]["asks"] == 1500
-    )
-    assert ask(env, token).status_code == 200
+    assert me["plan"] == "pro" and me["subscription_status"] == "active" and me["paid"]
+    assert me["access"] == {"notice": None, "capped": False, "lessons": None}
+    assert plan_lesson(env, token).status_code == 200
 
     # Cancelling in the portal downgrades via the subscription webhook.
     deleted = {

@@ -24,6 +24,8 @@ export interface TutorDeps {
   publish(view: TutorView): void;
   now(): number;
   schedule(fn: () => void, ms: number): () => void;
+  /** This month's free lessons are used up: show the (dismissable) explanation. */
+  onLimit(): void;
   /** Localized phrases (i18n lives in the UI layer). */
   text: TutorText;
 }
@@ -33,12 +35,18 @@ export interface TutorText {
   planning: string;
   quizIntro: string;
   planFailed: string;
+  limitReached: string;
   firstStep: string;
   stuck: string;
   verifyFailed: string;
   stopped: string;
   finished: (title: string) => string;
   praise: string[];
+}
+
+/** The server refused a new lesson: the free-tier monthly cap (never decided locally). */
+function isLimit(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: unknown }).code === "limit_reached";
 }
 
 interface StepState {
@@ -83,6 +91,7 @@ export class Tutor {
       hintLevel: this.step?.hintLevel ?? 0,
       app: this.plan?.app ?? "",
       hint: this.step?.mistakes.at(-1) ?? "",
+      quota: this.plan?.quota ?? null,
     };
   }
 
@@ -111,8 +120,14 @@ export class Tutor {
     let plan: LessonPlan;
     try {
       plan = await this.deps.plan(goal);
-    } catch {
+    } catch (e) {
       if (gen !== this.gen) return;
+      if (isLimit(e)) {
+        this.set("idle");
+        void this.deps.say(this.deps.text.limitReached);
+        this.deps.onLimit();
+        return;
+      }
       this.set("failed");
       await this.deps.say(this.deps.text.planFailed);
       return;

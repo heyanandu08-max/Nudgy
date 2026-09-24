@@ -208,7 +208,7 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
 - [x] Magic-link email (single-use, 15 min), Google (OIDC code flow) and Apple (form_post id_token)
       sign-in → 30-day JWT → `nudgy://auth?token=…` deep link (single-instance forwarding on Win/Linux);
       token rotated on every launch
-- [x] Plans in `config/plans.yaml` (Free 30 asks + 3 lessons/month, Pro, Team per-seat); per-request
+- [x] Plans in `config/plans.yaml` (Free, Pro, Team per-seat; limits superseded by D38–D39); per-request
       usage metering (metadata only) + monthly limits → 402 `limit_reached`
 - [x] Stripe Checkout (student coupon or promo codes) + customer portal; webhook with signature check
       (HMAC, 5-min tolerance), idempotent event handling, plan activation/downgrade/past_due
@@ -243,6 +243,16 @@ Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
 - [~] Signed installers (MSI/NSIS, notarized DMG) via CI + Tauri updater — workflows + updater done; needs signing secrets and a tagged run
 - [x] README with setup, env vars, run, build, architecture diagram; backend Dockerfile
 - [x] `TESTING.md` manual checklist
+
+### Launch — free year, then capped free tier (see DESIGN_AUDIT.md → Billing)
+- [x] `NUDGY_LAUNCH_DATE` → one global FREE_UNTIL (+365 d), admin override (env + API), server-side only
+- [x] Free-tier lessons/month as a settings-table row (admin API), enforced on `/v1/lessons/plan`
+- [x] Unlimited and silent before FREE_UNTIL; one Settings notice in the last 30 days
+- [x] Near-cap note (Home + lesson card), dismissable upgrade screen at the cap; subscribe stub (TODO billing)
+- [x] Quiet usage log: tokens, latency, STT minutes, TTS chars; `/v1/admin/usage` report
+- [x] Shared components for both OSes; Win/Mac render diff (`scripts/ui_parity.sh`)
+- [~] Side-by-side check on real Windows + macOS builds
+- [ ] Connect a billing provider to `startSubscription()`
 
 ---
 

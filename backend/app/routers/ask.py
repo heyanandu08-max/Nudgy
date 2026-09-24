@@ -9,7 +9,7 @@ from app.models import UsageEvent
 from app.providers.registry import Providers, get_providers
 from app.schemas.ask import AskContext
 from app.services.ask import AskInput, run_ask
-from app.services.usage import finish
+from app.services.usage import finish, wav_ms
 from app.sse import sse
 
 router = APIRouter(prefix="/v1")
@@ -48,6 +48,7 @@ async def ask(
     )
 
     usage_id = usage.id if usage else None
+    audio_ms = wav_ms(inp.audio)
 
     async def stream():
         async for event, data in run_ask(inp, providers):
@@ -58,6 +59,8 @@ async def ask(
                     u.get("input_tokens", 0),
                     u.get("output_tokens", 0),
                     t.get("total_ms", 0),
+                    audio_ms=audio_ms,
+                    tts_chars=len(data.get("speech", "")) if ctx.voice_enabled else 0,
                 )
             yield sse(event, data)
 

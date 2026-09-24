@@ -45,6 +45,11 @@ export function getTutor(): Tutor {
       listeners.forEach((fn) => fn(view));
     },
     now: () => Date.now(),
+    onLimit: () => {
+      const w = getCurrentWindow();
+      void w.show().then(() => w.setFocus());
+      void emit("navigate", "upgrade");
+    },
     schedule: (fn, ms) => {
       const id = setTimeout(fn, ms);
       return () => clearTimeout(id);
@@ -59,6 +64,9 @@ export function getTutor(): Tutor {
       },
       get planFailed() {
         return t("tutor.say.planFailed");
+      },
+      get limitReached() {
+        return t("tutor.say.limitReached");
       },
       get firstStep() {
         return t("tutor.say.firstStep");
