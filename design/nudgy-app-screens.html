@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:ital,wght@1,500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>Nudgy — App screens</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --paper:#FAFAF7; --ink:#0A0A0A; --ink-2:#55544F; --ink-3:#9A988F;
+    --line:#ECEAE4; --line-2:#DAD7CF; --accent:#FF4A1C; --good:#1F9D55;
+    --serif:'Lora', Georgia, serif; --sans:'Poppins', system-ui, sans-serif; --mono:'JetBrains Mono','DejaVu Sans Mono', ui-monospace, monospace;
+    --emoji:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#E9E7E1;font-family:var(--sans);color:var(--ink);padding:40px 0 60px}
+  .frame{width:1000px;margin:0 auto 56px}
+  .label{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-bottom:12px;display:flex;gap:10px;align-items:baseline}
+  .label b{color:var(--ink);font-family:var(--sans);font-size:15px;font-weight:600}
+  kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:2px 6px;background:#fff;color:var(--ink)}
+
+  /* fake desktop */
+  .desktop{position:relative;height:560px;border-radius:14px;overflow:hidden;background:#D9D6CE;border:1px solid #C9C5BB}
+  .appwin{position:absolute;left:60px;top:48px;width:760px;height:440px;background:#fff;border-radius:10px;border:1px solid #C9C5BB;box-shadow:0 20px 40px -18px rgba(0,0,0,.3);overflow:hidden}
+  .appbar{height:34px;background:#F3F2EE;border-bottom:1px solid #E2E0DA;display:flex;align-items:center;padding:0 12px;font-size:12px;color:#6b6a64;gap:8px}
+  .appbar .lights{display:flex;gap:6px}.appbar .lights i{width:10px;height:10px;border-radius:50%;background:#d6d3cb;display:block}
+  .toolbar{height:44px;border-bottom:1px solid #E2E0DA;display:flex;align-items:center;gap:6px;padding:0 12px}
+  .tool{height:28px;padding:0 10px;border-radius:6px;border:1px solid #E2E0DA;font-size:12px;display:flex;align-items:center;color:#3b3a36;background:#fff}
+  .grid{display:grid;grid-template-columns:40px repeat(6,1fr);font-family:var(--mono);font-size:11px;color:#5d5c56}
+  .grid div{height:28px;border-right:1px solid #EEEDE8;border-bottom:1px solid #EEEDE8;display:flex;align-items:center;padding:0 8px}
+  .grid .h{background:#F7F6F2;color:#8a887f;justify-content:center}
+  .grid .sel{background:rgba(10,10,10,.06);outline:1.5px solid var(--ink);outline-offset:-1.5px}
+
+  /* nudgy overlay pieces */
+  .ring{position:absolute;border:2px solid var(--ink);border-radius:9px;box-shadow:0 0 0 6px rgba(10,10,10,.08)}
+  .nc{position:absolute;display:flex;align-items:flex-start;gap:6px}
+  .tg{font-family:var(--mono);font-size:10.5px;background:var(--ink);color:#fff;border-radius:999px;padding:3px 9px;margin-top:14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .tg .r{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .tg.ok{background:var(--good)}
+  .st .e{height:48px;display:flex;justify-content:center;align-items:flex-start;gap:6px}
+  .st .e .tg{margin-top:12px}
+  .swatch{width:28px;height:28px;border-radius:50%;border:1px solid var(--line-2)}
+  .swatch.on{outline:2px solid var(--ink);outline-offset:2px}
+  .cursor{position:absolute;width:18px;height:26px}
+  .bubble{position:absolute;max-width:290px;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45}
+  .bubble small{display:block;font-family:var(--mono);font-size:10.5px;color:#A9A79F;margin-bottom:4px;letter-spacing:.02em}
+  .trail{position:absolute;border-top:2px dashed rgba(10,10,10,.35);transform-origin:left center}
+  .pill{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;border:1px solid var(--line-2);border-radius:999px;padding:8px 14px 8px 10px;display:flex;align-items:center;gap:10px;font-size:12.5px;box-shadow:0 8px 20px -10px rgba(0,0,0,.3)}
+  .wave{display:flex;gap:3px;align-items:center;height:16px}
+  .wave i{width:3px;background:var(--accent);border-radius:2px;display:block}
+
+  /* lesson card */
+  .lesson{position:absolute;right:28px;top:120px;width:300px;background:#fff;border:1.5px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);padding:16px}
+  .lesson .top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .lesson h4{font-size:15px;font-weight:600;margin-top:8px;line-height:1.35}
+  .lesson p{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.5}
+  .steps{display:flex;gap:5px;margin-top:14px}
+  .steps i{flex:1;height:4px;border-radius:4px;background:var(--line);display:block}
+  .steps i.d{background:var(--ink)} .steps i.c{background:var(--ink-3)}
+  .lesson .acts{display:flex;gap:8px;margin-top:14px}
+  .b1{background:var(--ink);color:#fff;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:500}
+  .b2{border:1px solid var(--line-2);border-radius:9px;padding:8px 12px;font-size:12px;color:var(--ink-2)}
+  .lesson .x{font-size:11px;color:var(--ink-3);margin-left:auto;align-self:center}
+
+  /* states */
+  .states{background:#fff;border:1px solid var(--line-2);border-radius:14px;display:grid;grid-template-columns:repeat(6,1fr)}
+  .st{padding:26px 10px 20px;text-align:center;border-right:1px solid var(--line)}
+  .st:last-child{border-right:0}
+  .st .n{font-size:13px;font-weight:600;margin-top:12px}
+  .st .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+
+  /* settings */
+  .window{background:#fff;border:1px solid #CFCCC4;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(0,0,0,.25)}
+  .titlebar{height:46px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--line);background:var(--paper)}
+  .titlebar .lights{display:flex;gap:8px}.titlebar .lights i{width:12px;height:12px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.12)}
+  .titlebar .lights i:nth-child(1){background:#FF5F57}.titlebar .lights i:nth-child(2){background:#FEBC2E}.titlebar .lights i:nth-child(3){background:#28C840}
+  .titlebar .logo{margin-left:22px}
+  .titlebar nav{margin-left:28px;display:flex;gap:4px}
+  .titlebar nav a{font-size:13px;color:var(--ink-2);text-decoration:none;padding:6px 12px;border-radius:8px}
+  .titlebar nav a.on{color:var(--ink);background:#fff;border:1px solid var(--line-2)}
+  .set{padding:36px 56px 40px;display:grid;grid-template-columns:200px 1fr;gap:40px}
+  .side a{display:block;font-size:13px;color:var(--ink-2);padding:8px 12px;border-radius:8px;text-decoration:none}
+  .side a.on{background:var(--paper);color:var(--ink);font-weight:500;border:1px solid var(--line)}
+  .set h2{font-size:24px;font-weight:600;letter-spacing:-.01em}
+  .set h2 em{font-family:var(--serif);font-style:italic;font-weight:500}
+  .sub{font-size:13px;color:var(--ink-2);margin-top:6px}
+  .card{border:1px solid var(--line-2);border-radius:14px;margin-top:22px}
+  .rowx{display:flex;align-items:center;gap:16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .rowx:last-child{border-bottom:0}
+  .rowx .t{font-size:13.5px;font-weight:500}
+  .rowx .m{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .rowx .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .emojis{display:flex;gap:8px}
+  .emojis span{font-family:var(--emoji);font-size:20px;width:40px;height:40px;border-radius:10px;border:1px solid var(--line-2);display:grid;place-items:center;background:#fff}
+  .emojis span.on{border:1.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
+  .toggle{width:36px;height:20px;border-radius:999px;background:var(--ink);position:relative}
+  .toggle:after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+  .toggle.off{background:var(--line-2)} .toggle.off:after{left:2px;right:auto}
+  .tag{font-family:var(--mono);font-size:11px;border:1px solid var(--line-2);border-radius:999px;padding:3px 9px;color:var(--ink-2);background:var(--paper)}
+  .select{border:1px solid var(--line-2);border-radius:9px;padding:7px 12px;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<!-- 1. TALK MODE ON DESKTOP -->
+<div class="frame">
+  <div class="label"><b>1 · Talk mode on the desktop</b> user held the hotkey and asked “how do I total this column?”</div>
+  <div class="desktop">
+    <div class="appwin">
+      <div class="appbar"><div class="lights"><i></i><i></i><i></i></div><span style="margin-left:10px">Budget.sheet</span></div>
+      <div class="toolbar">
+        <div class="tool">File</div><div class="tool">B</div><div class="tool">I</div><div class="tool">Format</div>
+        <div class="tool" id="sum">Σ Sum</div><div class="tool">Chart</div><div class="tool">Sort</div>
+      </div>
+      <div class="grid">
+        <div class="h"></div><div class="h">A</div><div class="h">B</div><div class="h">C</div><div class="h">D</div><div class="h">E</div><div class="h">F</div>
+        <div class="h">1</div><div>Item</div><div>Cost</div><div></div><div></div><div></div><div></div>
+        <div class="h">2</div><div>Rent</div><div class="sel">1200</div><div></div><div></div><div></div><div></div>
+        <div class="h">3</div><div>Food</div><div class="sel">340</div><div></div><div></div><div></div><div></div>
+        <div class="h">4</div><div>Travel</div><div class="sel">120</div><div></div><div></div><div></div><div></div>
+        <div class="h">5</div><div>Phone</div><div class="sel">45</div><div></div><div></div><div></div><div></div>
+        <div class="h">6</div><div>Total</div><div></div><div></div><div></div><div></div><div></div>
+        <div class="h">7</div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div class="h">8</div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div class="h">9</div><div></div><div></div><div></div><div></div><div></div><div></div>
+        <div class="h">10</div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <!-- highlight ring around Σ Sum : appwin left 60 + toolbar offsets -->
+    <div class="ring" style="left:253px;top:86px;width:72px;height:40px"></div>
+    <div class="trail" style="left:312px;top:152px;width:290px;transform:rotate(9deg)"></div>
+    <div class="nc" style="left:300px;top:112px"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+    <!-- real OS cursor + bubble -->
+    <svg class="cursor" style="left:600px;top:200px" viewBox="0 0 18 26"><path d="M1 1 L1 20 L6 15.5 L9.5 23.5 L12.5 22.2 L9 14.5 L15.5 14.5 Z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    <div class="bubble" style="left:620px;top:228px"><small>NUDGY</small>Select your numbers, then hit <b>Σ Sum</b> up here. It adds them all in one go.</div>
+    <div class="pill"><div class="wave"><i style="height:6px"></i><i style="height:12px"></i><i style="height:16px"></i><i style="height:9px"></i><i style="height:13px"></i></div>speaking · <kbd>Esc</kbd> to stop</div>
+  </div>
+</div>
+
+<!-- 2. TUTOR MODE -->
+<div class="frame">
+  <div class="label"><b>2 · Tutor mode</b> Nudgy waits for the user to do each step, then checks it</div>
+  <div class="desktop">
+    <div class="appwin" style="width:640px">
+      <div class="appbar"><div class="lights"><i></i><i></i><i></i></div><span style="margin-left:10px">Budget.sheet</span></div>
+      <div class="toolbar">
+        <div class="tool">File</div><div class="tool">B</div><div class="tool">I</div><div class="tool">Format</div>
+        <div class="tool">Σ Sum</div><div class="tool">Chart</div>
+      </div>
+      <div class="grid">
+        <div class="h"></div><div class="h">A</div><div class="h">B</div><div class="h">C</div><div class="h">D</div><div class="h">E</div><div class="h">F</div>
+        <div class="h">1</div><div>Item</div><div>Cost</div><div></div><div></div><div></div><div></div>
+        <div class="h">2</div><div>Rent</div><div class="sel">1200</div><div></div><div></div><div></div><div></div>
+        <div class="h">3</div><div>Food</div><div class="sel">340</div><div></div><div></div><div></div><div></div>
+        <div class="h">4</div><div>Travel</div><div>120</div><div></div><div></div><div></div><div></div>
+        <div class="h">5</div><div>Phone</div><div>45</div><div></div><div></div><div></div><div></div>
+        <div class="h">6</div><div>Total</div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <svg class="cursor" style="left:200px;top:220px" viewBox="0 0 18 26"><path d="M1 1 L1 20 L6 15.5 L9.5 23.5 L12.5 22.2 L9 14.5 L15.5 14.5 Z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    <div class="nc" style="left:224px;top:240px"><svg width="22" height="30" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tg">watching</span></div>
+    <div class="lesson">
+      <div class="top"><span>LESSON · SHEETS</span><span>2 / 5</span></div>
+      <h4>Select the costs, from 1200 down to 45</h4>
+      <p>Click the first number and drag down. I'll check once you let go.</p>
+      <div class="steps"><i class="d"></i><i class="c"></i><i></i><i></i><i></i></div>
+      <div class="acts"><div class="b1">Show me</div><div class="b2">Skip</div><div class="x">Esc to stop</div></div>
+    </div>
+    <div class="pill"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block"></span>your turn · I'm watching this window only</div>
+  </div>
+</div>
+
+<!-- 3. BUDDY STATES -->
+<div class="frame">
+  <div class="label"><b>3 · The Nudgy cursor</b> a second, tilted cursor that trails yours · a tiny label shows what it’s doing</div>
+  <div class="states">
+    <div class="st"><div class="e"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:0.55;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div><div class="n">Idle</div><div class="d">trails your cursor<br>fades out after 5s</div></div>
+    <div class="st"><div class="e"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tg"><i class="r"></i>listening</span></div><div class="n">Listening</div><div class="d">hotkey held<br>red dot pulses</div></div>
+    <div class="st"><div class="e"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tg">thinking ···</span></div><div class="n">Thinking</div><div class="d">waiting on answer<br>dots tick</div></div>
+    <div class="st"><div class="e"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tg">talking</span></div><div class="n">Talking</div><div class="d">caption bubble<br>next to it</div></div>
+    <div class="st"><div class="e" style="position:relative"><span style="position:absolute;left:50%;top:-6px;transform:translateX(-78%);width:46px;height:26px;border:2px solid var(--ink);border-radius:8px"></span><span style="margin-top:14px;margin-left:18px"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></span></div><div class="n">Pointing</div><div class="d">flies to the button<br>ring around it</div></div>
+    <div class="st"><div class="e"><svg width="26" height="36" viewBox="0 0 20 28" style="transform:rotate(16deg);opacity:1;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))"><path d="M2 2 L2 21 L7 16.5 L10.5 24.5 L13.8 23 L10.3 15.2 L17 15.2 Z" fill="#0A0A0A" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="tg ok">nice ✓</span></div><div class="n">Step done</div><div class="d">one small hop<br>then back to idle</div></div>
+  </div>
+</div>
+
+<!-- 4. SETTINGS -->
+<div class="frame">
+  <div class="label"><b>4 · Settings</b> same style as Home</div>
+  <div class="window">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="logo"><svg style="height:22px;width:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 340" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpiMjkyMmVjZC01MDIxLTRhMTgtOTIyNC0zZDlmOTUwMWFhMjkAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaPWlMRACAQCBaFGxHDihy7UAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpjNDY1ZDNjYS1lMzkwLTRmODYtYTA0NS01ZDk0MzQ5ODY1ODdscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNovbc1SDPgQsl6xvhmL19tCQAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg/uenj7w4fy/oCjgxes5Y8RsFSD/uXc8GpvQsaRAsdGekZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaKgrDHOVugcKlMDRcbd2X50AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCC0bE2+Gh8OMvrNLOJ881catQkZa28s91m776E0DPIGSmRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBiWZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmIyOTIyZWNkLTUwMjEtNGExOC05MjI0LTNkOWY5NTAxYWEyOS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmY0MDAyOTFmLWVjZjYtNGFmOC05MGUzLWUwZWRjMjQ2MmJmYXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCD+56ePvDh/L+gKODF6zljxGwVIP+5dzwam9CxpECx0Z6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg9fLh1KoMc4jD+Sc0XEaBI1M0JdKjjB5ZUKkW8QDDJK+iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg3euWw/rGn34+En5Blx0oLiKCPzq9VRZ18jIvdX4/mYF0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQIhHLk0PFmx335KO5KE6UelcEA8KxetxZCuhf+ZhNMXdVl9mhRCFlg6rWJyEtNsgp+tOe4EBy8A6bfPhaRCzSUk=</c2pa:manifest></metadata><path d="M175.74 178.28V250.0H138.34V183.34Q138.34 171.01999999999998 131.96 164.2Q125.58 157.38 114.8 157.38Q104.02 157.38 97.63999999999999 164.2Q91.25999999999999 171.01999999999998 91.25999999999999 183.34V250.0H53.64V127.24H91.25999999999999V143.51999999999998Q96.97999999999999 135.38 106.66 130.65Q116.34 125.92 128.44 125.92Q150.0 125.92 162.87 139.89000000000001Q175.74 153.86 175.74 178.28Z" fill="#0A0A0A"/><path d="M313.14 127.24V250.0H275.52V233.28Q269.8 241.42 260.01 246.37Q250.22 251.32 238.34 251.32Q224.26 251.32 213.48 245.05Q202.7 238.78 196.76 226.9Q190.82 215.02 190.82 198.96V127.24H228.22V193.9Q228.22 206.22 234.60000000000002 213.04000000000002Q240.98000000000002 219.86 251.76 219.86Q262.76 219.86 269.14 213.04000000000002Q275.52 206.22 275.52 193.9V127.24Z" fill="#0A0A0A"/><path d="M376.84000000000003 125.48Q388.94 125.48 398.95000000000005 130.54Q408.96000000000004 135.6 414.68 144.18V87.19999999999999H452.3V250.0H414.68V232.4Q409.4 241.2 399.61 246.48Q389.82 251.76 376.84000000000003 251.76Q361.66 251.76 349.34000000000003 243.95Q337.02 236.14 329.87 221.73Q322.72 207.32 322.72 188.4Q322.72 169.48000000000002 329.87 155.18Q337.02 140.88 349.34000000000003 133.18Q361.66 125.48 376.84000000000003 125.48ZM387.84000000000003 158.26Q376.62 158.26 368.81 166.29Q361.0 174.32 361.0 188.4Q361.0 202.48 368.81 210.73Q376.62 218.98 387.84000000000003 218.98Q399.06 218.98 406.87 210.83999999999997Q414.68 202.7 414.68 188.62Q414.68 174.54000000000002 406.87 166.4Q399.06 158.26 387.84000000000003 158.26Z" fill="#0A0A0A"/><path d="M554.06 144.62V127.24H591.6800000000001V249.78Q591.6800000000001 266.72 584.97 280.47Q578.26 294.22 564.51 302.36Q550.76 310.5 530.3 310.5Q503.02 310.5 486.08 297.63Q469.14 284.76 466.71999999999997 262.76H503.9Q505.65999999999997 269.8 512.26 273.87Q518.86 277.94 528.54 277.94Q540.2 277.94 547.13 271.23Q554.06 264.52 554.06 249.78V232.4Q548.56 240.98 538.88 246.37Q529.2 251.76 516.22 251.76Q501.04 251.76 488.72 243.95Q476.4 236.14 469.25 221.73Q462.1 207.32 462.1 188.4Q462.1 169.48000000000002 469.25 155.18Q476.4 140.88 488.72 133.18Q501.04 125.48 516.22 125.48Q529.2 125.48 538.99 130.76000000000002Q548.78 136.04000000000002 554.06 144.62ZM527.22 158.26Q516.0 158.26 508.19 166.29Q500.38 174.32 500.38 188.4Q500.38 202.48 508.19 210.73Q516.0 218.98 527.22 218.98Q538.44 218.98 546.25 210.83999999999997Q554.06 202.7 554.06 188.62Q554.06 174.54000000000002 546.25 166.4Q538.44 158.26 527.22 158.26Z" fill="#0A0A0A"/><g transform="rotate(16 748.3599999999999 250)"><path d="M748.3599999999999 127.24 671.3599999999999 308.3H630.8799999999999L659.04 245.82L609.0999999999999 127.24H651.1199999999999L679.5 204.02L707.66 127.24Z" fill="#0A0A0A"/></g><g stroke="#0A0A0A" stroke-width="12" stroke-linecap="round"><line x1="589.3199999999999" y1="100" x2="599.3199999999999" y2="72"/><line x1="611.3199999999999" y1="128" x2="637.3199999999999" y2="110"/></g></svg></div>
+      <nav><a href="#">Home</a><a href="#">Walkthroughs</a><a class="on" href="#">Settings</a></nav>
+    </div>
+    <div class="set">
+      <div class="side">
+        <a class="on" href="#">Cursor &amp; voice</a><a href="#">Hotkey</a><a href="#">Privacy</a><a href="#">Account</a><a href="#">About</a>
+      </div>
+      <div>
+        <h2>Your <em>cursor</em></h2>
+        <div class="sub">How the Nudgy cursor looks, and how it sounds.</div>
+        <div class="card">
+          <div class="rowx"><div><div class="t">Cursor color</div><div class="m">So you can tell it apart from your own</div></div>
+            <div class="r"><span class="swatch on" style="background:#0A0A0A"></span><span class="swatch" style="background:#fff"></span><span class="swatch" style="background:#FF4A1C"></span><span class="swatch" style="background:#2F6BFF"></span></div></div>
+          <div class="rowx"><div><div class="t">Cursor size</div><div class="m">Bigger is easier to follow on large screens</div></div><div class="r"><span class="tag">S</span><span class="tag" style="background:#fff;border-color:var(--ink);color:var(--ink)">M</span><span class="tag">L</span></div></div>
+          <div class="rowx"><div><div class="t">Voice</div><div class="m">Used when Nudgy talks back</div></div><div class="r"><div class="select">Calm · female ▾</div></div></div>
+          <div class="rowx"><div><div class="t">Speak answers out loud</div><div class="m">Captions always show</div></div><div class="r"><div class="toggle"></div></div></div>
+          <div class="rowx"><div><div class="t">Answer length</div><div class="m">Short is best while you work</div></div><div class="r"><span class="tag" style="background:#fff;border-color:var(--ink);color:var(--ink)">Short</span><span class="tag">Detailed</span></div></div>
+        </div>
+        <div class="card">
+          <div class="rowx"><div><div class="t">Never look at these apps</div><div class="m">Nudgy skips them even if you press the hotkey</div></div>
+            <div class="r"><span class="tag">1Password</span><span class="tag">Bank</span><span class="tag">+ Add</span></div></div>
+          <div class="rowx"><div><div class="t">Hide the Nudgy cursor when idle</div><div class="m">Only shows up when you call it</div></div><div class="r"><div class="toggle off"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

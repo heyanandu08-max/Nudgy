@@ -1,0 +1,450 @@
+@import "tailwindcss";
+@import "../tokens.css";
+
+/* Overlay pieces, matching design/nudgy-app-screens.html frames 1–3. Short aliases of the
+   shared tokens (tokens.css) so the two windows can't drift apart. */
+:root {
+  --paper: var(--color-paper);
+  --ink: var(--color-ink);
+  --ink-2: var(--color-ink-2);
+  --ink-3: var(--color-ink-3);
+  --line: var(--color-line);
+  --line-2: var(--color-line-2);
+  --accent: var(--color-accent);
+  --good: var(--color-good);
+  --sans: var(--font-sans);
+  --serif: var(--font-serif);
+  --mono: var(--font-mono);
+}
+
+/* The overlay window is transparent: nothing may paint a background. */
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  user-select: none;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+
+.overlay-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* --- Nudgy cursor --- */
+.anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: opacity 250ms ease;
+  will-change: transform;
+}
+.anchor__cursor {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.nudgy-cursor {
+  transform: rotate(16deg);
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.25));
+  flex: none;
+}
+.hop .nudgy-cursor {
+  animation: hop 380ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes hop {
+  0%, 100% { transform: rotate(16deg) translateY(0); }
+  45% { transform: rotate(16deg) translateY(-7px); }
+}
+
+.state-label {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 10.5px/1.4 var(--mono);
+  white-space: nowrap;
+  animation: pop 160ms ease-out;
+}
+.state-label--ok {
+  background: var(--good);
+}
+.state-label__rec {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 1s ease-in-out infinite;
+}
+.state-label__dots {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 2px;
+}
+.state-label__dots i {
+  font-style: normal;
+  animation: tick 1.2s steps(1) infinite;
+}
+.state-label__dots i:nth-child(2) { animation-delay: 0.3s; }
+.state-label__dots i:nth-child(3) { animation-delay: 0.6s; }
+@keyframes tick {
+  0%, 60% { opacity: 1; }
+  30% { opacity: 0.25; }
+}
+@keyframes blink {
+  50% { opacity: 0.3; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- Caption bubble --- */
+.bubble {
+  position: absolute;
+  top: 34px;
+  left: 26px;
+  width: max-content;
+  max-width: 300px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14.5px;
+  line-height: 1.4;
+  animation: pop 160ms ease-out;
+}
+.bubble small {
+  display: block;
+  margin-bottom: 4px;
+  font: 10.5px var(--mono);
+  color: #a9a79f;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.bubble p {
+  margin: 0;
+}
+.bubble__heard {
+  color: #a9a79f;
+}
+.bubble__notice {
+  color: #a9a79f;
+  margin-top: 4px !important;
+}
+.anchor[data-flip="left"] .bubble {
+  left: auto;
+  right: 8px;
+}
+.anchor[data-flip-y="up"] .bubble {
+  top: auto;
+  bottom: 8px;
+}
+
+/* --- Pointing: flying cursor, dashed trail, black ring --- */
+.flying {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  will-change: transform;
+}
+.trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: fade-out 900ms 600ms ease forwards;
+}
+.trail line {
+  stroke: rgb(10 10 10 / 0.35);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+.ring {
+  position: absolute;
+  border: 2px solid var(--ink);
+  border-radius: 9px;
+  box-shadow: 0 0 0 6px rgb(10 10 10 / 0.08);
+  animation: ring-in 200ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+@keyframes ring-in {
+  from { transform: scale(1.12); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* --- Status pill (bottom center) --- */
+.pill {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12.5px;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.3);
+  animation: pop 160ms ease-out;
+}
+.pill kbd {
+  font: 11px var(--mono);
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 6px;
+  background: #fff;
+}
+.pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+}
+.wave {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 16px;
+}
+.wave i {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: wave 700ms ease-in-out infinite alternate;
+}
+@keyframes wave {
+  from { transform: scaleY(0.45); }
+  to { transform: scaleY(1); }
+}
+
+/* --- Lesson card (hard offset shadow) --- */
+.lesson {
+  position: fixed;
+  right: 28px;
+  top: 120px;
+  width: 300px;
+  padding: 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+  pointer-events: auto;
+  animation: pop 200ms ease-out;
+}
+.lesson__top {
+  display: flex;
+  justify-content: space-between;
+  font: 11px var(--mono);
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.lesson h4 {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.lesson p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.lesson__steps {
+  display: flex;
+  gap: 5px;
+  margin-top: 14px;
+}
+.lesson__steps i {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+}
+.lesson__steps i.d { background: var(--ink); }
+.lesson__steps i.c { background: var(--ink-3); }
+.lesson__acts {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+.b1,
+.b2 {
+  padding: 8px 12px;
+  border-radius: 9px;
+  font: 500 12px var(--sans);
+  cursor: pointer;
+}
+.b1 {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+.b2 {
+  border: 1px solid var(--line-2);
+  background: #fff;
+  color: var(--ink-2);
+}
+.b1:disabled,
+.b2:disabled,
+.lesson__links button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.lesson__links {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.lesson__links button {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.lesson__links button:hover {
+  color: var(--ink);
+}
+button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* --- Review nudge (bottom right) --- */
+.nudge {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 290px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: #fff;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.3);
+  pointer-events: auto;
+  animation: pop 200ms ease-out;
+}
+.nudge p {
+  margin: 0 0 4px;
+}
+.nudge__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 11px var(--mono);
+  color: var(--accent);
+}
+.nudge__title i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.nudge__more {
+  font: 11px var(--mono);
+  color: var(--ink-3);
+}
+
+/* --- Capture tag (top right): shown whenever the screen is being read --- */
+.capture {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 11px var(--mono);
+  animation: pop 120ms ease-out;
+}
+.capture i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* --- Recorder pill (top center) --- */
+.recbar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12.5px;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.3);
+  pointer-events: auto;
+}
+.recbar__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 1.2s ease-in-out infinite;
+}
+.recbar__meta,
+.recbar__hint {
+  font: 11px var(--mono);
+  color: var(--ink-3);
+}
+.recbar__hint {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recbar button {
+  padding: 5px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: #fff;
+  font: 500 12px var(--sans);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.recbar button.b1 {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}

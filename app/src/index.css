@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@import "./tokens.css";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus: 2px black outline, 2px offset, everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+button,
+a,
+input,
+select {
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+body.ask-box {
+  background: transparent;
+}
