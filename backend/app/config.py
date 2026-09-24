@@ -66,13 +66,29 @@ class Settings(BaseSettings):
     llm_thinking: str = "disabled"  # disabled | adaptive
     llm_effort: str = "low"  # low | medium | high | "" (provider default)
 
+    # Any OpenAI-compatible AI gateway (local or hosted). Used by the "openai_compatible"
+    # LLM / STT / TTS providers; one address and key serve all three.
+    gateway_url: str | None = None  # e.g. http://127.0.0.1:31415 (with or without /v1)
+    gateway_key: str | None = None
+    llm_vision: bool = True  # false if the gateway's model can't read screenshots
+    stt_model: str = ""  # gateway speech-to-text model name
+    tts_model: str = ""  # gateway voice model name, e.g. @cf/deepgram/aura-2-en
+    tts_voice: str = ""  # optional; many gateway voice models need none
+
     # Vendor keys use their conventional names (no NUDGY_ prefix).
     anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")
     deepgram_api_key: str | None = Field(default=None, validation_alias="DEEPGRAM_API_KEY")
     elevenlabs_api_key: str | None = Field(default=None, validation_alias="ELEVENLABS_API_KEY")
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
 
-    @field_validator("launch_date", "free_until_override", "admin_token", mode="before")
+    @field_validator(
+        "launch_date",
+        "free_until_override",
+        "admin_token",
+        "gateway_url",
+        "gateway_key",
+        mode="before",
+    )
     @classmethod
     def _blank_is_none(cls, v: object) -> object:
         return None if v == "" else v

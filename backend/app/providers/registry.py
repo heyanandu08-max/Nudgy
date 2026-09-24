@@ -27,6 +27,12 @@ def build_llm(s: Settings) -> LLMProvider:
                 thinking=s.llm_thinking,
                 effort=s.llm_effort or None,
             )
+        case "openai_compatible":
+            from app.providers.openai_compat_llm import OpenAICompatibleLLM
+
+            return OpenAICompatibleLLM(
+                s.gateway_url, s.gateway_key, s.llm_model, vision=s.llm_vision
+            )
         case "fake":
             from app.providers.fake import FakeLLM
 
@@ -44,6 +50,14 @@ def build_stt(s: Settings) -> STTProvider:
             from app.providers.http_stt import OpenAIWhisperSTT
 
             return OpenAIWhisperSTT(s.openai_api_key)
+        case "openai_compatible":
+            from app.providers.http_stt import OpenAIWhisperSTT
+
+            if not s.gateway_url:
+                raise ProviderError("config", "NUDGY_GATEWAY_URL is not set")
+            if not s.stt_model:
+                raise ProviderError("config", "NUDGY_STT_MODEL is not set")
+            return OpenAIWhisperSTT(s.gateway_key, s.stt_model, base_url=s.gateway_url)
         case "fake":
             from app.providers.fake import FakeSTT
 
@@ -61,6 +75,19 @@ def build_tts(s: Settings) -> TTSProvider:
             from app.providers.http_tts import OpenAITTS
 
             return OpenAITTS(s.openai_api_key)
+        case "openai_compatible":
+            from app.providers.http_tts import OpenAITTS
+
+            if not s.gateway_url:
+                raise ProviderError("config", "NUDGY_GATEWAY_URL is not set")
+            if not s.tts_model:
+                raise ProviderError("config", "NUDGY_TTS_MODEL is not set")
+            return OpenAITTS(
+                s.gateway_key,
+                s.tts_model,
+                base_url=s.gateway_url,
+                default_voice=s.tts_voice or None,
+            )
         case "fake":
             from app.providers.fake import FakeTTS
 

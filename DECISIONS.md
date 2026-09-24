@@ -223,3 +223,11 @@ or a lockout.
 The upgrade screen and Account share one `startSubscription()` (TODO: connect billing provider).
 The Stripe checkout/webhook code stays in the backend; wiring it in is a one-function change.
 Until then, `PUT /v1/admin/users/{email}/plan` stands in for a subscription in QA.
+
+## D42 — OpenAI-compatible gateways as a first-class provider
+Many free, local and self-hosted AI services speak the OpenAI API. One `openai_compatible`
+provider per role (LLM, STT, TTS), sharing `NUDGY_GATEWAY_URL` + `NUDGY_GATEWAY_KEY`, lets a
+deployment swap vendors by config. The LLM is streamed over SSE with a fallback for gateways
+that ignore `stream`; screenshots go as data-URL images unless `NUDGY_LLM_VISION=false`. The
+voice request sends only `model` + `input` (+ `voice` if chosen), which is what Deepgram Aura
+through such gateways expects, and the audio type is taken from the response.

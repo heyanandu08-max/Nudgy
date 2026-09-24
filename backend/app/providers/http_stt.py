@@ -1,10 +1,12 @@
-"""Speech-to-text over plain HTTP: Deepgram (default) and OpenAI Whisper (fallback)."""
+"""Speech-to-text over plain HTTP: Deepgram, OpenAI Whisper, and any OpenAI-compatible
+gateway (`/v1/audio/transcriptions`)."""
 
 from __future__ import annotations
 
 import httpx
 
 from app.providers.base import ProviderError
+from app.providers.openai_compat_llm import v1_url
 
 
 def _raise_for(resp: httpx.Response, vendor: str) -> None:
@@ -59,11 +61,19 @@ class OpenAIWhisperSTT:
         model: str = "whisper-1",
         timeout: float = 20.0,
         transport: httpx.AsyncBaseTransport | None = None,
+        *,
+        base_url: str | None = None,
     ):
+        """`base_url` points it at an OpenAI-compatible gateway instead of OpenAI."""
         if not api_key:
-            raise ProviderError("config", "OPENAI_API_KEY is not set")
+            raise ProviderError(
+                "config",
+                "NUDGY_GATEWAY_KEY is not set" if base_url else "OPENAI_API_KEY is not set",
+            )
         self.api_key, self.model, self.timeout = api_key, model, timeout
         self.transport = transport
+        self.url = v1_url(base_url, "/audio/transcriptions") if base_url else self.URL
+        self.vendor = "the AI gateway" if base_url else "OpenAI"
 
     async def transcribe(self, audio: bytes, *, mime: str, language: str) -> str:
         files = {"file": ("speech.wav", audio, mime)}
@@ -71,12 +81,14 @@ class OpenAIWhisperSTT:
         try:
             async with httpx.AsyncClient(timeout=self.timeout, transport=self.transport) as c:
                 resp = await c.post(
-                    self.URL,
+                    self.url,
                     headers={"Authorization": f"Bearer {self.api_key}"},
                     files=files,
                     data=data,
                 )
         except httpx.HTTPError as e:
-            raise ProviderError("stt_unreachable", "Could not reach OpenAI", retryable=True) from e
-        _raise_for(resp, "OpenAI")
+            raise ProviderError(
+                "stt_unreachable", f"Could not reach {self.vendor}", retryable=True
+            ) from e
+        _raise_for(resp, self.vendor)
         return (resp.json().get("text") or "").strip()
