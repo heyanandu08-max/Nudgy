@@ -196,6 +196,9 @@ export function CursorSection() {
             />
           </form>
         </Row>
+        <Row title={t("settings.beginner")} help={t("settings.beginnerHelp")}>
+          <Toggle label={t("settings.beginner")} checked={settings.beginnerMode} onChange={(v) => void update({ beginnerMode: v })} />
+        </Row>
         <Row title={t("settings.hideIdle")} help={t("settings.hideIdleHelp")}>
           <Toggle
             label={t("settings.hideIdle")}

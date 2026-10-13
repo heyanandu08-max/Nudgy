@@ -60,6 +60,11 @@ async def plan_lesson(
     )
     app = f'Foreground app: {ctx.app.name} — "{ctx.app.title}"\n' if ctx.app else ""
     text = f"{app}UI elements (id | role | name | x,y,w,h):\n{element_lines(ctx.elements)}\n\nGoal: {ctx.goal}"
+    if ctx.beginner:
+        text += (
+            "\n\nThe learner is new to computers: make each step one small action, use everyday"
+            " words, and say where each thing is on the screen."
+        )
     plan = await llm_json(
         p.llm,
         system=system,

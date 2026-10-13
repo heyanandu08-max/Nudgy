@@ -86,7 +86,9 @@
     "update_current": "à jour",
     "update_installing": "installation…",
     "update_failed": "vérification impossible. Réessayez plus tard.",
-    "update_disabled": "désactivé dans cette version"
+    "update_disabled": "désactivé dans cette version",
+    "beginner": "Mode débutant",
+    "beginnerHelp": "Pour les personnes qui débutent sur ordinateur : des mots simples, une petite étape à la fois, une voix plus lente, un curseur et des sous-titres plus grands"
   },
   "health": {
     "checking": "connexion",

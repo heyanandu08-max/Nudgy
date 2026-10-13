@@ -64,6 +64,7 @@ class PlanContext(ScreenState):
     goal: str = Field(min_length=1, max_length=500)
     screenshot: ScreenshotInfo | None = None
     language: str = Field(default="en", max_length=16)
+    beginner: bool = False  # beginner mode: smaller steps, plainer words
 
 
 class VerifyContext(BaseModel):

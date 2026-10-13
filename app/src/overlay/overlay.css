@@ -461,3 +461,10 @@ button:focus-visible {
   font: 11px var(--mono);
   color: var(--ink);
 }
+
+/* --- Beginner mode: bigger captions --- */
+.is-beginner .bubble {
+  max-width: 360px;
+  font-size: 17px;
+  line-height: 1.45;
+}

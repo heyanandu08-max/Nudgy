@@ -86,7 +86,9 @@
     "update_current": "up to date",
     "update_installing": "installing…",
     "update_failed": "couldn't check. Try later.",
-    "update_disabled": "off in this build"
+    "update_disabled": "off in this build",
+    "beginner": "Beginner mode",
+    "beginnerHelp": "For people new to computers: everyday words, one small step at a time, a slower voice, bigger cursor and captions"
   },
   "health": {
     "checking": "connecting",

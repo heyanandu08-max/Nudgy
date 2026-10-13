@@ -48,6 +48,10 @@ export function OverlayApp() {
   const [idle, setIdle] = useState(false);
   const [pointerFrom, setPointerFrom] = useState<Vec>({ x: 0, y: 0 });
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const beginner = useRef(false);
+  beginner.current = settings.beginnerMode;
+  // Beginner mode: the largest cursor, whatever the size setting says.
+  const cursorSize = settings.beginnerMode ? "l" : settings.cursorSize;
   const [speaking, setSpeaking] = useState(false);
   const audio = useRef<AudioQueue | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -79,7 +83,7 @@ export function OverlayApp() {
       if (st().mode === "talking" || st().mode === "thinking") st().setMode("idle");
       hideTimer.current = setTimeout(() => st().clearCaption(), CAPTION_LINGER_MS);
     };
-    audio.current = new AudioQueue(htmlAudioPlayer(), (playing) => {
+    audio.current = new AudioQueue(htmlAudioPlayer(() => (beginner.current ? 0.9 : 1)), (playing) => {
       setSpeaking(playing);
       void invoke("escape_listen", { on: playing }).catch(() => {});
       if (playing) st().setMode("talking");
@@ -247,10 +251,10 @@ export function OverlayApp() {
   else if (showCard && lesson?.phase === "planning") pill = { kind: "planning" };
 
   return (
-    <div className="overlay-root">
+    <div className={`overlay-root ${settings.beginnerMode ? "is-beginner" : ""}`}>
       <div ref={anchor} className="anchor" style={{ opacity }}>
         <div className={`anchor__cursor ${nice ? "hop" : ""}`}>
-          <NudgyCursor color={settings.cursorColor} size={settings.cursorSize} />
+          <NudgyCursor color={settings.cursorColor} size={cursorSize} />
           <StateLabel label={label} text={label ? t(`cursor.${label}`) : ""} />
         </div>
         {s.caption && <CaptionBubble caption={s.caption} />}
@@ -261,7 +265,7 @@ export function OverlayApp() {
           target={s.target}
           from={pointerFrom}
           color={settings.cursorColor}
-          size={settings.cursorSize}
+          size={cursorSize}
           onDone={s.clearTarget}
         />
       )}

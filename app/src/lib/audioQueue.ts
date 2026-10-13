@@ -64,8 +64,9 @@ export class AudioQueue {
   }
 }
 
-/** Browser implementation backed by an <audio> element. */
-export function htmlAudioPlayer(): Player {
+/** Browser implementation backed by an <audio> element. `rate` is read per clip (beginner
+ *  mode speaks a little slower; the pitch is kept). */
+export function htmlAudioPlayer(rate: () => number = () => 1): Player {
   let current: HTMLAudioElement | null = null;
   let finish: (() => void) | null = null;
   return {
@@ -74,6 +75,7 @@ export function htmlAudioPlayer(): Player {
         const bytes = Uint8Array.from(atob(clip.b64), (c) => c.charCodeAt(0));
         const url = URL.createObjectURL(new Blob([bytes], { type: clip.mime }));
         const audio = new Audio(url);
+        audio.playbackRate = rate();
         current = audio;
         finish = () => {
           URL.revokeObjectURL(url);

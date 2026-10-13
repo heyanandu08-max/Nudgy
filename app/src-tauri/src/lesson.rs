@@ -86,6 +86,7 @@ pub async fn lesson_plan(app: AppHandle, goal: String) -> Result<Value, ApiError
         "app": prepared.context["app"],
         "elements": prepared.context["elements"],
         "language": settings.language,
+        "beginner": settings.beginner_mode,
     });
     if let Some(s) = prepared.context.get("screenshot") {
         context["screenshot"] = s.clone();

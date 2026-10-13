@@ -21,6 +21,8 @@ export interface Settings {
   /** Shortcut coach (opt-in). */
   shortcutCoach: boolean;
   shortcutTipsSeen: string[];
+  /** Plainer words, smaller steps, slower voice, bigger cursor and captions. */
+  beginnerMode: boolean;
 }
 
 export type CursorColor = "black" | "white" | "red" | "blue";
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   shortcutCoach: false,
   shortcutTipsSeen: [],
+  beginnerMode: false,
 };
 
 const BROWSER_KEY = "nudgy.settings";

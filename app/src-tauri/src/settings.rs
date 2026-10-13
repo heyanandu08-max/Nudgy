@@ -43,6 +43,8 @@ pub struct Settings {
     pub shortcut_coach: bool,
     /// Shortcut tips already shown (each is shown once).
     pub shortcut_tips_seen: Vec<String>,
+    /// Beginner mode: plainer words, smaller steps, slower voice, bigger cursor and captions.
+    pub beginner_mode: bool,
 }
 
 impl Default for Settings {
@@ -66,6 +68,7 @@ impl Default for Settings {
             onboarded: false,
             shortcut_coach: false,
             shortcut_tips_seen: Vec::new(),
+            beginner_mode: false,
         }
     }
 }

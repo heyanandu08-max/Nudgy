@@ -206,6 +206,7 @@ pub fn prepare(
         "language": settings.language,
         "voice_enabled": settings.voice_enabled,
         "voice_id": settings.voice_id,
+        "beginner": settings.beginner_mode,
     });
     if captured.screenshot.is_some() {
         context["screenshot"] = json!({"width": meta.width, "height": meta.height});

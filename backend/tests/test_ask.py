@@ -220,3 +220,12 @@ def test_explain_error_mode_uses_its_own_prompt(client):
 def test_unknown_mode_is_rejected(client):
     r = client.post("/v1/ask", data={"context": json.dumps({"text": "hi", "mode": "agent"})})
     assert r.status_code == 422
+
+
+def test_beginner_mode_asks_for_plain_small_steps():
+    from app.schemas.ask import AskContext
+    from app.services.ask import BEGINNER, system_prompt
+
+    assert BEGINNER.strip() in system_prompt(AskContext(beginner=True))
+    assert BEGINNER.strip() in system_prompt(AskContext(beginner=True, mode="explain_error"))
+    assert BEGINNER.strip() not in system_prompt(AskContext())

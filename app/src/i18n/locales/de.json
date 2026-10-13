@@ -86,7 +86,9 @@
     "update_current": "aktuell",
     "update_installing": "wird installiert…",
     "update_failed": "Prüfung fehlgeschlagen. Versuch es später.",
-    "update_disabled": "in dieser Version aus"
+    "update_disabled": "in dieser Version aus",
+    "beginner": "Einsteigermodus",
+    "beginnerHelp": "Für alle, die neu am Computer sind: einfache Worte, ein kleiner Schritt nach dem anderen, langsamere Stimme, größerer Cursor und größere Untertitel"
   },
   "health": {
     "checking": "verbinde",

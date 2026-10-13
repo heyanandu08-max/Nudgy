@@ -86,7 +86,9 @@
     "update_current": "atualizado",
     "update_installing": "instalando…",
     "update_failed": "não foi possível verificar. Tente mais tarde.",
-    "update_disabled": "desligado nesta versão"
+    "update_disabled": "desligado nesta versão",
+    "beginner": "Modo iniciante",
+    "beginnerHelp": "Para quem está começando no computador: palavras simples, um passo pequeno por vez, voz mais lenta, cursor e legendas maiores"
   },
   "health": {
     "checking": "conectando",

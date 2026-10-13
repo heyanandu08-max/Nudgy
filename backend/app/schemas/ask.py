@@ -59,6 +59,7 @@ class AskContext(BaseModel):
     lesson: LessonContext | None = None  # set while a tutor-mode lesson is running
     # "explain_error": the user pressed the explain-this-error key (no question asked)
     mode: Literal["talk", "explain_error"] = "talk"
+    beginner: bool = False  # beginner mode: plainer words, smaller steps
 
     @field_validator("history")
     @classmethod

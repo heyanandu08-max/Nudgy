@@ -39,6 +39,12 @@ LENGTH = {
     "brief": "2 to 4 short sentences unless the user explicitly asks for detail.",
     "detailed": "up to 8 sentences; explain the why as well as the how.",
 }
+# Beginner mode (a setting): for people new to computers.
+BEGINNER = (
+    " The user is new to computers: use everyday words and no jargon (say 'the button that"
+    " says Save', not 'the toolbar icon'), give one small action at a time, and say where it"
+    " is on the screen (top left, bottom right, under the title)."
+)
 MAX_TOKENS = 2048
 
 Event = tuple[str, dict]
@@ -77,13 +83,14 @@ def lesson_context(ctx: AskContext) -> str:
 
 
 def system_prompt(ctx: AskContext) -> str:
+    length = LENGTH[ctx.response_length] + (BEGINNER if ctx.beginner else "")
     if ctx.mode == "explain_error":
         return load_prompt("explain_error").render(
-            length_instruction=LENGTH[ctx.response_length],
+            length_instruction=length,
             language=language_name(ctx.language),
         )
     return load_prompt("talk").render(
-        length_instruction=LENGTH[ctx.response_length],
+        length_instruction=length,
         language=language_name(ctx.language),
         lesson_context=lesson_context(ctx),
     )
