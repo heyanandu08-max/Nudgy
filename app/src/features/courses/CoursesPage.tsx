@@ -13,7 +13,7 @@ const ACTIVE = ["planning", "waiting_app", "instructing", "waiting", "verifying"
 /** Courses: short, ordered lessons per app. Each lesson is a normal verified lesson; progress
  *  is what you've completed on this computer. */
 export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { settings } = useSettings();
   const access = useAccess((s) => s.access);
   const [packs, setPacks] = useState<Pack[] | null>(null);
@@ -24,7 +24,7 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
   useEffect(() => subscribeTutor((v) => setBusy(ACTIVE.includes(v.phase))), []);
 
   useEffect(() => {
-    fetchPacks(settings.backendUrl, isMac ? "mac" : "windows")
+    fetchPacks(settings.backendUrl, isMac ? "mac" : "windows", i18n.language)
       .then((p) => {
         setPacks(p);
         setOffline(false);
@@ -33,7 +33,7 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
         setPacks([]);
         setOffline(true);
       });
-  }, [settings.backendUrl]);
+  }, [settings.backendUrl, i18n.language]);
 
   const refresh = useCallback(() => {
     if (!isTauri() || !packs?.length) return;

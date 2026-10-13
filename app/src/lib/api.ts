@@ -39,4 +39,5 @@ export interface Pack {
   lessons: { id: string; title: string; goal: string }[];
 }
 
-export const fetchPacks = (baseUrl: string, platform: "windows" | "mac") => getJson<Pack[]>(baseUrl, `/v1/packs?platform=${platform}`);
+export const fetchPacks = (baseUrl: string, platform: "windows" | "mac", lang: string) =>
+  getJson<Pack[]>(baseUrl, `/v1/packs?platform=${platform}&lang=${encodeURIComponent(lang)}`);

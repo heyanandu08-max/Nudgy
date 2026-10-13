@@ -55,3 +55,14 @@ def test_packs_are_filtered_by_platform(client):
     assert "file-explorer" in win and "finder" not in win
     assert "finder" in mac and "file-explorer" not in mac
     assert "excel-basics" in win and "excel-basics" in mac
+
+
+def test_packs_are_translated_but_goals_are_not(client):
+    en = {p["id"]: p for p in client.get("/v1/packs").json()}
+    es = {p["id"]: p for p in client.get("/v1/packs?lang=es").json()}
+    assert es["excel-basics"]["title"] == "Excel básico"
+    assert es["excel-basics"]["lessons"][1]["title"] == "Sumar una columna"
+    assert es["excel-basics"]["lessons"][1]["goal"] == en["excel-basics"]["lessons"][1]["goal"]
+    # Unknown languages fall back to English.
+    xx = {p["id"]: p for p in client.get("/v1/packs?lang=xx").json()}
+    assert xx["excel-basics"]["title"] == en["excel-basics"]["title"] == "Excel basics"
