@@ -8,7 +8,8 @@ guided walkthrough anyone can follow.
 
 Also: press **Ctrl+Alt+E** on any error and Nudgy says what it means and points at the fix;
 short **courses** per app (Excel, Word, Chrome, Files on Windows / Mac…); a **streak** and
-weekly recap; an opt-in **shortcut coach**; a **team onboarding report**; and the whole app in
+weekly recap; an opt-in **shortcut coach**; a **team onboarding report** and **team courses**;
+walkthroughs saved as **printable guides**; a **beginner mode**; and the whole app in
 English, Spanish, Portuguese, French, German and Hindi.
 
 Privacy first: the screen is only captured while you hold the hotkey (or during a lesson you

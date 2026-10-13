@@ -155,6 +155,9 @@ Run on **Windows and Mac**.
 | Team owner + member: member plays a team walkthrough, skips a step; owner's Account → Onboarding report shows "stopped" and that step | | |
 | Shortcut tips on: click Bold three times in Word / Pages: tip with the right keys for the OS, once; Stop tips turns the setting off | | |
 | Shortcut tips: nothing in a blocklisted app or while typing a password; nothing during a lesson | | |
+| Walkthroughs → Save as guide: the HTML opens in the browser; Print → Save as PDF looks right; screenshots only when ticked | | |
+| Team courses: owner creates a course from 2 team walkthroughs; member sees it under Courses, Start plays the first, finishing it ticks it | | |
+| Beginner mode on: answers use plain words and one action, voice a little slower, largest cursor, bigger captions; off restores everything | | |
 | Language → Español / Deutsch / हिन्दी: every window switches without restart, Courses titles too; long German strings don't overflow | | |
 
 ## Billing — free year and capped tier

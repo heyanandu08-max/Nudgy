@@ -260,6 +260,9 @@ Windows/macOS hardware (developed on Linux) · `[ ]` not started.
 - [x] Shortcut coach (opt-in): tells you a command's shortcut after repeat clicks, once
 - [x] UI in Spanish, Portuguese, French, German and Hindi; courses translated server-side
 - [~] Real-hardware check of the coach's element names (UIA / AX) on Windows and macOS
+- [x] Save a walkthrough as a printable guide (self-contained HTML, prints to PDF)
+- [x] Team courses: owner orders team walkthroughs into an onboarding course; members' progress
+- [x] Beginner mode: plainer words, smaller steps, slower voice, bigger cursor and captions
 
 ---
 

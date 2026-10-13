@@ -272,3 +272,20 @@ translations and follows `settings-changed`; anything else falls back to English
 check keeps every translation's keys and placeholders in step with English and enforces the
 no-exclamation-marks rule.
 
+## D50 — Guides are one HTML file, not a PDF library
+"Save as guide" writes a single self-contained HTML page and opens it; the browser's Print
+gives a PDF on both OSes. No PDF dependency, the page is readable and searchable, and it can
+be emailed or put on an intranet as is. Screenshots follow the same "Include screenshots"
+choice as sharing, and only recorded JPEG data is embedded.
+
+## D51 — Team courses reuse walkthroughs and runs
+A team course is an ordered list of the team's shared walkthrough slugs. Members' progress is
+the completed runs already kept for the onboarding report (D47), so there is no second
+progress store. A lesson always fetches the latest walkthrough before playing it.
+
+## D52 — Beginner mode is one flag, applied everywhere
+One setting changes wording (an instruction added to the ask, explain-error and lesson-plan
+requests), pace (audio at 0.9x, pitch kept) and size (largest cursor, bigger captions). Prompt
+files are unchanged: the instruction rides along with the length instruction and the plan
+request.
+
