@@ -490,7 +490,9 @@
     "complete": "terminé",
     "done": "faite",
     "again": "Refaire",
-    "learn": "Apprendre"
+    "learn": "Apprendre",
+    "fromTeam": "De votre équipe",
+    "fromNudgy": "De Nudgy"
   },
   "report": {
     "title": "Rapport d'intégration",
@@ -535,5 +537,15 @@
       "zoomOut": "dézoomer",
       "insertLink": "insérer un lien"
     }
+  },
+  "teamCourses": {
+    "title": "Cours d'équipe",
+    "help": "Mettez des tutoriels d'équipe dans l'ordre pour en faire un cours d'intégration. Votre équipe le voit dans Cours, avec sa propre progression.",
+    "count_one": "· {{count}} tutoriel",
+    "count_other": "· {{count}} tutoriels",
+    "name": "Nom du cours",
+    "namePlaceholder": "ex. Première semaine chez Acme",
+    "order": "ordre coché = ordre des leçons",
+    "create": "Créer le cours"
   }
 }

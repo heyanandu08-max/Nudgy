@@ -44,3 +44,16 @@ class WalkthroughRun(Base):
     hints: Mapped[int] = mapped_column(Integer, default=0)
     stuck_step: Mapped[int | None] = mapped_column(Integer, nullable=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TeamCourse(Base):
+    """An owner's onboarding course: an ordered list of the team's shared walkthroughs."""
+
+    __tablename__ = "team_courses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    team_id: Mapped[int] = mapped_column(Integer, index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    summary: Mapped[str] = mapped_column(String(500), default="")
+    slugs: Mapped[str] = mapped_column(Text, default="[]")  # JSON list, in order
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

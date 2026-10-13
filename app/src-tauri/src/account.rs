@@ -273,6 +273,33 @@ pub async fn team_walkthroughs(app: AppHandle) -> Result<Value, ApiError> {
     backend::get_json(&app, "/v1/team/walkthroughs").await
 }
 
+/// The team's onboarding courses, with the caller's progress.
+#[tauri::command]
+pub async fn team_courses(app: AppHandle) -> Result<Value, ApiError> {
+    backend::get_json(&app, "/v1/team/courses").await
+}
+
+/// Owner only: create (no `id`) or replace a course.
+#[tauri::command]
+pub async fn team_course_save(
+    app: AppHandle,
+    id: Option<i64>,
+    title: String,
+    summary: String,
+    slugs: Vec<String>,
+) -> Result<Value, ApiError> {
+    let body = json!({"title": title, "summary": summary, "slugs": slugs});
+    match id {
+        Some(id) => backend::put_json(&app, &format!("/v1/team/courses/{id}"), &body).await,
+        None => backend::post_json(&app, "/v1/team/courses", &body).await,
+    }
+}
+
+#[tauri::command]
+pub async fn team_course_delete(app: AppHandle, id: i64) -> Result<Value, ApiError> {
+    backend::delete(&app, &format!("/v1/team/courses/{id}")).await
+}
+
 /// Owner only: who finished each team walkthrough and where people get stuck.
 #[tauri::command]
 pub async fn team_report(app: AppHandle) -> Result<Value, ApiError> {

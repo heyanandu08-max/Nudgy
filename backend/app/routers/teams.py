@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.deps import signed_in
-from app.models import SharedWalkthrough, Team, TeamInvite, User, WalkthroughRun
+from app.models import SharedWalkthrough, Team, TeamCourse, TeamInvite, User, WalkthroughRun
 from app.routers.auth import get_mailer
 from app.services.email import EmailSender
 
@@ -228,3 +228,117 @@ def onboarding_report(
             }
         )
     return report
+
+
+class CourseRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    summary: str = Field(default="", max_length=500)
+    slugs: list[str] = Field(min_length=1, max_length=50)
+
+
+def _course_out(db: Session, course: TeamCourse, user: User) -> dict:
+    """The course with its walkthroughs in order; `done` is the caller's own progress."""
+    slugs = json.loads(course.slugs)
+    rows = {
+        w.slug: w
+        for w in db.scalars(select(SharedWalkthrough).where(SharedWalkthrough.slug.in_(slugs)))
+    }
+    finished = set(
+        db.scalars(
+            select(WalkthroughRun.walkthrough_id).where(
+                WalkthroughRun.user_id == user.id, WalkthroughRun.status == "completed"
+            )
+        )
+    )
+    items = []
+    for slug in slugs:
+        w = rows.get(slug)
+        if w is None or w.team_id != course.team_id:
+            continue  # deleted since
+        items.append(
+            {
+                "slug": slug,
+                "title": w.title,
+                "app": w.app,
+                "steps": len(_instructions(w.document)),
+                "done": w.id in finished,
+            }
+        )
+    return {"id": course.id, "title": course.title, "summary": course.summary, "items": items}
+
+
+def _team_slugs(db: Session, team: Team, slugs: list[str]) -> list[str]:
+    owned = set(
+        db.scalars(
+            select(SharedWalkthrough.slug).where(
+                SharedWalkthrough.team_id == team.id, SharedWalkthrough.slug.in_(slugs)
+            )
+        )
+    )
+    unknown = [s for s in slugs if s not in owned]
+    if unknown:
+        raise HTTPException(
+            400, {"code": "not_found", "message": "Courses can only use the team's walkthroughs."}
+        )
+    return list(dict.fromkeys(slugs))  # keep order, drop repeats
+
+
+@router.get("/courses")
+def list_courses(
+    user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends(get_db)]
+) -> list[dict]:
+    team = _team(db, user)
+    courses = db.scalars(
+        select(TeamCourse).where(TeamCourse.team_id == team.id).order_by(TeamCourse.created_at)
+    ).all()
+    return [_course_out(db, c, user) for c in courses]
+
+
+@router.post("/courses")
+def create_course(
+    req: CourseRequest,
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    team = _owner(db, user)
+    course = TeamCourse(
+        team_id=team.id,
+        title=req.title.strip(),
+        summary=req.summary.strip(),
+        slugs=json.dumps(_team_slugs(db, team, req.slugs)),
+    )
+    db.add(course)
+    db.commit()
+    return _course_out(db, course, user)
+
+
+@router.put("/courses/{course_id}")
+def update_course(
+    course_id: int,
+    req: CourseRequest,
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    team = _owner(db, user)
+    course = db.get(TeamCourse, course_id)
+    if course is None or course.team_id != team.id:
+        raise HTTPException(404, {"code": "not_found", "message": "No such course."})
+    course.title, course.summary = req.title.strip(), req.summary.strip()
+    course.slugs = json.dumps(_team_slugs(db, team, req.slugs))
+    db.commit()
+    return _course_out(db, course, user)
+
+
+@router.delete("/courses/{course_id}")
+def delete_course(
+    course_id: int,
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    team = _owner(db, user)
+    course = db.get(TeamCourse, course_id)
+    if course is None or course.team_id != team.id:
+        raise HTTPException(404, {"code": "not_found", "message": "No such course."})
+    db.delete(course)
+    db.commit()
+    return {"deleted": True}

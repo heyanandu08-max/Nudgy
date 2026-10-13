@@ -490,7 +490,9 @@
     "complete": "abgeschlossen",
     "done": "erledigt",
     "again": "Nochmal",
-    "learn": "Lernen"
+    "learn": "Lernen",
+    "fromTeam": "Von deinem Team",
+    "fromNudgy": "Von Nudgy"
   },
   "report": {
     "title": "Einarbeitungsbericht",
@@ -535,5 +537,15 @@
       "zoomOut": "Verkleinern",
       "insertLink": "Einen Link einfügen"
     }
+  },
+  "teamCourses": {
+    "title": "Team-Kurse",
+    "help": "Bring Team-Anleitungen in eine Reihenfolge als Einarbeitungskurs. Dein Team sieht ihn unter Kurse, mit eigenem Fortschritt.",
+    "count_one": "· {{count}} Anleitung",
+    "count_other": "· {{count}} Anleitungen",
+    "name": "Kursname",
+    "namePlaceholder": "z. B. Erste Woche bei Acme",
+    "order": "Reihenfolge der Häkchen = Reihenfolge der Lektionen",
+    "create": "Kurs erstellen"
   }
 }

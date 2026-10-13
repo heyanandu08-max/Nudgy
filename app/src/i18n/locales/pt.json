@@ -490,7 +490,9 @@
     "complete": "concluído",
     "done": "feita",
     "again": "De novo",
-    "learn": "Aprender"
+    "learn": "Aprender",
+    "fromTeam": "Da sua equipe",
+    "fromNudgy": "Do Nudgy"
   },
   "report": {
     "title": "Relatório de integração",
@@ -535,5 +537,15 @@
       "zoomOut": "diminuir o zoom",
       "insertLink": "inserir um link"
     }
+  },
+  "teamCourses": {
+    "title": "Cursos da equipe",
+    "help": "Coloque roteiros da equipe em ordem como um curso de integração. Sua equipe vê em Cursos, com o próprio progresso.",
+    "count_one": "· {{count}} roteiro",
+    "count_other": "· {{count}} roteiros",
+    "name": "Nome do curso",
+    "namePlaceholder": "ex.: Primeira semana na Acme",
+    "order": "ordem marcada = ordem das aulas",
+    "create": "Criar curso"
   }
 }

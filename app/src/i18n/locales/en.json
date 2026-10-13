@@ -490,7 +490,9 @@
     "complete": "complete",
     "done": "done",
     "again": "Again",
-    "learn": "Learn"
+    "learn": "Learn",
+    "fromTeam": "From your team",
+    "fromNudgy": "From Nudgy"
   },
   "report": {
     "title": "Onboarding report",
@@ -535,5 +537,15 @@
       "zoomOut": "zoom out",
       "insertLink": "insert a link"
     }
+  },
+  "teamCourses": {
+    "title": "Team courses",
+    "help": "Put team walkthroughs in order as an onboarding course. Your team sees it under Courses, with their own progress.",
+    "count_one": "· {{count}} walkthrough",
+    "count_other": "· {{count}} walkthroughs",
+    "name": "Course name",
+    "namePlaceholder": "e.g. First week at Acme",
+    "order": "ticked order = lesson order",
+    "create": "Create course"
   }
 }

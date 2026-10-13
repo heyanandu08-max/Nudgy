@@ -10,7 +10,15 @@ import logging
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.models import SharedWalkthrough, Team, TeamInvite, UsageEvent, User, WalkthroughRun
+from app.models import (
+    SharedWalkthrough,
+    Team,
+    TeamCourse,
+    TeamInvite,
+    UsageEvent,
+    User,
+    WalkthroughRun,
+)
 
 log = logging.getLogger("nudgy.account")
 
@@ -96,6 +104,7 @@ def delete_user(db: Session, user: User) -> dict:
                 member.plan = "free"
         db.execute(delete(TeamInvite).where(TeamInvite.team_id == team.id))
         db.execute(delete(WalkthroughRun).where(WalkthroughRun.team_id == team.id))
+        db.execute(delete(TeamCourse).where(TeamCourse.team_id == team.id))
         removed["walkthroughs"] += db.execute(
             delete(SharedWalkthrough).where(SharedWalkthrough.team_id == team.id)
         ).rowcount

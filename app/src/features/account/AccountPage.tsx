@@ -216,8 +216,87 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
           ))}
         </ul>
       )}
+      {team.owner && library.length > 0 && <CourseBuilder library={library} onError={onError} />}
       {team.owner && library.length > 0 && <OnboardingReport />}
     </section>
+  );
+}
+
+interface CourseRow {
+  id: number;
+  title: string;
+  items: { slug: string }[];
+}
+
+/** Owner: put team walkthroughs in order as an onboarding course (shown under Courses). */
+function CourseBuilder({ library, onError }: { library: { slug: string; title: string; app: string }[]; onError: (e: unknown) => void }) {
+  const { t } = useTranslation();
+  const [courses, setCourses] = useState<CourseRow[]>([]);
+  const [title, setTitle] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+  const load = useCallback(() => {
+    invoke<CourseRow[]>("team_courses")
+      .then(setCourses)
+      .catch(() => setCourses([]));
+  }, []);
+  useEffect(load, [load]);
+
+  const toggle = (slug: string) => setPicked((p) => (p.includes(slug) ? p.filter((s) => s !== slug) : [...p, slug]));
+  const save = () =>
+    invoke("team_course_save", { id: null, title: title.trim(), summary: "", slugs: picked })
+      .then(() => {
+        setTitle("");
+        setPicked([]);
+        load();
+      })
+      .catch(onError);
+
+  return (
+    <div className="space-y-2 pt-2">
+      <h3 className="text-sm font-semibold">{t("teamCourses.title")}</h3>
+      <p className="text-xs text-ink-3">{t("teamCourses.help")}</p>
+      {courses.length > 0 && (
+        <ul className="space-y-1 text-sm">
+          {courses.map((c) => (
+            <li key={c.id} className="flex items-center justify-between gap-2">
+              <span>
+                {c.title} <span className="font-mono text-[11px] text-ink-3">{t("teamCourses.count", { count: c.items.length })}</span>
+              </span>
+              <button type="button" className="text-xs text-accent underline" onClick={() => invoke("team_course_delete", { id: c.id }).then(load).catch(onError)}>
+                {t("account.remove")}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        className="space-y-2 rounded-card border border-line-2 bg-white p-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (title.trim() && picked.length) void save();
+        }}
+      >
+        <input className={input} required placeholder={t("teamCourses.namePlaceholder")} aria-label={t("teamCourses.name")} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <ul className="space-y-1">
+          {library.map((w) => {
+            const n = picked.indexOf(w.slug);
+            return (
+              <li key={w.slug}>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={n >= 0} onChange={() => toggle(w.slug)} />
+                  <span className="w-5 font-mono text-[11px] text-ink-3">{n >= 0 ? n + 1 : ""}</span>
+                  {w.title} <span className="text-xs text-ink-3">{w.app}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="font-mono text-[11px] text-ink-3">{t("teamCourses.order")}</p>
+        <button type="submit" className={btn} disabled={!title.trim() || picked.length === 0}>
+          {t("teamCourses.create")}
+        </button>
+      </form>
+    </div>
   );
 }
 

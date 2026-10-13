@@ -490,7 +490,9 @@
     "complete": "completado",
     "done": "hecha",
     "again": "Repetir",
-    "learn": "Aprender"
+    "learn": "Aprender",
+    "fromTeam": "De tu equipo",
+    "fromNudgy": "De Nudgy"
   },
   "report": {
     "title": "Informe de incorporación",
@@ -535,5 +537,15 @@
       "zoomOut": "alejar",
       "insertLink": "insertar un enlace"
     }
+  },
+  "teamCourses": {
+    "title": "Cursos del equipo",
+    "help": "Ordena guías del equipo como un curso de incorporación. Tu equipo lo ve en Cursos, con su propio progreso.",
+    "count_one": "· {{count}} guía",
+    "count_other": "· {{count}} guías",
+    "name": "Nombre del curso",
+    "namePlaceholder": "p. ej. Primera semana en Acme",
+    "order": "orden de marcado = orden de las lecciones",
+    "create": "Crear curso"
   }
 }

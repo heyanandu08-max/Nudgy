@@ -94,6 +94,19 @@ pub async fn get_json<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Valu
     finish(authed(app, client().get(url(app, path))).send().await).await
 }
 
+pub async fn put_json<R: Runtime>(
+    app: &AppHandle<R>,
+    path: &str,
+    body: &Value,
+) -> Result<Value, ApiError> {
+    finish(
+        authed(app, client().put(url(app, path)).json(body))
+            .send()
+            .await,
+    )
+    .await
+}
+
 pub async fn delete<R: Runtime>(app: &AppHandle<R>, path: &str) -> Result<Value, ApiError> {
     finish(authed(app, client().delete(url(app, path))).send().await).await
 }

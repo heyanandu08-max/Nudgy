@@ -2,24 +2,35 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
-import { AppBadge, isMac } from "../../components/ui";
+import { SectionHeader, isMac } from "../../components/ui";
+import { errorCode, errorKey } from "../../lib/errors";
 import { fetchPacks, type Pack } from "../../lib/api";
 import { useSettings } from "../../stores/settings";
 import { outOfLessons, useAccess } from "../billing/access";
-import { getTutor, hideMainWindow, subscribeTutor } from "../tutor/host";
+import { getTutor, hideMainWindow, playWalkthrough, subscribeTutor } from "../tutor/host";
+import { CourseCard } from "./CourseCard";
 
 const ACTIVE = ["planning", "waiting_app", "instructing", "waiting", "verifying"];
 
-/** Courses: short, ordered lessons per app. Each lesson is a normal verified lesson; progress
- *  is what you've completed on this computer. */
+/** Mirrors GET /v1/team/courses. */
+interface TeamCourse {
+  id: number;
+  title: string;
+  summary: string;
+  items: { slug: string; title: string; app: string; steps: number; done: boolean }[];
+}
+
+/** Courses: short, ordered lessons per app, plus the team's own onboarding courses. Each
+ *  lesson is a normal verified lesson (or a team walkthrough played as one). */
 export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
   const { t, i18n } = useTranslation();
   const { settings } = useSettings();
   const access = useAccess((s) => s.access);
   const [packs, setPacks] = useState<Pack[] | null>(null);
+  const [team, setTeam] = useState<TeamCourse[]>([]);
   const [offline, setOffline] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [done, setDone] = useState<Set<string>>(new Set());
-  const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => subscribeTutor((v) => setBusy(ACTIVE.includes(v.phase))), []);
 
@@ -36,7 +47,12 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
   }, [settings.backendUrl, i18n.language]);
 
   const refresh = useCallback(() => {
-    if (!isTauri() || !packs?.length) return;
+    if (!isTauri()) return;
+    // Not on a team (or signed out): no team section.
+    invoke<TeamCourse[]>("team_courses")
+      .then(setTeam)
+      .catch(() => setTeam([]));
+    if (!packs?.length) return;
     const goals = packs.flatMap((p) => p.lessons.map((l) => l.goal));
     invoke<string[]>("completed_goals", { goals })
       .then((g) => setDone(new Set(g)))
@@ -46,7 +62,7 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
   useEffect(() => {
     refresh();
     if (!isTauri()) return;
-    const offs = [listen("progress-changed", refresh), listen("data-wiped", refresh)];
+    const offs = [listen("progress-changed", refresh), listen("data-wiped", refresh), listen("auth-changed", refresh), listen("tauri://focus", refresh)];
     return () => offs.forEach((p) => void p.then((f) => f()));
   }, [refresh]);
 
@@ -55,6 +71,18 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
     if (outOfLessons(access)) return onUpgrade();
     hideMainWindow();
     void getTutor().start(goal);
+  };
+
+  // Team lessons are the team's walkthroughs: fetch the latest copy, then play it.
+  const playTeam = async (slug: string) => {
+    if (busy) return;
+    setStatus(null);
+    try {
+      const w = await invoke<{ id: string }>("walkthrough_fetch", { link: slug });
+      await playWalkthrough(w.id);
+    } catch (e) {
+      setStatus(t(errorKey(errorCode(e)), { defaultValue: String(e) }));
+    }
   };
 
   return (
@@ -67,72 +95,43 @@ export function CoursesPage({ onUpgrade }: { onUpgrade: () => void }) {
         <p className="mt-2 text-[13px] text-ink-2">{t("courses.help")}</p>
       </header>
       {offline && <p className="font-mono text-xs text-ink-2">{t("errors.backend_unreachable")}</p>}
+      {status && <p className="font-mono text-xs text-ink-2">{status}</p>}
 
-      <ul className="grid gap-3.5 min-[900px]:grid-cols-2">
-        {packs?.map((p) => {
-          const finished = p.lessons.filter((l) => done.has(l.goal)).length;
-          const next = p.lessons.find((l) => !done.has(l.goal));
-          const pct = Math.round((finished / p.lessons.length) * 100);
-          const expanded = open === p.id;
-          return (
-            <li key={p.id} className={`flex flex-col rounded-card border bg-white p-[18px] ${expanded ? "border-ink min-[900px]:col-span-2" : "border-line-2"}`}>
-              <div className="flex items-start gap-3">
-                <AppBadge app={p.app} />
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-[15px] font-semibold">{p.title}</h2>
-                  <p className="mt-0.5 text-[12.5px] text-ink-2">{p.summary}</p>
-                </div>
-              </div>
-              <div className="mt-auto h-4 shrink-0" />
-              <div className="h-1 overflow-hidden rounded bg-line" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={p.title}>
-                <i className="block h-full bg-ink" style={{ width: `${pct}%` }} />
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="font-mono text-[11px] text-ink-3">{t("courses.progress", { done: finished, total: p.lessons.length })}</span>
-                <button type="button" className="ml-auto text-xs text-ink-2 hover:text-ink" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : p.id)}>
-                  {expanded ? t("courses.hideLessons") : t("courses.showLessons")}
-                </button>
-                {next ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => start(next.goal)}
-                    className="rounded-btn bg-ink px-3.5 py-1.5 text-[13px] font-medium text-white hover:bg-black disabled:opacity-40"
-                  >
-                    {finished === 0 ? t("courses.start") : t("courses.continue")}
-                  </button>
-                ) : (
-                  <span className="font-mono text-[11px] text-ink">{t("courses.complete")}</span>
-                )}
-              </div>
-              {expanded && (
-                <ol className="mt-4 divide-y divide-line border-t border-line">
-                  {p.lessons.map((l, i) => {
-                    const isDone = done.has(l.goal);
-                    return (
-                      <li key={l.id} className="flex items-center gap-3 py-2.5">
-                        <span
-                          className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border font-mono text-[11px] ${isDone ? "border-ink bg-ink text-white" : "border-line-2 text-ink-3"}`}
-                          aria-hidden
-                        >
-                          {isDone ? "✓" : i + 1}
-                        </span>
-                        <span className="flex-1 text-[13px]">
-                          {l.title}
-                          <span className="sr-only">{isDone ? t("courses.done") : ""}</span>
-                        </span>
-                        <button type="button" disabled={busy} onClick={() => start(l.goal)} className="text-xs text-ink-2 hover:text-ink disabled:opacity-40">
-                          {isDone ? t("courses.again") : t("courses.learn")}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {team.length > 0 && (
+        <section>
+          <SectionHeader title={t("courses.fromTeam")} />
+          <ul className="grid gap-3.5 min-[900px]:grid-cols-2">
+            {team.map((c) => (
+              <CourseCard
+                key={c.id}
+                title={c.title}
+                app={c.items[0]?.app || c.title}
+                summary={c.summary}
+                lessons={c.items.map((i) => ({ id: i.slug, title: i.title, done: i.done }))}
+                busy={busy}
+                onStart={(slug) => void playTeam(slug)}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section>
+        {team.length > 0 && <SectionHeader title={t("courses.fromNudgy")} />}
+        <ul className="grid gap-3.5 min-[900px]:grid-cols-2">
+          {packs?.map((p) => (
+            <CourseCard
+              key={p.id}
+              title={p.title}
+              app={p.app}
+              summary={p.summary}
+              lessons={p.lessons.map((l) => ({ id: l.goal, title: l.title, done: done.has(l.goal) }))}
+              busy={busy}
+              onStart={start}
+            />
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

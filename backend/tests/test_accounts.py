@@ -587,6 +587,67 @@ def test_onboarding_report_shows_completion_and_stuck_steps(env):
     assert [s["step"] for s in w["stuck"]] == [1]
 
 
+def test_team_courses_order_walkthroughs_and_track_progress(env):
+    owner = magic_sign_in(env, "boss@acme.com")
+    uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
+    webhook(
+        env,
+        sub_event(
+            "WH-c",
+            "BILLING.SUBSCRIPTION.ACTIVATED",
+            {
+                "id": "I-C",
+                "plan_id": "P-TEAM",
+                "custom_id": str(uid),
+                "status": "ACTIVE",
+                "quantity": "2",
+            },
+        ),
+    )
+    env["client"].post("/v1/team/invites", json={"email": "ann@acme.com"}, headers=bearer(owner))
+    ann = magic_sign_in(env, "ann@acme.com")
+
+    def share(title):
+        doc = {"id": title, "title": title, "app": "SAP", "steps": [{"instruction": "Go."}]}
+        url = (
+            env["client"]
+            .post(
+                "/v1/walkthroughs", json={"walkthrough": doc, "team": True}, headers=bearer(owner)
+            )
+            .json()["url"]
+        )
+        return url.rstrip("/").rsplit("/", 1)[-1]
+
+    a, b = share("Log in"), share("Expenses")
+    body = {"title": "Week one", "slugs": [b, a, b]}
+    assert env["client"].post("/v1/team/courses", json=body, headers=bearer(ann)).status_code == 403
+    bad = {"title": "x", "slugs": ["nope"]}
+    assert (
+        env["client"].post("/v1/team/courses", json=bad, headers=bearer(owner)).status_code == 400
+    )
+    course = env["client"].post("/v1/team/courses", json=body, headers=bearer(owner)).json()
+    assert [i["title"] for i in course["items"]] == ["Expenses", "Log in"]
+
+    env["client"].post(
+        "/v1/team/runs",
+        json={"slug": a, "status": "completed", "steps_total": 1, "steps_passed": 1},
+        headers=bearer(ann),
+    )
+    [mine] = env["client"].get("/v1/team/courses", headers=bearer(ann)).json()
+    assert [(i["title"], i["done"]) for i in mine["items"]] == [
+        ("Expenses", False),
+        ("Log in", True),
+    ]
+
+    cid = course["id"]
+    edited = env["client"].put(
+        f"/v1/team/courses/{cid}", json={"title": "Day one", "slugs": [a]}, headers=bearer(owner)
+    )
+    assert edited.json()["title"] == "Day one" and len(edited.json()["items"]) == 1
+    env["client"].delete(f"/v1/team/courses/{cid}", headers=bearer(owner))
+    assert env["client"].get("/v1/team/courses", headers=bearer(ann)).json() == []
+
+
 def test_export_lists_what_the_server_holds(env):
     assert env["client"].get("/v1/me/export").status_code == 401
     token = magic_sign_in(env, "ada@example.com")
