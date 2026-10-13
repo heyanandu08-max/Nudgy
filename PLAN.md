@@ -250,7 +250,16 @@ Windows/macOS hardware (developed on Linux) · `[ ]` not started.
 - [x] Quiet usage log: tokens, latency, STT minutes, TTS chars; `/v1/admin/usage` report
 - [x] Shared components for both OSes; Win/Mac render diff (`scripts/ui_parity.sh`)
 - [~] Side-by-side check on real Windows + macOS builds
-- [ ] Connect a billing provider to `startSubscription()`
+- [x] Billing provider: PayPal subscriptions, $20/month or $40/year (D44)
+
+### Standout features (vs. assistants that do the work for you)
+- [x] Explain-an-error hotkey (Ctrl+Alt+E, tray item): meaning in plain words + points at the fix
+- [x] Weekly progress and learning streak on Home, with a recap of last week (local only)
+- [x] Courses: curated lesson packs per app (`config/packs.yaml`), per-OS, progress on this computer
+- [x] Team onboarding report: who finished each team walkthrough and where people got stuck
+- [x] Shortcut coach (opt-in): tells you a command's shortcut after repeat clicks, once
+- [x] UI in Spanish, Portuguese, French, German and Hindi; courses translated server-side
+- [~] Real-hardware check of the coach's element names (UIA / AX) on Windows and macOS
 
 ---
 

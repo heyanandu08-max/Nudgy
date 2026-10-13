@@ -142,6 +142,21 @@ sandbox *personal* test account.
 | Install 0.1.0, publish 0.1.1 → About → Check now → "Install 0.1.1 and restart" → relaunches on 0.1.1 | | |
 | Installed app launches with no console window (Win) and passes Gatekeeper without warnings (Mac) | | |
 
+## Standout features
+Run on **Windows and Mac**.
+
+| Check | Win | Mac |
+|-------|-----|-----|
+| Open a dialog with an error (e.g. save over a file that's open elsewhere), press Ctrl+Alt+E: 2-3 calm sentences on what it means, pointer on the fixing button; same from the tray item | | |
+| Settings → Hotkey: change the explain key, turn it off (tray item still works), turn it back on | | |
+| Finish a lesson: Home shows the streak, today's dot filled, counts updated; next day the streak stays until midnight passes twice | | |
+| First Home visit in a new week: "Last week." recap; Got it hides it for the week | | |
+| Courses: Files on Windows shows only on Windows, Files on Mac only on Mac; Start, finish lesson 1, card shows 1 of N and Continue | | |
+| Team owner + member: member plays a team walkthrough, skips a step; owner's Account → Onboarding report shows "stopped" and that step | | |
+| Shortcut tips on: click Bold three times in Word / Pages: tip with the right keys for the OS, once; Stop tips turns the setting off | | |
+| Shortcut tips: nothing in a blocklisted app or while typing a password; nothing during a lesson | | |
+| Language → Español / Deutsch / हिन्दी: every window switches without restart, Courses titles too; long German strings don't overflow | | |
+
 ## Billing — free year and capped tier
 Backend with `NUDGY_ADMIN_TOKEN` set. Move time with `PUT /v1/admin/access {"free_until": "…"}`
 instead of changing clocks. Run every row on **Windows and Mac side by side** and note any

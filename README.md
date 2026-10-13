@@ -6,6 +6,11 @@ exact button. Ask it to teach you and it runs a step-by-step lesson in your own 
 each step, tracking your skills with spaced repetition. Record a task once and it becomes a
 guided walkthrough anyone can follow.
 
+Also: press **Ctrl+Alt+E** on any error and Nudgy says what it means and points at the fix;
+short **courses** per app (Excel, Word, Chrome, Files on Windows / Mac…); a **streak** and
+weekly recap; an opt-in **shortcut coach**; a **team onboarding report**; and the whole app in
+English, Spanish, Portuguese, French, German and Hindi.
+
 Privacy first: the screen is only captured while you hold the hotkey (or during a lesson you
 started), password fields and blocklisted apps are never captured, and screenshots are never
 stored. See [`docs/privacy-policy.md`](docs/privacy-policy.md).
@@ -64,11 +69,11 @@ flowchart LR
 
 | Path | What |
 |------|------|
-| `app/src/` | React UI: main window, overlay, ask box, tutor, i18n (`i18n/locales/en.json`) |
+| `app/src/` | React UI: main window, overlay, ask box, tutor, i18n (`i18n/locales/*.json`, English is the source) |
 | `app/src-tauri/src/` | Rust core: hotkey, audio, capture, UI trees, overlay windows, SQLite store, recorder, accounts, updater |
 | `backend/app/` | FastAPI: routers, services, providers (`providers/`), models |
 | `backend/prompts/` | Versioned LLM system prompts |
-| `backend/config/` | Plans, languages, voices (config, not code) |
+| `backend/config/` | Plans, languages, voices, courses and their translations (config, not code) |
 | `scripts/` | `check_targets.sh` cross-compiles the Rust crate for Windows + macOS from Linux |
 
 ## Run it locally
@@ -93,7 +98,8 @@ npm run tauri dev
 
 The first launch opens a short intro (on macOS it walks through the Screen Recording,
 Accessibility and Microphone permissions). After that Nudgy lives in the tray / menu bar;
-hold **Ctrl+Alt+Space** (⌃⌥Space on Mac) and ask, or tap it twice to type.
+hold **Ctrl+Alt+Space** (⌃⌥Space on Mac) and ask, or tap it twice to type. **Ctrl+Alt+E**
+explains an error on screen.
 
 To use real AI, set in `.env`:
 

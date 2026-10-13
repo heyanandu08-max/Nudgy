@@ -235,3 +235,40 @@ unchanged. A cancel keeps Pro until the paid period ends (`paid_until` = next bi
 suspended or expired subscriptions drop to Free; a failed payment keeps the plan while PayPal
 retries. PayPal has no merchant billing portal, so "Manage in PayPal" opens the buyer's
 automatic-payments page. There are no coupons (the student discount was Stripe-only).
+
+## D45 — Teach, don't do: features that build the user's skill
+Nudgy's edge over assistants that click for you is that people end up able to do it
+themselves, on Windows and Mac, alone or as a team. New features follow that line: an error
+explainer that says what an error means and points at the fix (it does not fix it), courses
+of verified lessons, streaks and a weekly recap, and a shortcut coach. The error explainer is
+the normal ask pipeline with `mode: "explain_error"` and its own prompt, so it inherits
+privacy rules, plan limits and pointing.
+
+## D46 — Course progress is keyed by the lesson goal
+A course lesson is an ordinary lesson started with the course's goal text, so "done" means
+a completed lesson with that goal in the local store. No new tables, no server state, and it
+works offline. Rewording a goal resets that lesson's progress, which is acceptable for
+curated content. Course text is translated on the server; goals stay English because the
+tutor already plans and speaks in the user's language.
+
+## D47 — The team report holds metadata, and only for the team's own walkthroughs
+A finished or stopped run of a walkthrough that came from a link reports status, step counts,
+hints and the step that needed most help. The server keeps it only if the walkthrough belongs
+to the member's own team, so solo users' runs are dropped on arrival. Members see a note
+saying what the owner sees. Runs go with the member, the team or the account, and are in the
+account export.
+
+## D48 — The shortcut coach is opt-in and reads names only
+It needs a global click watcher, so it is off by default and says what it reads. On a click it
+reads the clicked element's name through the same accessibility APIs used for pointing,
+skipping blocklisted apps and password fields, and matches it against a fixed table of common
+commands. Nothing is captured or sent. Each tip is shown once, at most one per 10 minutes, and
+never during lessons, recording or pause. Ambiguous names (Close, Search, Link) are left out
+rather than risk a wrong tip.
+
+## D49 — UI languages follow the Language setting
+The six languages the backend speaks are also the UI languages. Every window loads all
+translations and follows `settings-changed`; anything else falls back to English. A vitest
+check keeps every translation's keys and placeholders in step with English and enforces the
+no-exclamation-marks rule.
+

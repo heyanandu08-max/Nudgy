@@ -1,6 +1,6 @@
 # Nudgy privacy policy (draft)
 
-_Draft for review by counsel before release. Last updated: 2026-09-24._
+_Draft for review by counsel before release. Last updated: 2026-10-13._
 
 Nudgy is a desktop tutor. To answer a question about what's on your screen it has to look at
 your screen, so this page says exactly when it looks, what it sends, where, and for how long.
@@ -9,6 +9,12 @@ your screen, so this page says exactly when it looks, what it sends, where, and 
 - **Only when you ask**: while you hold the hotkey, or open the question box with a double tap.
 - **During a lesson you started**: each time you pause, to check whether you did the step.
 - **While you record a walkthrough**: a small picture per click, kept on your computer.
+- **When you press "Explain an error"**: once, like a question.
+
+**Shortcut tips (off unless you turn them on).** When on, Nudgy notices your clicks and reads
+the *name* of the button you clicked (for example "Bold") to tell you its keyboard shortcut.
+No screenshot is taken and nothing is sent anywhere; blocklisted apps and password fields are
+skipped.
 
 Nudgy does not watch your screen in the background. Every time it captures, a "looking at your
 screen" tag appears at the top right of that screen and the tray/menu-bar tooltip changes.
@@ -46,7 +52,10 @@ Nothing here is uploaded unless you share it.
 **On the server, only if you create an account:** your email and name, plan and billing
 status (payments are handled by PayPal; we never see card or bank details), a count of questions and
 lessons with token counts and timings for plan limits, your team membership, and walkthroughs
-you chose to share. Shared links are unlisted but anyone with the link can open them; shared
+you chose to share. If you are on a team and play one of your team's walkthroughs, whether
+you finished it, how many steps you passed, hints used and the step that needed the most
+help are stored so your team owner can see them (never anything from your screen).
+Shared links are unlisted but anyone with the link can open them; shared
 copies leave out screenshots unless you choose to include them.
 
 ## Your controls
