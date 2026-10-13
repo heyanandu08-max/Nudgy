@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,7 @@ import { NudgyCursor, StateLabel, type CursorLabel } from "./NudgyCursor";
 import { Pointer } from "./Pointer";
 import { RecorderBar } from "./RecorderBar";
 import { ReviewNudge, type Nudge } from "./ReviewNudge";
+import { ShortcutTip, type Tip } from "./ShortcutTip";
 import { StatusPill, type PillState } from "./StatusPill";
 import { useOverlay, type CompanionMode, type Rect } from "./store";
 
@@ -57,6 +58,8 @@ export function OverlayApp() {
   const claimUntil = useRef(0);
   const [nice, setNice] = useState(false);
   const [nudge, setNudge] = useState<Nudge | null>(null);
+  const [tip, setTip] = useState<Tip | null>(null);
+  const closeTip = useCallback(() => setTip(null), []);
   const [recording, setRecording] = useState({ recording: false, steps: 0 });
   const [looking, setLooking] = useState(false);
   const lookingSince = useRef(0);
@@ -164,6 +167,7 @@ export function OverlayApp() {
         if (!e.payload.clips.length) scheduleHide();
       }),
       listen<Nudge>("review-nudge", (e) => setNudge(e.payload)),
+      listen<Tip>("shortcut-tip", (e) => setTip(e.payload)),
       listen<{ recording: boolean; steps: number }>("recorder-state", (e) => setRecording(e.payload)),
       listen<TutorView>("lesson-state", (e) => {
         const v = e.payload;
@@ -270,6 +274,7 @@ export function OverlayApp() {
       {showCard && lesson && <LessonCard view={lesson} />}
       {s.active && !s.paused && <StatusPill state={pill} />}
       {nudge && !s.paused && !showCard && <ReviewNudge nudge={nudge} onClose={() => setNudge(null)} />}
+      {tip && !nudge && !s.paused && !showCard && <ShortcutTip tip={tip} onClose={closeTip} />}
       {recording.recording && s.active && <RecorderBar steps={recording.steps} />}
     </div>
   );

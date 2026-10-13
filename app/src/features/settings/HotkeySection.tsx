@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Hotkey } from "../../components/ui";
+import { Button, Hotkey, Toggle } from "../../components/ui";
 import { FALLBACK_CONFIG, fetchClientConfig, type ClientConfig } from "../../lib/api";
 import { Card, Row, SettingsHeading } from "./parts";
 import { useSave } from "./useSave";
@@ -61,6 +61,9 @@ export function HotkeySection() {
           )}
           <Button onClick={() => setRecording(recording ? null : "explainHotkey")}>{t("settings.hotkeyChange")}</Button>
           {settings.explainHotkey && <Button onClick={() => void update({ explainHotkey: "" })}>{t("settings.turnOff")}</Button>}
+        </Row>
+        <Row title={t("coach.setting")} help={t("coach.settingHelp")}>
+          <Toggle label={t("coach.setting")} checked={settings.shortcutCoach} onChange={(v) => void update({ shortcutCoach: v })} />
         </Row>
         <Row title={t("settings.language")} help={t("settings.languageHelp")} htmlFor="language">
           <select

@@ -6,6 +6,7 @@ mod audio;
 mod auth;
 mod backend;
 mod capture;
+mod coach;
 mod geometry;
 mod hotkey;
 mod lesson;
@@ -142,6 +143,7 @@ pub fn run() {
             app.manage(store::Store::open(&db).map_err(|e| format!("open {}: {e}", db.display()))?);
             activity::init(app.handle());
             nudges::init(app.handle());
+            coach::init(app.handle());
 
             // Menu-bar-only app on macOS (no Dock icon); the settings window still opens.
             #[cfg(target_os = "macos")]
@@ -231,6 +233,7 @@ pub fn run() {
             lesson::lesson_record_finish,
             lesson::dashboard,
             lesson::week_progress,
+            coach::coach_off,
             lesson::completed_goals,
             lesson::review_plan,
             lesson::review_snooze,

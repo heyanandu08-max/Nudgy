@@ -39,6 +39,10 @@ pub struct Settings {
     pub hide_cursor_idle: bool,
     /// First-run walkthrough finished (or skipped).
     pub onboarded: bool,
+    /// Shortcut coach (opt-in): mention a command's keyboard shortcut after repeat clicks.
+    pub shortcut_coach: bool,
+    /// Shortcut tips already shown (each is shown once).
+    pub shortcut_tips_seen: Vec<String>,
 }
 
 impl Default for Settings {
@@ -60,6 +64,8 @@ impl Default for Settings {
             cursor_size: "m".into(),
             hide_cursor_idle: false,
             onboarded: false,
+            shortcut_coach: false,
+            shortcut_tips_seen: Vec::new(),
         }
     }
 }

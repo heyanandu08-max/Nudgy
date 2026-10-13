@@ -448,3 +448,16 @@ button:focus-visible {
     animation: none !important;
   }
 }
+
+/* --- Shortcut tip keycaps (inside .nudge) --- */
+.tip-key {
+  display: inline-block;
+  margin-right: 3px;
+  padding: 1px 6px;
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #fff;
+  font: 11px var(--mono);
+  color: var(--ink);
+}

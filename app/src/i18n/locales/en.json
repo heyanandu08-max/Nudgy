@@ -498,5 +498,34 @@
     "step": "step {{n}}",
     "people_one": "· {{count}} time",
     "people_other": "· {{count}} times"
+  },
+  "coach": {
+    "title": "shortcut tip",
+    "body": "You can {{action}} with",
+    "gotIt": "Got it",
+    "stop": "Stop tips",
+    "setting": "Shortcut tips",
+    "settingHelp": "After you click the same command a few times, Nudgy mentions its keyboard shortcut, once. Only the name of the button you click is read, on this computer. Off by default",
+    "actions": {
+      "copy": "copy",
+      "paste": "paste",
+      "cut": "cut",
+      "undo": "undo",
+      "redo": "redo",
+      "save": "save",
+      "print": "print",
+      "find": "find text",
+      "selectAll": "select everything",
+      "bold": "make text bold",
+      "italic": "make text italic",
+      "underline": "underline text",
+      "newTab": "open a new tab",
+      "closeTab": "close the tab",
+      "reload": "reload the page",
+      "newWindow": "open a new window",
+      "zoomIn": "zoom in",
+      "zoomOut": "zoom out",
+      "insertLink": "insert a link"
+    }
   }
 }

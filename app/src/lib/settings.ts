@@ -18,6 +18,9 @@ export interface Settings {
   cursorSize: CursorSize;
   hideCursorIdle: boolean;
   onboarded: boolean;
+  /** Shortcut coach (opt-in). */
+  shortcutCoach: boolean;
+  shortcutTipsSeen: string[];
 }
 
 export type CursorColor = "black" | "white" | "red" | "blue";
@@ -37,6 +40,8 @@ export const DEFAULT_SETTINGS: Settings = {
   cursorSize: "m",
   hideCursorIdle: false,
   onboarded: false,
+  shortcutCoach: false,
+  shortcutTipsSeen: [],
 };
 
 const BROWSER_KEY = "nudgy.settings";
