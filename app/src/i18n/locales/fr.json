@@ -206,7 +206,15 @@
     },
     "shareTeam": "Partager avec mon équipe",
     "titleEm": "tutoriels",
-    "titleBefore": "Vos "
+    "titleBefore": "Vos ",
+    "guide": {
+      "button": "Enregistrer en guide",
+      "saved": "Guide enregistré et ouvert. Imprimez-le pour en faire un PDF.",
+      "steps": "étapes",
+      "why": "Pourquoi :",
+      "note": "Note :",
+      "footer": "Fait avec Nudgy"
+    }
   },
   "account": {
     "title": "Compte",

@@ -97,6 +97,23 @@ export function WalkthroughsPage() {
     }
   };
 
+  const exportGuide = async (r: Row) => {
+    try {
+      const labels = {
+        steps: t("walkthroughs.guide.steps"),
+        why: t("walkthroughs.guide.why"),
+        note: t("walkthroughs.guide.note"),
+        footer: t("walkthroughs.guide.footer"),
+        lang: i18n.language,
+      };
+      if (await invoke<boolean>("walkthrough_export_doc", { id: r.id, includeScreenshots: withShots, labels })) {
+        setStatus(t("walkthroughs.guide.saved"));
+      }
+    } catch (e) {
+      fail(e);
+    }
+  };
+
   const remove = async (r: Row) => {
     if (!window.confirm(t("walkthroughs.confirmDelete", { title: r.title }))) return;
     await invoke("walkthrough_delete", { id: r.id }).catch(fail);
@@ -187,6 +204,9 @@ export function WalkthroughsPage() {
                   </button>
                   <button type="button" onClick={() => void exportFile(r)} className={btn}>
                     {t("walkthroughs.export")}
+                  </button>
+                  <button type="button" onClick={() => void exportGuide(r)} className={btn}>
+                    {t("walkthroughs.guide.button")}
                   </button>
                   <button type="button" onClick={() => void share(r)} className={btn}>
                     {t("walkthroughs.share")}

@@ -206,7 +206,15 @@
     },
     "shareTeam": "Compartir con mi equipo",
     "titleEm": "guías",
-    "titleBefore": "Tus "
+    "titleBefore": "Tus ",
+    "guide": {
+      "button": "Guardar como guía",
+      "saved": "Guía guardada y abierta. Imprímela para crear un PDF.",
+      "steps": "pasos",
+      "why": "Por qué:",
+      "note": "Nota:",
+      "footer": "Hecho con Nudgy"
+    }
   },
   "account": {
     "title": "Cuenta",

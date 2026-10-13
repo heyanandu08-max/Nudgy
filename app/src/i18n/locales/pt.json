@@ -206,7 +206,15 @@
     },
     "shareTeam": "Compartilhar com minha equipe",
     "titleEm": "roteiros",
-    "titleBefore": "Seus "
+    "titleBefore": "Seus ",
+    "guide": {
+      "button": "Salvar como guia",
+      "saved": "Guia salvo e aberto. Imprima para gerar um PDF.",
+      "steps": "passos",
+      "why": "Por quê:",
+      "note": "Nota:",
+      "footer": "Feito com o Nudgy"
+    }
   },
   "account": {
     "title": "Conta",

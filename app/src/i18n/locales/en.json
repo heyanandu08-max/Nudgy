@@ -206,7 +206,15 @@
     },
     "shareTeam": "Share with my team",
     "titleEm": "walkthroughs",
-    "titleBefore": "Your "
+    "titleBefore": "Your ",
+    "guide": {
+      "button": "Save as guide",
+      "saved": "Guide saved and opened. Print it to make a PDF.",
+      "steps": "steps",
+      "why": "Why:",
+      "note": "Note:",
+      "footer": "Made with Nudgy"
+    }
   },
   "account": {
     "title": "Account",

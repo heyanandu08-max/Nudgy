@@ -305,6 +305,43 @@ pub async fn walkthrough_export(
     Ok(true)
 }
 
+/// Save-as dialog → writes the walkthrough as a printable HTML guide. False if cancelled.
+#[tauri::command]
+pub async fn walkthrough_export_doc(
+    app: AppHandle,
+    id: String,
+    include_screenshots: bool,
+    labels: crate::walkthrough_doc::DocLabels,
+) -> Result<bool, String> {
+    let w = load(&app.state::<Store>(), &id)?;
+    let w = if include_screenshots {
+        w
+    } else {
+        w.without_screenshots()
+    };
+    let html = crate::walkthrough_doc::to_html(&w, &labels);
+    let file_name = format!("{}.html", sanitize_file_name(&w.title));
+    let h = app.clone();
+    let picked = tauri::async_runtime::spawn_blocking(move || {
+        h.dialog()
+            .file()
+            .add_filter("Web page", &["html"])
+            .set_file_name(file_name)
+            .blocking_save_file()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    let Some(path) = picked else { return Ok(false) };
+    let path = path.into_path().map_err(|e| e.to_string())?;
+    std::fs::write(&path, html).map_err(|e| e.to_string())?;
+    // Open it so it can be printed to PDF or shared right away.
+    use tauri_plugin_opener::OpenerExt;
+    let _ = app
+        .opener()
+        .open_path(path.to_string_lossy().to_string(), None::<&str>);
+    Ok(true)
+}
+
 /// Open dialog → validates and stores a `.nudgy` file. Returns None if cancelled.
 #[tauri::command]
 pub async fn walkthrough_import_file(app: AppHandle) -> Result<Option<Walkthrough>, String> {

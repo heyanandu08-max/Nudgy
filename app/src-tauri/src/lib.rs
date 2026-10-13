@@ -23,6 +23,7 @@ mod tray;
 mod uitree;
 mod updates;
 mod walkthrough;
+mod walkthrough_doc;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow, WindowEvent};
 
@@ -247,6 +248,7 @@ pub fn run() {
             walkthrough::walkthrough_delete,
             walkthrough::walkthrough_plan,
             walkthrough::walkthrough_export,
+            walkthrough::walkthrough_export_doc,
             walkthrough::walkthrough_import_file,
             walkthrough::walkthrough_share,
             walkthrough::walkthrough_fetch,

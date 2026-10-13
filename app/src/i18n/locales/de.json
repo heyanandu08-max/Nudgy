@@ -206,7 +206,15 @@
     },
     "shareTeam": "Mit meinem Team teilen",
     "titleEm": "Anleitungen",
-    "titleBefore": "Deine "
+    "titleBefore": "Deine ",
+    "guide": {
+      "button": "Als Leitfaden speichern",
+      "saved": "Leitfaden gespeichert und geöffnet. Druck ihn als PDF.",
+      "steps": "Schritte",
+      "why": "Warum:",
+      "note": "Notiz:",
+      "footer": "Erstellt mit Nudgy"
+    }
   },
   "account": {
     "title": "Konto",
