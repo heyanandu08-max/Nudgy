@@ -1,0 +1,105 @@
+{
+  "elements": [
+    {
+      "id": "e1",
+      "role": "menuitem",
+      "name": "File",
+      "rect": {
+        "x": 89,
+        "y": 76,
+        "w": 43,
+        "h": 24
+      }
+    },
+    {
+      "id": "e2",
+      "role": "menuitem",
+      "name": "Edit",
+      "rect": {
+        "x": 136,
+        "y": 76,
+        "w": 44,
+        "h": 24
+      }
+    },
+    {
+      "id": "e3",
+      "role": "menuitem",
+      "name": "Format",
+      "rect": {
+        "x": 184,
+        "y": 76,
+        "w": 64,
+        "h": 24
+      }
+    },
+    {
+      "id": "e4",
+      "role": "menuitem",
+      "name": "View",
+      "rect": {
+        "x": 252,
+        "y": 76,
+        "w": 50,
+        "h": 24
+      }
+    },
+    {
+      "id": "e5",
+      "role": "menuitem",
+      "name": "Help",
+      "rect": {
+        "x": 306,
+        "y": 76,
+        "w": 49,
+        "h": 24
+      }
+    },
+    {
+      "id": "e6",
+      "role": "menuitem",
+      "name": "Word Wrap",
+      "rect": {
+        "x": 232,
+        "y": 104,
+        "w": 200,
+        "h": 28
+      }
+    },
+    {
+      "id": "e7",
+      "role": "menuitem",
+      "name": "Font...",
+      "rect": {
+        "x": 232,
+        "y": 132,
+        "w": 200,
+        "h": 28
+      }
+    },
+    {
+      "id": "e8",
+      "role": "edit",
+      "name": "Text editor",
+      "rect": {
+        "x": 81,
+        "y": 103,
+        "w": 1120,
+        "h": 580
+      }
+    }
+  ],
+  "screenshot": {
+    "width": 1280,
+    "height": 720
+  },
+  "app": {
+    "name": "Notepad",
+    "title": "notes.txt - Notepad"
+  },
+  "history": [],
+  "response_length": "brief",
+  "language": "en",
+  "voice_enabled": true,
+  "voice_id": null
+}

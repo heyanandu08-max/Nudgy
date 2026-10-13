@@ -1,0 +1,25 @@
+# Plans live in config, not code. PayPal plan IDs ("P-…", created in the PayPal dashboard)
+# come from the environment (PAYPAL_PLAN_PRO, PAYPAL_PLAN_PRO_YEARLY, PAYPAL_PLAN_TEAM) so
+# sandbox and live differ by env. `prices` maps a billing interval to the env var holding the
+# PayPal plan ID; `labels` is what the app shows (keep them equal to the PayPal plan prices).
+#
+# Paid plans have no limits at all. The free plan's only limit is the monthly lesson cap,
+# which applies after the free-access window ends (FREE_UNTIL) and is a runtime setting
+# (app_settings.free_tier_lessons_per_month), not a value in this file. See services/access.py.
+plans:
+  free:
+    name: Free
+    paid: false
+    features: { share_links: true, team_library: false }
+  pro:
+    name: Pro
+    paid: true
+    prices: { month: PAYPAL_PLAN_PRO, year: PAYPAL_PLAN_PRO_YEARLY }
+    labels: { month: "$20", year: "$40" }
+    features: { share_links: true, team_library: false }
+  team:
+    name: Team
+    paid: true
+    prices: { month: PAYPAL_PLAN_TEAM }
+    per_seat: true
+    features: { share_links: true, team_library: true }

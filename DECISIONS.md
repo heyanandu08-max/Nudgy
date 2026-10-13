@@ -1,0 +1,237 @@
+# Decisions
+
+Each entry: the decision, why, and what would make us revisit it.
+
+## D1 — Monorepo layout: `app/` + `backend/` at the repo root
+The brief's `nudgy/` folder is the repo root itself. One repo keeps the SSE event
+schema, prompts and `.nudgy` format changes atomic across app and backend.
+
+## D2 — Settings persisted as JSON by Rust, not in SQLite
+Settings are tiny, read at startup before the DB is needed, and must be readable
+by the hotkey/overlay code in Rust. Stored at `<app_config_dir>/settings.json`.
+Learning data (skills, lessons, reviews, walkthroughs) goes in SQLite via `rusqlite`
+(bundled) from Phase 4 — `rusqlite` over `tauri-plugin-sql` so the lesson runner and
+recorder in Rust can write without a JS round-trip.
+
+## D3 — Ask transport: multipart POST, Server-Sent Events response
+One request carries audio + screenshot + context; the response is an SSE stream of
+typed events. SSE works through proxies, is trivially testable with `httpx`, and needs
+no WebSocket infrastructure. Streaming STT from the mic (Deepgram live) is a later
+latency optimisation: push-to-talk clips are short, so upload-on-release is simpler
+and meets the ~2.5 s target when TTS is streamed sentence-by-sentence.
+
+## D4 — The Rust side makes backend HTTP calls, the webview renders
+`reqwest` in Rust streams `/v1/ask` and forwards events to the overlay via Tauri
+events. Screenshots never pass through the webview, and CORS / mixed content are
+non-issues. Settings, health and dashboard calls may use `fetch` from the webview
+(backend allows the Tauri origins via CORS).
+
+## D5 — Coordinates: physical pixels, top-left origin, virtual desktop space
+Single canonical space for all rects; conversions live in `geometry.rs` and are unit
+tested (DPI, Retina, multi-monitor, negative offsets, macOS origin flip). See PLAN §1.
+
+## D6 — Default models / providers (configurable via env)
+- LLM: Anthropic, `NUDGY_LLM_MODEL=claude-sonnet-5` (Sonnet-class, vision). Model ID
+  lives only in config.
+- STT: Deepgram `nova-3` default; OpenAI Whisper fallback.
+- TTS: ElevenLabs default; OpenAI TTS fallback.
+- Each has a `fake` provider used by tests, the smoke test, and local dev without keys.
+
+## D7 — Default hotkey
+`Ctrl+Alt+Space` (Windows) / `Control+Option+Space` (macOS) — same accelerator string
+`Ctrl+Alt+Space` in `tauri-plugin-global-shortcut`, which maps Alt → Option on macOS.
+Push-to-talk uses the plugin's Pressed/Released states.
+
+## D8 — Frontend state and styling
+Zustand for state (small, no boilerplate), Tailwind for styling, `react-i18next` with
+`en.json` only. Language list comes from `backend/config/languages.yaml` via
+`/v1/config` with a bundled fallback so settings work offline.
+
+## D9 — Backend Python tooling
+`pyproject.toml` + pip (no Poetry/uv requirement) so contributors on any OS can
+`pip install -e backend[dev]`. Pydantic Settings for config, SQLAlchemy 2.0, Alembic
+added in Phase 7 when the schema starts to matter.
+
+## D10 — Dev-environment verification limits
+The repo is developed in a Linux container. Linux is not a v1 target, but the Tauri app
+must still `cargo check`/`cargo test` there: OS-specific modules (`uitree`, overlay
+click-through details, secure-field detection) have a `stub` implementation for other
+targets. Items needing Windows/macOS hardware are marked `[~]` in PLAN.md.
+
+## D11 — Privacy defaults
+Screenshots are held in memory only, on both sides; the backend never writes request
+bodies to disk or logs, and logs metadata only (sizes, tokens, latency). Walkthrough
+sharing uploads step screenshots only if the author explicitly opts in per walkthrough.
+
+## D12 — Overlay click-through toggled from Rust by cursor position
+OS-level click-through is all-or-nothing per window, so the overlay registers its small
+interactive regions (CSS px) via `set_interactive_regions`; the 60 Hz cursor loop turns
+click-through off only while the cursor is inside one. Overlays are separate pages
+(`overlay.html`) so the heavy settings/dashboard bundle never loads per monitor.
+
+## D13 — Cross-target verification from Linux
+`cargo check --target x86_64-pc-windows-msvc` and `--target aarch64-apple-darwin` (with clang)
+work in the dev container, so all `cfg(target_os)` code is at least type-checked against the real
+Windows and macOS APIs before it reaches hardware testing (`scripts/check_targets.sh`).
+
+## D14 — Native TLS for the desktop HTTP client
+`reqwest` uses `native-tls` (SChannel on Windows, Security.framework on macOS): it honours the
+OS certificate store — important behind corporate TLS-inspecting proxies — and avoids a C
+toolchain per target (the rustls/aws-lc default broke cross-target checks).
+
+## D15 — Capture on key-down, send on key-up
+The screenshot and UI tree are captured on a worker thread as soon as the hotkey goes down,
+in parallel with the user speaking, which removes ~0.3–0.8 s from the critical path. A short tap
+(<250 ms) discards everything. The typed-question path captures on the second tap, before the
+text box takes focus, so the tree describes the user's app rather than Nudgy's box.
+
+## D16 — Speech streamed from partial JSON, TTS per sentence
+The talk prompt puts `"speech"` first; the backend decodes that string incrementally from the
+streaming JSON, forwards caption deltas immediately, and synthesizes each finished sentence
+while the model is still writing. Audio clips carry a `seq` and the overlay plays them in order.
+The target arrives when the JSON completes. Invalid JSON → one repair request → speech-only.
+
+## D17 — LLM defaults tuned for latency
+`claude-sonnet-5` with thinking disabled and `effort: low` for talk mode (both env-configurable:
+`NUDGY_LLM_THINKING`, `NUDGY_LLM_EFFORT`). Answers are 2–4 spoken sentences; lessons and step
+verification (Phase 4) can use higher effort because they are not on the push-to-talk path.
+
+## D18 — Vendor HTTP adapters verified by contract tests only
+Deepgram, Whisper, ElevenLabs and OpenAI TTS adapters are tested against mocked transports
+(request shape, auth header, error mapping). No vendor keys exist in the dev container, so the
+first real call happens during hardware testing; endpoint details may need adjustment then.
+
+## D19 — Lesson state machine in TypeScript, capabilities in Rust
+The tutor's control flow (hint escalation, quiet-period auto-checks, skip/show-me/stop) is a
+pure TS class with injected dependencies, unit-tested with a fake clock; it is hosted by the
+hidden main window. Rust exposes the capabilities it needs as commands: capture + verify,
+point (live element-tree match first, backend `locate` fallback), speak, activity, store.
+
+## D20 — When lessons capture the screen
+Only at three moments, each user-initiated: planning (once), verifying a step (after the
+learner acts or says "done"), and locating a target when the element tree has no match.
+Pointing at the start of a step uses the element tree only (no pixels).
+
+## D21 — Automatic checks stay quiet at first
+After input activity plus 1.5 s of quiet, the step is checked automatically. The first
+automatic failure is silent (the learner may be mid-action); a second one, or any failed
+explicit "done", produces the next hint level.
+
+## D22 — Reviews replay the learner's own lesson as a quiz
+A due review reuses the stored plan of the skill's latest lesson (no LLM planning call), with
+pointing withheld until hint level 2 — so it measures recall. Its outcome is graded like any
+lesson and feeds SM-2. Mastery on cards = 25% per successful repetition (≥10% once completed).
+
+## D23 — Nudges are companion toasts, not OS notifications
+A small card near the corner of the cursor's monitor, driven by the Rust scheduler, keeps the
+tone gentle and on-brand, needs no notification permission, and can be suppressed precisely
+(full-screen check through UIA/AX right before showing).
+
+## D24 — Recorder polls input instead of hooking it
+Global input hooks differ per OS and the common crate (`rdev`) has known crashes with keyboard
+events off the main thread on recent macOS. `device_query` polling at 8 ms catches human input
+(clicks/keys last ~50–150 ms) and needs no event loop; element lookup and thumbnails run on a
+side thread so polling never stalls. Only *what* was typed is kept, per burst; secure fields → "[hidden]".
+
+## D25 — `.nudgy` files are plain JSON with an explicit format + version
+`{"format": "nudgy.walkthrough", "version": 1, …}` is validated on import in the app and on
+upload in the backend. Newer versions are rejected with "needs a newer Nudgy". Thumbnails are
+optional JPEG data URLs (≤300 KB each) and are dropped on export/share unless the author ticks
+"Include screenshots".
+
+## D26 — Share links are unlisted, not secret
+Slugs are 72-bit random tokens; anyone with the link can view the walkthrough (that's the point
+of sharing). Team libraries with access control arrive with accounts in Phase 7.
+
+## D27 — Browser does auth and payment; the app only holds a session token
+Sign-in (magic link, Google, Apple) and Stripe Checkout happen in the user's browser. The
+backend ends each sign-in on a page that opens `nudgy://auth?token=…`; the app verifies it with
+`/v1/me` before storing it (0600 file on macOS/Linux, per-user AppData on Windows). No OAuth
+secrets or card data ever touch the desktop app. Sessions are 30-day HS256 JWTs, rotated on launch.
+
+## D28 — Stripe over plain HTTPS, not the SDK (superseded by D44: PayPal)
+Three calls (customer, checkout session, portal session) and a webhook HMAC check are simpler to
+test with an httpx mock transport than to wrap the SDK; signature verification is implemented and
+tested explicitly. Multi-currency (local prices) is a Stripe Dashboard setting (Adaptive Pricing /
+multi-currency Prices) — no code needed.
+
+## D29 — What is metered (limits superseded by D38–D39; everything is still logged)
+`asks` = /v1/ask; `lessons` = new lesson plans; `lesson_calls` = step checks, target lookups and
+walkthrough cleaning (fair-use cap). Reviews and walkthrough playback reuse stored plans, so they
+only consume lesson_calls. Anonymous use is allowed only when `NUDGY_AUTH_REQUIRED=false` (dev).
+
+## D30 — Esc is a global shortcut only while Nudgy is speaking
+The kit's "speaking · Esc to stop" needs Esc even when another app has focus. Grabbing Esc
+permanently would break every other app, so the overlay registers it (`escape_listen`) when audio
+starts and releases it the moment audio stops.
+
+## D31 — Lesson card says "I did it · stop" instead of "Esc to stop"
+During a lesson the user is working in their own app, where Esc means something (close dialog,
+cancel edit). We don't grab it there; stopping is a click on the card or saying "stop".
+
+## D32 — Guide inside the user's app, don't imitate it
+Lessons bring the real app to the front (`focus_app`) and hide Nudgy's window. If we can't open
+it, we ask the user to ("Open Excel and I'll take it from there") and wait (`wait_for_app`),
+rather than showing a mock of the app.
+
+## D33 — Account deletion cancels billing first, or does nothing
+`DELETE /v1/me` cancels an active Stripe subscription before deleting anything; if Stripe
+fails, the request fails and no data is removed, so nobody keeps paying for a deleted account.
+Deleting a team owner dissolves the team: members drop to Free and the team library goes.
+Locally, the app only wipes after the server confirmed.
+
+## D34 — The capture indicator is tied to the capture, not the hotkey
+`CaptureGuard` wraps the one function that takes screenshots, so every capture (question,
+lesson check) shows the tag, and it can't be forgotten on an error path (it clears on drop).
+The tag stays at least 1.2 s so a 100 ms capture is still noticeable.
+
+## D35 — Updater key comes from CI, dev builds have updates off
+`createUpdaterArtifacts` requires the signing key at build time, which would break every local
+`tauri build`. The committed config has an empty pubkey and no updater artifacts; the release
+workflow injects both. The app treats an empty pubkey as "updates off in this build".
+
+## D36 — Onboarding is one short screen per need, then a real question
+The intro is skippable and has at most three steps: what Nudgy does, macOS permissions (only on
+macOS, re-read every 1.5 s so it follows System Settings live), and asking a real first question.
+It teaches the hotkey by having you use it rather than with a canned tour.
+
+## D37 — Production refuses unsafe configuration
+Outside `dev`, the server won't start with fake AI providers, a weak JWT secret, auth off,
+console email (would log sign-in links) or a non-https public URL (sign-in links and Stripe
+redirects would break or leak).
+
+## D38 — One global free year, then a capped free tier (not per-user trials)
+Everyone's unlimited access ends on the same date, FREE_UNTIL = LAUNCH_DATE + 365 days, so
+there's one story to tell and one date to move (admin override). The server computes it from
+its own clock; the app never decides access, so changing the system clock does nothing.
+Without a launch date (dev) there is no free window at all, so caps can be exercised locally.
+
+## D39 — The only thing payment changes is the monthly lesson cap
+Questions, lesson step checks, reviews and walkthrough replays are never limited, only
+logged. A "lesson" is a newly planned lesson (`/v1/lessons/plan`); a plan that fails is
+refunded. The cap resets on the 1st (UTC) and ignores lessons from the free window. The cap
+number lives in a settings-table row so it can change without a redeploy; its env var only
+seeds it.
+
+## D40 — Nothing about limits reaches the app before it matters
+`/v1/access` returns an empty shape during the free year and only adds the notice in the last
+30 days, so no screen can leak a counter or price early by accident. At the cap, the user gets
+an explanation with the reset date and an always-available "Not now", never a disabled button
+or a lockout.
+
+## D41 — Subscribe is a stub until billing is chosen (superseded: PayPal, D44)
+The upgrade screen and Account share one `startSubscription()` (TODO: connect billing provider).
+The Stripe checkout/webhook code stays in the backend; wiring it in is a one-function change.
+Until then, `PUT /v1/admin/users/{email}/plan` stands in for a subscription in QA.
+
+## D44 — PayPal subscriptions instead of Stripe
+Payments go through PayPal (available where Stripe isn't; buyers can use a PayPal balance or
+card). Nudgy Pro is two PayPal plans, $20/month and $40/year, whose IDs come from the
+environment. Subscribing opens PayPal's approval page; the account turns Pro when PayPal says
+the subscription is ACTIVE, either when the buyer returns (the return page reads the
+subscription from PayPal, never trusting the URL) or from the webhook, whichever comes first.
+Webhooks are checked with PayPal's verify-webhook-signature API, passing the event bytes
+unchanged. A cancel keeps Pro until the paid period ends (`paid_until` = next billing time);
+suspended or expired subscriptions drop to Free; a failed payment keeps the plan while PayPal
+retries. PayPal has no merchant billing portal, so "Manage in PayPal" opens the buyer's
+automatic-payments page. There are no coupons (the student discount was Stripe-only).

@@ -1,0 +1,36 @@
+/* Nudgy brand tokens — see brand/BRAND.md. Shared by the main window and the overlay. Dark mode: TODO (not in v1 design). */
+@theme static {
+  --color-bg: #ffffff;
+  --color-paper: #fafaf7;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #55544f;
+  --color-ink-3: #9a988f;
+  --color-line: #eceae4;
+  --color-line-2: #dad7cf;
+  --color-accent: #ff4a1c;
+  --color-good: #1f9d55;
+
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-card: 14px;
+  --radius-btn: 10px;
+}
+
+/* Same thin scrollbars on Windows (WebView2) and macOS (WKWebView) instead of each OS's own. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
