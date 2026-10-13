@@ -8,11 +8,13 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
 mod dashboard;
+mod progress;
 pub mod reviews;
 mod schema;
 mod walkthroughs;
 
 pub use dashboard::Dashboard;
+pub use progress::WeekProgress;
 pub use walkthroughs::WalkthroughRow;
 
 pub struct Store {

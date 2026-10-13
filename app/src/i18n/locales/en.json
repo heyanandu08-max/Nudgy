@@ -442,5 +442,31 @@
     "endsOn": "Pro until {{date}} · it won't renew",
     "signInFirst": "Sign in to subscribe",
     "compare": "Compare plans"
+  },
+  "week": {
+    "streak_one": "{{count}} day in a row",
+    "streak_other": "{{count}} days in a row",
+    "startToday": "learn something today to start a streak",
+    "keepItGoing": "learn something today to keep it going",
+    "best_one": "best: {{count}} day",
+    "best_other": "best: {{count}} days",
+    "daysLabel": "The last 7 days",
+    "learned": "learned",
+    "notLearned": "no learning",
+    "lessons": "lessons",
+    "steps": "steps",
+    "questions": "questions",
+    "recapTitle": "Last week.",
+    "recap": "{{lessons}}, {{steps}}, {{questions}}.",
+    "gotIt": "Got it",
+    "noStreak": "No streak yet",
+    "n": {
+      "lessons_one": "{{count}} lesson",
+      "lessons_other": "{{count}} lessons",
+      "steps_one": "{{count}} step passed",
+      "steps_other": "{{count}} steps passed",
+      "questions_one": "{{count}} question answered",
+      "questions_other": "{{count}} questions answered"
+    }
   }
 }

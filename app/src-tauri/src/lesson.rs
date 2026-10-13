@@ -250,6 +250,16 @@ pub fn dashboard(store: State<'_, Store>) -> Result<crate::store::Dashboard, Str
     store.dashboard(now())
 }
 
+/// The last 7 days and the learning streak. `offset_minutes` is the local UTC offset (east
+/// positive), so days start at local midnight.
+#[tauri::command]
+pub fn week_progress(
+    store: State<'_, Store>,
+    offset_minutes: i64,
+) -> Result<crate::store::WeekProgress, String> {
+    store.week_progress(now(), offset_minutes.clamp(-14 * 60, 14 * 60) * 60)
+}
+
 /// The plan to replay as a review quiz for `skill_id`.
 #[tauri::command]
 pub fn review_plan(store: State<'_, Store>, skill_id: String) -> Result<Value, String> {

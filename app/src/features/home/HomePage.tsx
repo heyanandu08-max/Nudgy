@@ -6,6 +6,8 @@ import { useSettings } from "../../stores/settings";
 import { getTutor, hideMainWindow, startReview, subscribeTutor } from "../tutor/host";
 import type { TutorView } from "../tutor/types";
 import { useDashboard, type RecentAsk, type RecentLesson, type SkillCard } from "./useDashboard";
+import { useWeek } from "./useWeek";
+import { WeekCard } from "./WeekCard";
 import { outOfLessons, useAccess } from "../billing/access";
 import { QuotaNote } from "../billing/QuotaNote";
 
@@ -48,6 +50,7 @@ export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgr
   const access = useAccess((s) => s.access);
   const { settings } = useSettings();
   const data = useDashboard();
+  const week = useWeek();
   const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
   const [allSkills, setAllSkills] = useState(false);
@@ -124,6 +127,8 @@ export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgr
           </button>
         ))}
       </div>
+
+      {week && <WeekCard week={week} />}
 
       <div className="mt-12 grid gap-7 min-[900px]:grid-cols-[1.35fr_1fr]">
         <section>
