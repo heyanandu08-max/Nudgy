@@ -12,11 +12,13 @@ import { SettingsPage, type SettingsSection } from "./features/settings/Settings
 import { getTutor } from "./features/tutor/host";
 import { finishRecording } from "./features/walkthroughs/recording";
 import { WalkthroughsPage } from "./features/walkthroughs/WalkthroughsPage";
+import { CoursesPage } from "./features/courses/CoursesPage";
 import type { Settings } from "./lib/settings";
 import { useSettings } from "./stores/settings";
 
 const TABS: Tab[] = [
   { id: "home", labelKey: "nav.home" },
+  { id: "courses", labelKey: "nav.courses" },
   { id: "walkthroughs", labelKey: "nav.walkthroughs" },
   { id: "settings", labelKey: "nav.settings" },
 ];
@@ -74,6 +76,7 @@ function MainWindow() {
         ) : (
           <>
             {tab === "home" && <HomePage onRecord={() => void startRecording()} onUpgrade={() => setUpgrade(true)} />}
+            {tab === "courses" && <CoursesPage onUpgrade={() => setUpgrade(true)} />}
             {tab === "walkthroughs" && <WalkthroughsPage />}
             {tab === "settings" && <SettingsPage section={section} />}
           </>

@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Home",
+    "courses": "Courses",
     "walkthroughs": "Walkthroughs",
     "settings": "Settings"
   },
@@ -468,5 +469,19 @@
       "questions_one": "{{count}} question answered",
       "questions_other": "{{count}} questions answered"
     }
+  },
+  "courses": {
+    "titleBefore": "Learn an app, ",
+    "titleEm": "step by step",
+    "help": "Short courses of real lessons in your own apps. Nudgy checks each step as you do it.",
+    "progress": "{{done}} of {{total}} lessons",
+    "showLessons": "Lessons",
+    "hideLessons": "Hide",
+    "start": "Start",
+    "continue": "Continue",
+    "complete": "complete",
+    "done": "done",
+    "again": "Again",
+    "learn": "Learn"
   }
 }

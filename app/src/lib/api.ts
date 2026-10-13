@@ -28,3 +28,15 @@ async function getJson<T>(baseUrl: string, path: string, timeoutMs = 4000): Prom
 
 export const fetchHealth = (baseUrl: string) => getJson<HealthResponse>(baseUrl, "/health");
 export const fetchClientConfig = (baseUrl: string) => getJson<ClientConfig>(baseUrl, "/v1/config");
+
+/** Mirrors GET /v1/packs. */
+export interface Pack {
+  id: string;
+  title: string;
+  app: string;
+  summary: string;
+  platform: "windows" | "mac" | null;
+  lessons: { id: string; title: string; goal: string }[];
+}
+
+export const fetchPacks = (baseUrl: string, platform: "windows" | "mac") => getJson<Pack[]>(baseUrl, `/v1/packs?platform=${platform}`);

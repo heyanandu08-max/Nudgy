@@ -38,6 +38,22 @@ fn day_of(ts: i64, offset: i64) -> i64 {
 }
 
 impl Store {
+    /// Which of these lesson goals have been completed at least once (for course progress).
+    pub fn completed_goals(&self, goals: &[String]) -> Result<Vec<String>> {
+        self.with(|c| {
+            let mut st = c.prepare(
+                "SELECT 1 FROM lessons WHERE goal = ?1 AND status = 'completed' LIMIT 1",
+            )?;
+            let mut done = Vec::new();
+            for g in goals {
+                if st.exists([g])? {
+                    done.push(g.clone());
+                }
+            }
+            Ok(done)
+        })
+    }
+
     fn totals(&self, from: i64, to: i64) -> Result<Totals> {
         self.with(|c| {
             let (lessons, skills): (i64, i64) = c.query_row(
@@ -181,6 +197,21 @@ mod tests {
         // Two days later it's gone, but the best is remembered.
         let later = st.week_progress(NOW + 2 * DAY, 0).unwrap();
         assert_eq!((later.streak, later.best_streak), (0, 4));
+    }
+
+    #[test]
+    fn completed_goals_only_counts_finished_lessons() {
+        let st = Store::in_memory().unwrap();
+        let a = st
+            .lesson_start("excel.sum", "SUM", "Excel", "SUM", "Add up", "{}", 1)
+            .unwrap();
+        st.lesson_finish(&a, "completed", 2).unwrap();
+        let b = st
+            .lesson_start("excel.chart", "Chart", "Excel", "Chart", "Chart", "{}", 3)
+            .unwrap();
+        st.lesson_finish(&b, "abandoned", 4).unwrap();
+        let goals = ["Add up", "Chart", "Freeze"].map(String::from);
+        assert_eq!(st.completed_goals(&goals).unwrap(), vec!["Add up"]);
     }
 
     #[test]

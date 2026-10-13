@@ -41,3 +41,17 @@ def test_production_refuses_unsafe_defaults():
     with pytest.raises(RuntimeError, match="PUBLIC_URL"):
         Settings(**{**safe, "public_url": "http://127.0.0.1:8787"}).check_production_safety()
     Settings(env="dev").check_production_safety()  # dev stays key-less
+
+
+def test_packs_are_filtered_by_platform(client):
+    everything = client.get("/v1/packs").json()
+    ids = {p["id"] for p in everything}
+    assert {"excel-basics", "file-explorer", "finder"} <= ids
+    for p in everything:
+        assert p["lessons"], p["id"]
+        assert len({lesson["id"] for lesson in p["lessons"]}) == len(p["lessons"])
+    win = {p["id"] for p in client.get("/v1/packs?platform=windows").json()}
+    mac = {p["id"] for p in client.get("/v1/packs?platform=mac").json()}
+    assert "file-explorer" in win and "finder" not in win
+    assert "finder" in mac and "file-explorer" not in mac
+    assert "excel-basics" in win and "excel-basics" in mac

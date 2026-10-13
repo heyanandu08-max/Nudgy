@@ -1,0 +1,82 @@
+# Courses: short, ordered sets of lessons for one app. Each lesson's `goal` is what Nudgy is
+# asked to teach (it plans and verifies the steps live, in the learner's language).
+# `platform` (windows | mac) limits a course to one OS; omit it for both.
+# Progress is tracked by `goal`: rewording a goal resets that lesson for everyone.
+packs:
+  - id: excel-basics
+    title: Excel basics
+    app: Excel
+    summary: From an empty sheet to a tidy table with totals and a chart.
+    lessons:
+      - { id: enter-format, title: Enter and format data, goal: "In Excel, type a few rows of data and make the header row bold" }
+      - { id: autosum, title: Add up a column, goal: "In Excel, add up a column of numbers with SUM" }
+      - { id: currency, title: Show numbers as money, goal: "In Excel, format a column of numbers as currency" }
+      - { id: sort-filter, title: Sort and filter, goal: "In Excel, sort a table by one column and filter it" }
+      - { id: chart, title: Make a chart, goal: "In Excel, make a column chart from a small table" }
+      - { id: freeze, title: Keep the header visible, goal: "In Excel, freeze the top row so it stays visible while scrolling" }
+
+  - id: word-basics
+    title: Word documents
+    app: Word
+    summary: Write a clean document with headings, lists, a table and page numbers.
+    lessons:
+      - { id: headings, title: Use heading styles, goal: "In Word, turn a line into a Heading 1 and another into a Heading 2" }
+      - { id: lists, title: Bullets and numbering, goal: "In Word, make a bulleted list and then a numbered list" }
+      - { id: table, title: Insert a table, goal: "In Word, insert a 3 by 3 table" }
+      - { id: page-numbers, title: Page numbers, goal: "In Word, add page numbers at the bottom of every page" }
+      - { id: pdf, title: Save as PDF, goal: "In Word, save the document as a PDF" }
+
+  - id: google-docs
+    title: Google Docs
+    app: Chrome
+    summary: Write, comment and share in Google Docs.
+    lessons:
+      - { id: new-doc, title: Start a document, goal: "In Google Docs, create a new blank document and give it a name" }
+      - { id: comment, title: Leave a comment, goal: "In Google Docs, select some text and add a comment" }
+      - { id: suggest, title: Suggest edits, goal: "In Google Docs, switch to Suggesting mode and make an edit" }
+      - { id: share, title: Share with someone, goal: "In Google Docs, share the document so others can view it" }
+
+  - id: chrome-everyday
+    title: Chrome every day
+    app: Chrome
+    summary: Tabs, bookmarks and downloads without hunting for buttons.
+    lessons:
+      - { id: tabs, title: Reopen a closed tab, goal: "In Chrome, reopen a tab you just closed" }
+      - { id: bookmark, title: Bookmark a page, goal: "In Chrome, bookmark this page into the bookmarks bar" }
+      - { id: tab-groups, title: Group tabs, goal: "In Chrome, put two tabs into a named tab group" }
+      - { id: downloads, title: Find a download, goal: "In Chrome, open the downloads list and show a file in its folder" }
+      - { id: zoom, title: Make text bigger, goal: "In Chrome, zoom the page in and back to 100 percent" }
+
+  - id: file-explorer
+    title: Files on Windows
+    app: File Explorer
+    platform: windows
+    summary: Find, organise and zip files in File Explorer.
+    lessons:
+      - { id: new-folder, title: Make a folder, goal: "In File Explorer, create a new folder in Documents and name it" }
+      - { id: move, title: Move files, goal: "In File Explorer, move a file into another folder" }
+      - { id: search, title: Search for a file, goal: "In File Explorer, search for a file by name" }
+      - { id: extensions, title: Show file extensions, goal: "In File Explorer, turn on file name extensions" }
+      - { id: zip, title: Zip and unzip, goal: "In File Explorer, compress a folder into a zip file" }
+
+  - id: finder
+    title: Files on Mac
+    app: Finder
+    platform: mac
+    summary: Find, organise and compress files in Finder.
+    lessons:
+      - { id: new-folder, title: Make a folder, goal: "In Finder, create a new folder in Documents and name it" }
+      - { id: move, title: Move files, goal: "In Finder, move a file into another folder" }
+      - { id: search, title: Search for a file, goal: "In Finder, search for a file by name" }
+      - { id: path-bar, title: See where a file lives, goal: "In Finder, turn on the path bar" }
+      - { id: compress, title: Compress and expand, goal: "In Finder, compress a folder into a zip file" }
+
+  - id: canva-first-design
+    title: Canva first design
+    app: Chrome
+    summary: Make and download a simple social post in Canva.
+    lessons:
+      - { id: template, title: Pick a template, goal: "In Canva, start an Instagram post from a template" }
+      - { id: text, title: Change the text, goal: "In Canva, change the template's text and font" }
+      - { id: image, title: Swap the picture, goal: "In Canva, replace the template's image with one of your uploads" }
+      - { id: download, title: Download it, goal: "In Canva, download the design as a PNG" }

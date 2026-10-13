@@ -231,6 +231,7 @@ pub fn run() {
             lesson::lesson_record_finish,
             lesson::dashboard,
             lesson::week_progress,
+            lesson::completed_goals,
             lesson::review_plan,
             lesson::review_snooze,
             walkthrough::recorder_start,

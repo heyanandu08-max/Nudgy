@@ -260,6 +260,12 @@ pub fn week_progress(
     store.week_progress(now(), offset_minutes.clamp(-14 * 60, 14 * 60) * 60)
 }
 
+/// Which course lessons (by goal) have been completed.
+#[tauri::command]
+pub fn completed_goals(store: State<'_, Store>, goals: Vec<String>) -> Result<Vec<String>, String> {
+    store.completed_goals(&goals)
+}
+
 /// The plan to replay as a review quiz for `skill_id`.
 #[tauri::command]
 pub fn review_plan(store: State<'_, Store>, skill_id: String) -> Result<Value, String> {
