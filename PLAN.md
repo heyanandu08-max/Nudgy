@@ -124,7 +124,7 @@ nudgy/
 ## 3. Phase checklist
 
 Legend: `[x]` done & verified · `[~]` implemented, needs verification on real
-Windows/macOS hardware (the dev container is Linux) · `[ ]` not started.
+Windows/macOS hardware (developed on Linux) · `[ ]` not started.
 
 ### Phase 0 — Planning
 - [x] Write `PLAN.md`, `DECISIONS.md`

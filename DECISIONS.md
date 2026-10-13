@@ -3,7 +3,7 @@
 Each entry: the decision, why, and what would make us revisit it.
 
 ## D1 — Monorepo layout: `app/` + `backend/` at the repo root
-The brief's `nudgy/` folder is the repo root itself. One repo keeps the SSE event
+The `nudgy/` project folder is the repo root itself. One repo keeps the SSE event
 schema, prompts and `.nudgy` format changes atomic across app and backend.
 
 ## D2 — Settings persisted as JSON by Rust, not in SQLite
@@ -71,7 +71,7 @@ click-through off only while the cursor is inside one. Overlays are separate pag
 
 ## D13 — Cross-target verification from Linux
 `cargo check --target x86_64-pc-windows-msvc` and `--target aarch64-apple-darwin` (with clang)
-work in the dev container, so all `cfg(target_os)` code is at least type-checked against the real
+work on a Linux dev machine, so all `cfg(target_os)` code is at least type-checked against the real
 Windows and macOS APIs before it reaches hardware testing (`scripts/check_targets.sh`).
 
 ## D14 — Native TLS for the desktop HTTP client
@@ -98,7 +98,7 @@ verification (Phase 4) can use higher effort because they are not on the push-to
 
 ## D18 — Vendor HTTP adapters verified by contract tests only
 Deepgram, Whisper, ElevenLabs and OpenAI TTS adapters are tested against mocked transports
-(request shape, auth header, error mapping). No vendor keys exist in the dev container, so the
+(request shape, auth header, error mapping). No vendor keys were used during development, so the
 first real call happens during hardware testing; endpoint details may need adjustment then.
 
 ## D19 — Lesson state machine in TypeScript, capabilities in Rust

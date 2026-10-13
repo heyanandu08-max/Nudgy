@@ -10,7 +10,7 @@ interface Timings {
   server: Stage | null;
 }
 
-/** Target from the brief: first audio within 2.5 s of letting go of the hotkey. */
+/** Target: first audio within 2.5 s of letting go of the hotkey. */
 export const FIRST_AUDIO_TARGET_MS = 2500;
 
 const CLIENT = ["capture_ms", "first_event_ms", "first_audio_ms", "total_ms"];

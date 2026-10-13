@@ -1,6 +1,6 @@
 # Design audit — nudgy-kit redesign
 
-Applied `nudgy-kit/prompts/2-redesign-existing-app.md` and `3-no-ai-look-rules.md`.
+Applied the nudgy-kit design guidelines and copy rules.
 Reference mockups: `design/previews/*.png`, CSS values from `design/nudgy-app-screens.html`.
 Brand assets: `brand/` (logo, app icon, BRAND.md).
 
@@ -55,7 +55,7 @@ Brand assets: `brand/` (logo, app icon, BRAND.md).
 - Lessons hide the Nudgy main window when they start. If the app can't be brought up, the tutor
   enters `waiting_app`, says "Open <app> and I'll take it from there." and continues when it appears.
 
-## Copy (no-AI-look rules)
+## Copy rules
 - `en.json` rewritten in the brand voice: short, concrete, no exclamation marks (0 left), no emoji,
   none of unlock / supercharge / seamless / effortless / AI-powered / Certainly / Great question /
   happy to help / dive in / delve. "First," → "First step:" (fixed "First, Click…" capitalisation).
