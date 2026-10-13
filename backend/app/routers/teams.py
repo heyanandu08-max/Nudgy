@@ -1,16 +1,18 @@
 """Team plan: members, invites, and the shared walkthrough library (onboarding use case)."""
 
-from typing import Annotated
+import json
+from collections import Counter
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
-from sqlalchemy import func, select
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.deps import signed_in
-from app.models import SharedWalkthrough, Team, TeamInvite, User
+from app.models import SharedWalkthrough, Team, TeamInvite, User, WalkthroughRun
 from app.routers.auth import get_mailer
 from app.services.email import EmailSender
 
@@ -104,6 +106,11 @@ def remove_member(
         raise HTTPException(404, {"code": "not_found", "message": "No such member."})
     member.team_id = None
     member.plan = "free"
+    db.execute(
+        delete(WalkthroughRun).where(
+            WalkthroughRun.team_id == team.id, WalkthroughRun.user_id == member.id
+        )
+    )
     db.commit()
     return {"removed": True}
 
@@ -122,3 +129,102 @@ def team_walkthroughs(
         {"slug": r.slug, "title": r.title, "app": r.app, "created_at": r.created_at.isoformat()}
         for r in rows
     ]
+
+
+class RunReport(BaseModel):
+    slug: str = Field(max_length=32)
+    status: Literal["completed", "abandoned"]
+    steps_total: int = Field(ge=0, le=500)
+    steps_passed: int = Field(ge=0, le=500)
+    hints: int = Field(default=0, ge=0, le=10_000)
+    stuck_step: int | None = Field(default=None, ge=0, le=500)
+
+
+@router.post("/runs")
+def record_run(
+    req: RunReport,
+    user: Annotated[User, Depends(signed_in)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """A member finished (or gave up on) a walkthrough. Only kept when it is one of their
+    team's walkthroughs; anything else is dropped."""
+    w = db.scalar(select(SharedWalkthrough).where(SharedWalkthrough.slug == req.slug))
+    if w is None or user.team_id is None or w.team_id != user.team_id:
+        return {"recorded": False}
+    db.add(
+        WalkthroughRun(
+            walkthrough_id=w.id,
+            team_id=w.team_id,
+            user_id=user.id,
+            status=req.status,
+            steps_total=req.steps_total,
+            steps_passed=min(req.steps_passed, req.steps_total),
+            hints=req.hints,
+            stuck_step=req.stuck_step,
+        )
+    )
+    db.commit()
+    return {"recorded": True}
+
+
+def _instructions(document: str) -> list[str]:
+    try:
+        return [str(s.get("instruction", "")) for s in json.loads(document).get("steps", [])]
+    except (ValueError, AttributeError):
+        return []
+
+
+@router.get("/report")
+def onboarding_report(
+    user: Annotated[User, Depends(signed_in)], db: Annotated[Session, Depends(get_db)]
+) -> list[dict]:
+    """For the owner: per team walkthrough, who finished it, who hasn't started, and the
+    steps people get stuck on."""
+    team = _owner(db, user)
+    members = db.scalars(select(User).where(User.team_id == team.id).order_by(User.email)).all()
+    walkthroughs = db.scalars(
+        select(SharedWalkthrough)
+        .where(SharedWalkthrough.team_id == team.id)
+        .order_by(SharedWalkthrough.created_at.desc())
+    ).all()
+    report = []
+    for w in walkthroughs:
+        runs = db.scalars(
+            select(WalkthroughRun)
+            .where(WalkthroughRun.walkthrough_id == w.id)
+            .order_by(WalkthroughRun.at)
+        ).all()
+        latest: dict[int, WalkthroughRun] = {}
+        finished: set[int] = set()
+        for r in runs:
+            latest[r.user_id] = r
+            if r.status == "completed":
+                finished.add(r.user_id)
+        steps = _instructions(w.document)
+        stuck = Counter(r.stuck_step for r in runs if r.stuck_step is not None)
+        report.append(
+            {
+                "slug": w.slug,
+                "title": w.title,
+                "app": w.app,
+                "members": [
+                    {
+                        "email": m.email,
+                        "status": "completed"
+                        if m.id in finished
+                        else (latest[m.id].status if m.id in latest else "not_started"),
+                        "last_at": latest[m.id].at.isoformat() if m.id in latest else None,
+                    }
+                    for m in members
+                ],
+                "stuck": [
+                    {
+                        "step": i,
+                        "instruction": steps[i] if i < len(steps) else "",
+                        "count": n,
+                    }
+                    for i, n in stuck.most_common(3)
+                ],
+            }
+        )
+    return report

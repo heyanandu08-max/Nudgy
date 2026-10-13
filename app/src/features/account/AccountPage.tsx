@@ -198,6 +198,7 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
           </button>
         </form>
       )}
+      <p className="text-xs text-ink-3">{team.owner ? t("report.ownerNote") : t("report.memberNote")}</p>
       <h3 className="pt-2 text-sm font-semibold">{t("account.library")}</h3>
       {library.length === 0 ? (
         <p className="text-sm text-ink-3">{t("account.noLibrary")}</p>
@@ -215,6 +216,66 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
           ))}
         </ul>
       )}
+      {team.owner && library.length > 0 && <OnboardingReport />}
     </section>
+  );
+}
+
+interface ReportRow {
+  slug: string;
+  title: string;
+  app: string;
+  members: { email: string; status: "completed" | "abandoned" | "not_started"; last_at: string | null }[];
+  stuck: { step: number; instruction: string; count: number }[];
+}
+
+/** Owner view: per team walkthrough, who finished it and the steps people needed help with. */
+function OnboardingReport() {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState<ReportRow[] | null>(null);
+  useEffect(() => {
+    invoke<ReportRow[]>("team_report")
+      .then(setRows)
+      .catch(() => setRows([]));
+  }, []);
+  if (!rows) return null;
+  return (
+    <div className="space-y-3 pt-2">
+      <h3 className="text-sm font-semibold">{t("report.title")}</h3>
+      {rows.map((w) => {
+        const done = w.members.filter((m) => m.status === "completed").length;
+        return (
+          <div key={w.slug} className="rounded-card border border-line-2 bg-white p-3.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[13px] font-medium">{w.title}</span>
+              <span className="font-mono text-[11px] text-ink-3">{t("report.finished", { done, total: w.members.length })}</span>
+            </div>
+            <ul className="mt-2 space-y-1">
+              {w.members.map((m) => (
+                <li key={m.email} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate">{m.email}</span>
+                  <span className={`font-mono text-[11px] ${m.status === "completed" ? "text-ink" : m.status === "abandoned" ? "text-accent" : "text-ink-3"}`}>
+                    {t(`report.status.${m.status}`)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {w.stuck.length > 0 && (
+              <div className="mt-3 border-t border-line pt-2">
+                <p className="font-mono text-[11px] text-ink-3">{t("report.stuckTitle")}</p>
+                <ul className="mt-1 space-y-1">
+                  {w.stuck.map((s) => (
+                    <li key={s.step} className="text-xs">
+                      <span className="font-mono text-ink-3">{t("report.step", { n: s.step + 1 })}</span> {s.instruction}{" "}
+                      <span className="font-mono text-[11px] text-ink-3">{t("report.people", { count: s.count })}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }

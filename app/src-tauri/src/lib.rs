@@ -264,6 +264,7 @@ pub fn run() {
             account::team_invite,
             account::team_remove,
             account::team_walkthroughs,
+            account::team_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Nudgy");

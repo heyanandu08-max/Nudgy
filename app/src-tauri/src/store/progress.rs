@@ -8,6 +8,8 @@ use std::collections::BTreeSet;
 use serde::Serialize;
 
 use super::reviews::DAY;
+use rusqlite::OptionalExtension;
+
 use super::{Result, Store};
 
 #[derive(Debug, Clone, Serialize, PartialEq, Default)]
@@ -37,7 +39,61 @@ fn day_of(ts: i64, offset: i64) -> i64 {
     (ts + offset).div_euclid(DAY)
 }
 
+/// How a finished lesson went, for the team onboarding report (metadata only).
+#[derive(Debug, Clone, PartialEq)]
+pub struct RunSummary {
+    pub goal: String,
+    pub status: String,
+    pub steps_total: i64,
+    pub steps_passed: i64,
+    pub hints: i64,
+    /// The step that took the most help (hints, or 2 per skip); on an abandoned run with no
+    /// such step, the step they stopped at.
+    pub stuck_step: Option<i64>,
+}
+
 impl Store {
+    pub fn run_summary(&self, lesson_id: &str) -> Result<Option<RunSummary>> {
+        self.with(|c| {
+            let head = c
+                .query_row(
+                    "SELECT goal, status, (SELECT COUNT(*) FROM json_each(plan_json, '$.steps'))
+                     FROM lessons WHERE id = ?1",
+                    [lesson_id],
+                    |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get(2)?)),
+                )
+                .optional()?;
+            let Some((goal, status, steps_total)) = head else {
+                return Ok(None);
+            };
+            let (steps_passed, hints, reached): (i64, i64, i64) = c.query_row(
+                "SELECT COALESCE(SUM(status = 'passed'), 0), COALESCE(SUM(hints_used), 0), COUNT(*)
+                 FROM lesson_steps WHERE lesson_id = ?1",
+                [lesson_id],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )?;
+            let hardest: Option<i64> = c
+                .query_row(
+                    "SELECT idx FROM lesson_steps WHERE lesson_id = ?1
+                       AND hints_used + 2 * (status = 'skipped') > 0
+                     ORDER BY hints_used + 2 * (status = 'skipped') DESC, idx LIMIT 1",
+                    [lesson_id],
+                    |r| r.get(0),
+                )
+                .optional()?;
+            let stuck_step = hardest
+                .or_else(|| (status == "abandoned" && reached < steps_total).then_some(reached));
+            Ok(Some(RunSummary {
+                goal,
+                status,
+                steps_total,
+                steps_passed,
+                hints,
+                stuck_step,
+            }))
+        })
+    }
+
     /// Which of these lesson goals have been completed at least once (for course progress).
     pub fn completed_goals(&self, goals: &[String]) -> Result<Vec<String>> {
         self.with(|c| {
@@ -212,6 +268,41 @@ mod tests {
         st.lesson_finish(&b, "abandoned", 4).unwrap();
         let goals = ["Add up", "Chart", "Freeze"].map(String::from);
         assert_eq!(st.completed_goals(&goals).unwrap(), vec!["Add up"]);
+    }
+
+    #[test]
+    fn run_summary_finds_where_they_got_stuck() {
+        let st = Store::in_memory().unwrap();
+        let plan = r#"{"steps":[{},{},{}]}"#;
+        let a = st
+            .lesson_start("w", "W", "SAP", "W", "walkthrough:w1", plan, 1)
+            .unwrap();
+        st.lesson_step(&a, &passed(0), 2).unwrap();
+        let mut hard = passed(1);
+        hard.hints_used = 3;
+        st.lesson_step(&a, &hard, 3).unwrap();
+        st.lesson_finish(&a, "completed", 4).unwrap();
+        let s = st.run_summary(&a).unwrap().unwrap();
+        assert_eq!(
+            (
+                s.goal.as_str(),
+                s.steps_total,
+                s.steps_passed,
+                s.hints,
+                s.stuck_step
+            ),
+            ("walkthrough:w1", 3, 2, 3, Some(1))
+        );
+
+        // Gave up on the third step without asking for help: that's where they stopped.
+        let b = st
+            .lesson_start("w", "W", "SAP", "W", "walkthrough:w1", plan, 5)
+            .unwrap();
+        st.lesson_step(&b, &passed(0), 6).unwrap();
+        st.lesson_step(&b, &passed(1), 7).unwrap();
+        st.lesson_finish(&b, "abandoned", 8).unwrap();
+        assert_eq!(st.run_summary(&b).unwrap().unwrap().stuck_step, Some(2));
+        assert_eq!(st.run_summary("nope").unwrap(), None);
     }
 
     #[test]

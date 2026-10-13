@@ -79,7 +79,10 @@ async def plan_lesson(
 
 def diff_elements(before: list[UiElement], after: list[UiElement], limit: int = 40) -> str:
     """What appeared / disappeared between two element lists (by role + name)."""
-    key = lambda e: (e.role, e.name)
+
+    def key(e: UiElement) -> tuple[str, str]:
+        return (e.role, e.name)
+
     b = {key(e) for e in before}
     a = {key(e) for e in after}
     added = [f"+ {r} '{n}'" for r, n in sorted(a - b) if n][:limit]

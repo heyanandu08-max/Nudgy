@@ -483,5 +483,20 @@
     "done": "done",
     "again": "Again",
     "learn": "Learn"
+  },
+  "report": {
+    "title": "Onboarding report",
+    "ownerNote": "When teammates play a team walkthrough, you see whether they finished it and the step that took the most help. Nothing from their screens is shared.",
+    "memberNote": "When you play a team walkthrough, your team owner sees whether you finished it and the step that took the most help. Nothing from your screen is shared.",
+    "finished": "{{done}} of {{total}} finished",
+    "status": {
+      "completed": "finished",
+      "abandoned": "stopped",
+      "not_started": "not started"
+    },
+    "stuckTitle": "needed help with",
+    "step": "step {{n}}",
+    "people_one": "· {{count}} time",
+    "people_other": "· {{count}} times"
   }
 }

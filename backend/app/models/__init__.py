@@ -1,6 +1,6 @@
 from app.models.account import BillingEvent, Team, TeamInvite, UsageEvent, UsedToken, User
 from app.models.app_setting import AppSetting
-from app.models.walkthrough import SharedWalkthrough
+from app.models.walkthrough import SharedWalkthrough, WalkthroughRun
 
 __all__ = [
     "AppSetting",
@@ -11,4 +11,5 @@ __all__ = [
     "UsageEvent",
     "UsedToken",
     "User",
+    "WalkthroughRun",
 ]

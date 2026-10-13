@@ -365,7 +365,13 @@ pub async fn walkthrough_fetch(app: AppHandle, link: String) -> Result<Walkthrou
         serde_json::from_value(doc).map_err(|e| ApiError::new("bad_walkthrough", e.to_string()))?;
     w.validate()
         .map_err(|e| ApiError::new("bad_walkthrough", e))?;
-    save(&app.state::<Store>(), &w).map_err(|e| ApiError::new("internal", e))?;
+    let store = app.state::<Store>();
+    save(&store, &w).map_err(|e| ApiError::new("internal", e))?;
+    // Remember where it came from, so runs of a team walkthrough can go in the team's report.
+    let link = backend::url(&app, &format!("/w/{slug}"));
+    store
+        .walkthrough_set_share_url(&w.id, &link)
+        .map_err(|e| ApiError::new("internal", e))?;
     Ok(w)
 }
 

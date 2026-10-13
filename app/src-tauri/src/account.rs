@@ -273,6 +273,12 @@ pub async fn team_walkthroughs(app: AppHandle) -> Result<Value, ApiError> {
     backend::get_json(&app, "/v1/team/walkthroughs").await
 }
 
+/// Owner only: who finished each team walkthrough and where people get stuck.
+#[tauri::command]
+pub async fn team_report(app: AppHandle) -> Result<Value, ApiError> {
+    backend::get_json(&app, "/v1/team/report").await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

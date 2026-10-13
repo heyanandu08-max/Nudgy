@@ -242,7 +242,42 @@ pub fn lesson_record_finish(
         log::warn!("could not schedule review for {skill}: {e}");
     }
     let _ = app.emit("progress-changed", &skill);
+    report_team_run(&app, &store, &lesson_id);
     Ok(skill)
+}
+
+/// After a walkthrough that came from a link, tell the server how it went (status, step
+/// counts, where it got hard). The server keeps it only for the member's own team's
+/// walkthroughs, for the owner's onboarding report; nothing is sent when signed out.
+fn report_team_run(app: &AppHandle, store: &Store, lesson_id: &str) {
+    if crate::auth::token(app).is_none() {
+        return;
+    }
+    let Ok(Some(run)) = store.run_summary(lesson_id) else {
+        return;
+    };
+    let Some(id) = run.goal.strip_prefix("walkthrough:") else {
+        return;
+    };
+    let slug = match store.walkthrough_share_url(id) {
+        Ok(Some(link)) => crate::walkthrough::slug_from_link(&link),
+        _ => None,
+    };
+    let Some(slug) = slug else { return };
+    let body = json!({
+        "slug": slug,
+        "status": run.status,
+        "steps_total": run.steps_total,
+        "steps_passed": run.steps_passed,
+        "hints": run.hints,
+        "stuck_step": run.stuck_step,
+    });
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(e) = backend::post_json(&app, "/v1/team/runs", &body).await {
+            log::debug!("team run not recorded: {}", e.message);
+        }
+    });
 }
 
 #[tauri::command]

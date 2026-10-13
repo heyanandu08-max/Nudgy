@@ -14,7 +14,7 @@ mod schema;
 mod walkthroughs;
 
 pub use dashboard::Dashboard;
-pub use progress::WeekProgress;
+pub use progress::{RunSummary, WeekProgress};
 pub use walkthroughs::WalkthroughRow;
 
 pub struct Store {

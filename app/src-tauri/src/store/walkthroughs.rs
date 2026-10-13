@@ -71,6 +71,18 @@ impl Store {
         })
     }
 
+    pub fn walkthrough_share_url(&self, id: &str) -> Result<Option<String>> {
+        self.with(|c| {
+            c.query_row(
+                "SELECT share_url FROM walkthroughs WHERE id = ?1",
+                [id],
+                |r| r.get(0),
+            )
+            .optional()
+            .map(Option::flatten)
+        })
+    }
+
     pub fn walkthrough_set_share_url(&self, id: &str, url: &str) -> Result<()> {
         self.with(|c| {
             c.execute(

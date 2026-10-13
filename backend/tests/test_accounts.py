@@ -281,7 +281,9 @@ def test_jwks_verifier_checks_signature_issuer_and_audience():
     }
     import jwt as pyjwt
 
-    tok = lambda c: pyjwt.encode(c, key, algorithm="RS256")
+    def tok(claims):
+        return pyjwt.encode(claims, key, algorithm="RS256")
+
     assert v.verify(tok(good)).email == "a@b.c"
     for bad in (
         {**good, "aud": "other"},
@@ -516,6 +518,73 @@ def test_team_plan_invites_and_shared_library(env):
         "/v1/walkthroughs", json={"walkthrough": doc, "team": True}, headers=bearer(outsider)
     )
     assert r.status_code == 403
+
+
+def test_onboarding_report_shows_completion_and_stuck_steps(env):
+    owner = magic_sign_in(env, "boss@acme.com")
+    uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
+    webhook(
+        env,
+        sub_event(
+            "WH-r",
+            "BILLING.SUBSCRIPTION.ACTIVATED",
+            {
+                "id": "I-R",
+                "plan_id": "P-TEAM",
+                "custom_id": str(uid),
+                "status": "ACTIVE",
+                "quantity": "3",
+            },
+        ),
+    )
+    for email in ("ann@acme.com", "bob@acme.com"):
+        env["client"].post("/v1/team/invites", json={"email": email}, headers=bearer(owner))
+    ann, bob = magic_sign_in(env, "ann@acme.com"), magic_sign_in(env, "bob@acme.com")
+    doc = {
+        "id": "w",
+        "title": "Expenses",
+        "app": "SAP",
+        "steps": [{"instruction": "Open Expenses."}, {"instruction": "Attach the receipt."}],
+    }
+    url = (
+        env["client"]
+        .post("/v1/walkthroughs", json={"walkthrough": doc, "team": True}, headers=bearer(owner))
+        .json()["url"]
+    )
+    slug = url.rstrip("/").rsplit("/", 1)[-1]
+
+    def run(token, status, passed, stuck):
+        body = {
+            "slug": slug,
+            "status": status,
+            "steps_total": 2,
+            "steps_passed": passed,
+            "hints": 2,
+            "stuck_step": stuck,
+        }
+        return env["client"].post("/v1/team/runs", json=body, headers=bearer(token)).json()
+
+    assert run(ann, "abandoned", 1, 1) == {"recorded": True}
+    assert run(ann, "completed", 2, 1) == {"recorded": True}
+    assert run(bob, "abandoned", 0, 0) == {"recorded": True}
+    # Not on the team: dropped.
+    assert run(magic_sign_in(env, "solo@else.com"), "completed", 2, None) == {"recorded": False}
+
+    assert env["client"].get("/v1/team/report", headers=bearer(ann)).status_code == 403
+    [w] = env["client"].get("/v1/team/report", headers=bearer(owner)).json()
+    status = {m["email"]: m["status"] for m in w["members"]}
+    assert status == {
+        "ann@acme.com": "completed",
+        "bob@acme.com": "abandoned",
+        "boss@acme.com": "not_started",
+    }
+    assert w["stuck"][0] == {"step": 1, "instruction": "Attach the receipt.", "count": 2}
+
+    # Removing a member removes their runs from the report.
+    bob_id = env["client"].get("/v1/me", headers=bearer(bob)).json()["id"]
+    env["client"].delete(f"/v1/team/members/{bob_id}", headers=bearer(owner))
+    [w] = env["client"].get("/v1/team/report", headers=bearer(owner)).json()
+    assert [s["step"] for s in w["stuck"]] == [1]
 
 
 def test_export_lists_what_the_server_holds(env):

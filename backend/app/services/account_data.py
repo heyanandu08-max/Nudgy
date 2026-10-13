@@ -10,7 +10,7 @@ import logging
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.models import SharedWalkthrough, Team, TeamInvite, UsageEvent, User
+from app.models import SharedWalkthrough, Team, TeamInvite, UsageEvent, User, WalkthroughRun
 
 log = logging.getLogger("nudgy.account")
 
@@ -28,6 +28,9 @@ def export(db: Session, user: User) -> dict:
         select(SharedWalkthrough)
         .where(SharedWalkthrough.owner_id == user.id)
         .order_by(SharedWalkthrough.created_at)
+    ).all()
+    runs = db.scalars(
+        select(WalkthroughRun).where(WalkthroughRun.user_id == user.id).order_by(WalkthroughRun.at)
     ).all()
     return {
         "format": "nudgy-account-export",
@@ -66,6 +69,18 @@ def export(db: Session, user: User) -> dict:
             }
             for w in shared
         ],
+        "team_walkthrough_runs": [
+            {
+                "walkthrough_id": r.walkthrough_id,
+                "status": r.status,
+                "steps_total": r.steps_total,
+                "steps_passed": r.steps_passed,
+                "hints": r.hints,
+                "stuck_step": r.stuck_step,
+                "at": _iso(r.at),
+            }
+            for r in runs
+        ],
     }
 
 
@@ -80,6 +95,7 @@ def delete_user(db: Session, user: User) -> dict:
             if member.id != user.id:
                 member.plan = "free"
         db.execute(delete(TeamInvite).where(TeamInvite.team_id == team.id))
+        db.execute(delete(WalkthroughRun).where(WalkthroughRun.team_id == team.id))
         removed["walkthroughs"] += db.execute(
             delete(SharedWalkthrough).where(SharedWalkthrough.team_id == team.id)
         ).rowcount
@@ -88,6 +104,7 @@ def delete_user(db: Session, user: User) -> dict:
     removed["walkthroughs"] += db.execute(
         delete(SharedWalkthrough).where(SharedWalkthrough.owner_id == user.id)
     ).rowcount
+    db.execute(delete(WalkthroughRun).where(WalkthroughRun.user_id == user.id))
     removed["usage"] = db.execute(delete(UsageEvent).where(UsageEvent.user_id == user.id)).rowcount
     db.execute(delete(TeamInvite).where(TeamInvite.email == user.email))
     db.delete(user)
