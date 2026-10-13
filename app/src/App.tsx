@@ -37,7 +37,7 @@ function MainWindow() {
   const navigate = (to: string) => {
     if (to === "upgrade") return setUpgrade(true);
     setUpgrade(false);
-    if (["cursor", "hotkey", "privacy", "account", "about"].includes(to)) {
+    if (["cursor", "hotkey", "privacy", "account", "plan", "about"].includes(to)) {
       setSection(to as SettingsSection);
       setTab("settings");
     } else {
@@ -70,7 +70,7 @@ function MainWindow() {
       <TitleBar tabs={TABS} active={upgrade ? "" : tab} onChange={navigate} onAccount={() => navigate("account")} />
       <main className="flex-1 overflow-auto">
         {upgrade ? (
-          <UpgradePrompt onClose={() => setUpgrade(false)} />
+          <UpgradePrompt onClose={() => setUpgrade(false)} onPlans={() => navigate("plan")} />
         ) : (
           <>
             {tab === "home" && <HomePage onRecord={() => void startRecording()} onUpgrade={() => setUpgrade(true)} />}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AccountPage } from "../account/AccountPage";
 import { AccessNotice } from "../billing/AccessNotice";
+import { PlansSection } from "../billing/PlansSection";
 import { AboutSection } from "./AboutSection";
 import { CursorSection } from "./CursorSection";
 import { HotkeySection } from "./HotkeySection";
@@ -12,12 +13,14 @@ export type SettingsSection =
   | "hotkey"
   | "privacy"
   | "account"
+  | "plan"
   | "about";
 const SECTIONS: SettingsSection[] = [
   "cursor",
   "hotkey",
   "privacy",
   "account",
+  "plan",
   "about",
 ];
 
@@ -62,6 +65,7 @@ export function SettingsPage({
         {section === "hotkey" && <HotkeySection />}
         {section === "privacy" && <PrivacySection />}
         {section === "account" && <AccountPage />}
+        {section === "plan" && <PlansSection onSignIn={() => setSection("account")} />}
         {section === "about" && <AboutSection />}
       </div>
     </div>

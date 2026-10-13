@@ -620,3 +620,22 @@ def test_webhook_verification_sends_the_event_exactly_as_received(env):
     verify = [c for c in env["paypal"].calls if c[1].endswith("verify-webhook-signature")][-1]
     assert verify[2]["webhook_event"] == ev and verify[2]["webhook_id"] == WEBHOOK_ID
     assert raw.encode() in env["paypal"].raw[env["paypal"].calls.index(verify)]
+
+
+def test_plans_screen_data(env, monkeypatch):
+    monkeypatch.setenv("PAYPAL_PLAN_PRO_YEARLY", "P-PRO-YEAR")
+    anon = env["client"].get("/v1/plans").json()
+    assert anon == {
+        "signed_in": False,
+        "current": None,
+        "free_lessons_per_month": 5,
+        "unlimited_until": None,
+        "pro_offer": {"month": "$20", "year": "$40"},
+        "subscription": None,
+    }
+    token = magic_sign_in(env)
+    assert env["client"].get("/v1/plans", headers=bearer(token)).json()["current"] == "free"
+    sid = subscribe(env, token, interval="year")
+    webhook(env, sub_event("WH-pl", "BILLING.SUBSCRIPTION.ACTIVATED", env["paypal"].approve(sid)))
+    mine = env["client"].get("/v1/plans", headers=bearer(token)).json()
+    assert mine["current"] == "pro" and mine["subscription"]["status"] == "active"

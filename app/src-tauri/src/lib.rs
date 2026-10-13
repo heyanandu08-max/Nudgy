@@ -252,6 +252,7 @@ pub fn run() {
             account::auth_sign_out,
             account::account_me,
             account::access_get,
+            account::plans_get,
             account::billing_checkout,
             account::billing_portal,
             account::team_get,

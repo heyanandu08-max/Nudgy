@@ -14,7 +14,8 @@
       "hotkey": "Hotkey",
       "privacy": "Privacy",
       "account": "Account",
-      "about": "About"
+      "about": "About",
+      "plan": "Plan"
     },
     "cursorTitle": "Your",
     "cursorTitleEm": "cursor",
@@ -410,5 +411,32 @@
       "not_connected": "subscriptions aren't open yet",
       "failed": "couldn't open checkout · try again in a minute"
     }
+  },
+  "plans": {
+    "title": "Your",
+    "titleEm": "plan",
+    "sub": "Free covers everyday questions. Pro adds unlimited lessons.",
+    "unlimitedUntil": "everything is unlimited for now · free lessons get a monthly limit from {{date}}",
+    "free": "Free",
+    "freePrice": "$0",
+    "pro": "Pro",
+    "current": "current plan",
+    "perMonth": "a month",
+    "orYear": "or {{price}} a year",
+    "f": {
+      "questions": "Unlimited questions",
+      "lessons_one": "{{count}} new lesson a month",
+      "lessons_other": "{{count}} new lessons a month",
+      "reviews": "Skill reviews",
+      "walkthroughs": "Record and share walkthroughs"
+    },
+    "p": {
+      "everything": "Everything in Free",
+      "lessons": "Unlimited lessons",
+      "cancel": "Cancel anytime in PayPal"
+    },
+    "endsOn": "Pro until {{date}} · it won't renew",
+    "signInFirst": "Sign in to subscribe",
+    "compare": "Compare plans"
   }
 }

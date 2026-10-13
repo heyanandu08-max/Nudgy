@@ -6,7 +6,7 @@ import { useSubscribe } from "./SubscribeButton";
 
 /** Shown when this month's free lessons are used up. Explains, gives the reset date, and
  * can always be dismissed; everything except new lessons keeps working. */
-export function UpgradePrompt({ onClose }: { onClose: () => void }) {
+export function UpgradePrompt({ onClose, onPlans }: { onClose: () => void; onPlans: () => void }) {
   const { t, i18n } = useTranslation();
   const { access, refresh } = useAccess();
   useEffect(() => void refresh(), [refresh]);
@@ -28,6 +28,9 @@ export function UpgradePrompt({ onClose }: { onClose: () => void }) {
         <div className="mt-8 flex flex-wrap items-center gap-2">
           {subscribe.buttons}
           <Button onClick={onClose}>{t("billing.notNow")}</Button>
+          <Button variant="ghost" onClick={onPlans}>
+            {t("plans.compare")}
+          </Button>
         </div>
         {subscribe.status && <div className="mt-3">{subscribe.status}</div>}
       </div>

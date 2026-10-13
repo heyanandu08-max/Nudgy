@@ -211,6 +211,12 @@ pub async fn access_get(app: AppHandle) -> Result<Value, ApiError> {
     backend::get_json(&app, "/v1/access").await
 }
 
+/// Current plan, what Free includes and Pro's prices, for the Plan screen.
+#[tauri::command]
+pub async fn plans_get(app: AppHandle) -> Result<Value, ApiError> {
+    backend::get_json(&app, "/v1/plans").await
+}
+
 #[tauri::command]
 pub async fn billing_checkout(
     app: AppHandle,

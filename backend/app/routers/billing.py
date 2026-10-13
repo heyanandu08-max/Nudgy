@@ -3,6 +3,8 @@ manage it, and the webhook that keeps plans in sync."""
 
 import json
 import logging
+from collections.abc import Callable
+from datetime import datetime
 from html import escape
 from typing import Annotated, Literal
 
@@ -13,12 +15,13 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
-from app.deps import signed_in
+from app.deps import get_clock, optional_user, signed_in
 from app.models import User
-from app.services import billing
+from app.services import access, billing
 from app.services.pages import page
 from app.services.paypal_api import PayPalClient, PayPalError
 from app.services.plans import get_plan
+from app.services.usage import effective_plan
 
 log = logging.getLogger("nudgy.billing")
 router = APIRouter()
@@ -38,6 +41,34 @@ def optional_paypal(settings: Annotated[Settings, Depends(get_settings)]) -> Pay
         return get_paypal(settings)
     except HTTPException:
         return None
+
+
+@router.get("/v1/plans")
+def plans(
+    user: Annotated[User | None, Depends(optional_user)],
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+) -> dict:
+    """What the Plans screen shows: the caller's plan, what Free includes, and what Pro costs
+    (only prices that can actually be bought)."""
+    now = clock()
+    end, _ = access.free_until(db, settings)
+    sub = None
+    if user is not None and user.billing_subscription_id:
+        sub = {
+            "status": user.subscription_status,
+            "paid_until": user.paid_until.isoformat() if user.paid_until else None,
+        }
+    return {
+        "signed_in": user is not None,
+        "current": effective_plan(db, user, now) if user is not None else None,
+        "free_lessons_per_month": access.lessons_per_month(db, settings),
+        # Set while everyone still has unlimited use (the free year).
+        "unlimited_until": end.date().isoformat() if end is not None and now < end else None,
+        "pro_offer": get_plan("pro").offer(),
+        "subscription": sub,
+    }
 
 
 class CheckoutRequest(BaseModel):
