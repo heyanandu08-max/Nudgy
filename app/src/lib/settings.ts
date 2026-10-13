@@ -8,6 +8,8 @@ export interface Settings {
   voiceEnabled: boolean;
   voiceId: string | null;
   hotkey: string;
+  /** "Explain this error" shortcut; empty = off. */
+  explainHotkey: string;
   responseLength: ResponseLength;
   language: string;
   paused: boolean;
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceEnabled: true,
   voiceId: null,
   hotkey: "Ctrl+Alt+Space",
+  explainHotkey: "Ctrl+Alt+E",
   responseLength: "brief",
   language: "en",
   paused: false,

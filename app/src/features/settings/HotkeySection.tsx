@@ -20,7 +20,7 @@ export function acceleratorFrom(e: Pick<KeyboardEvent, "ctrlKey" | "altKey" | "s
 export function HotkeySection() {
   const { t } = useTranslation();
   const { settings, update, error } = useSave();
-  const [recording, setRecording] = useState(false);
+  const [recording, setRecording] = useState<null | "hotkey" | "explainHotkey">(null);
   const [config, setConfig] = useState<ClientConfig>(FALLBACK_CONFIG);
 
   useEffect(() => {
@@ -31,11 +31,11 @@ export function HotkeySection() {
     if (!recording) return;
     const onKey = (e: KeyboardEvent) => {
       e.preventDefault();
-      if (e.key === "Escape") return setRecording(false);
+      if (e.key === "Escape") return setRecording(null);
       const acc = acceleratorFrom(e);
       if (acc) {
-        setRecording(false);
-        void update({ hotkey: acc });
+        setRecording(null);
+        void update({ [recording]: acc });
       }
     };
     window.addEventListener("keydown", onKey);
@@ -48,8 +48,19 @@ export function HotkeySection() {
       {error && <p className="mt-4 font-mono text-xs text-accent">{t("settings.saveFailed", { error })}</p>}
       <Card>
         <Row title={t("settings.hotkey")} help={t("settings.hotkeyHelp")}>
-          {recording ? <span className="font-mono text-xs text-ink-3">{t("settings.hotkeyRecording")}</span> : <Hotkey accelerator={settings.hotkey} />}
-          <Button onClick={() => setRecording(!recording)}>{t("settings.hotkeyChange")}</Button>
+          {recording === "hotkey" ? <span className="font-mono text-xs text-ink-3">{t("settings.hotkeyRecording")}</span> : <Hotkey accelerator={settings.hotkey} />}
+          <Button onClick={() => setRecording(recording ? null : "hotkey")}>{t("settings.hotkeyChange")}</Button>
+        </Row>
+        <Row title={t("settings.explainHotkey")} help={t("settings.explainHotkeyHelp")}>
+          {recording === "explainHotkey" ? (
+            <span className="font-mono text-xs text-ink-3">{t("settings.hotkeyRecording")}</span>
+          ) : settings.explainHotkey ? (
+            <Hotkey accelerator={settings.explainHotkey} />
+          ) : (
+            <span className="font-mono text-xs text-ink-3">{t("settings.off")}</span>
+          )}
+          <Button onClick={() => setRecording(recording ? null : "explainHotkey")}>{t("settings.hotkeyChange")}</Button>
+          {settings.explainHotkey && <Button onClick={() => void update({ explainHotkey: "" })}>{t("settings.turnOff")}</Button>}
         </Row>
         <Row title={t("settings.language")} help={t("settings.languageHelp")} htmlFor="language">
           <select

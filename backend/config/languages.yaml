@@ -1,6 +1,10 @@
-# Languages offered in Settings. `default: true` marks the fallback.
-# Only English is polished in v1; others are listed as they get translated.
+# Languages offered in Settings: the app's text and the language Nudgy answers in.
+# `name` is shown to users (in the language itself); `english_name` goes into AI prompts.
+# `default: true` marks the fallback. App text lives in app/src/i18n/locales/<code>.json.
 languages:
-  - code: en
-    name: English
-    default: true
+  - { code: en, name: English, english_name: English, default: true }
+  - { code: es, name: Español, english_name: Spanish }
+  - { code: pt, name: Português, english_name: Portuguese }
+  - { code: fr, name: Français, english_name: French }
+  - { code: de, name: Deutsch, english_name: German }
+  - { code: hi, name: हिन्दी, english_name: Hindi }

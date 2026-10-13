@@ -9,6 +9,7 @@ use crate::settings::SettingsStore;
 const OPEN: &str = "open";
 const PAUSE: &str = "pause";
 const SETTINGS: &str = "settings";
+const EXPLAIN: &str = "explain-error";
 const QUIT: &str = "quit";
 const DEBUG_POINT_CENTER: &str = "debug-point-center";
 
@@ -18,6 +19,7 @@ struct Labels {
     open: &'static str,
     pause: &'static str,
     settings: &'static str,
+    explain: &'static str,
     quit: &'static str,
     debug: &'static str,
     debug_point_center: &'static str,
@@ -29,6 +31,7 @@ fn labels(_language: &str) -> Labels {
         open: "Open Nudgy",
         pause: "Pause",
         settings: "Settings…",
+        explain: "Explain an error on screen",
         quit: "Quit Nudgy",
         debug: "Debug",
         debug_point_center: "Point at screen center",
@@ -43,6 +46,7 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, OPEN, l.open, true, None::<&str>)?;
     let pause = CheckMenuItem::with_id(app, PAUSE, l.pause, true, settings.paused, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, SETTINGS, l.settings, true, None::<&str>)?;
+    let explain = MenuItem::with_id(app, EXPLAIN, l.explain, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, QUIT, l.quit, true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
     let point_center = MenuItem::with_id(
@@ -56,7 +60,16 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let sep2 = PredefinedMenuItem::separator(app)?;
     let menu = Menu::with_items(
         app,
-        &[&open, &pause, &settings_item, &sep, &debug, &sep2, &quit],
+        &[
+            &open,
+            &explain,
+            &pause,
+            &settings_item,
+            &sep,
+            &debug,
+            &sep2,
+            &quit,
+        ],
     )?;
 
     app.manage(PauseItem(pause.clone()));
@@ -79,6 +92,7 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 let _ = app.emit_to("main", "navigate", "settings");
             }
             PAUSE => toggle_pause(app),
+            EXPLAIN => crate::hotkey::explain_error(app),
             DEBUG_POINT_CENTER => {
                 if let Err(e) = crate::overlay::point_at_screen_center(app) {
                     log::error!("debug point failed: {e}");

@@ -15,7 +15,7 @@ from app.schemas.walkthrough import (
     CleanRequest,
     RawStep,
 )
-from app.services.ask import LANGUAGE_NAMES
+from app.services.ask import language_name
 from app.services.llm_json import llm_json
 from app.services.prompts import load_prompt
 
@@ -77,9 +77,7 @@ def fallback_clean(req: CleanRequest) -> CleanedWalkthrough:
 
 
 async def clean(req: CleanRequest, p: Providers, usage: Usage) -> CleanedWalkthrough:
-    system = load_prompt("walkthrough_clean").render(
-        language=LANGUAGE_NAMES.get(req.language, req.language)
-    )
+    system = load_prompt("walkthrough_clean").render(language=language_name(req.language))
     text = f"App: {req.app or 'unknown'}\nRaw log:\n{describe_raw(req.raw)}"
     cleaned = await llm_json(
         p.llm,

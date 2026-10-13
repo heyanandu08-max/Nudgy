@@ -19,7 +19,7 @@ from app.schemas.lessons import (
     VerifyContext,
     VerifyResult,
 )
-from app.services.ask import LANGUAGE_NAMES, validate_target
+from app.services.ask import language_name, validate_target
 from app.services.json_parse import SentenceChunker
 from app.services.llm_json import llm_json
 from app.services.prompts import load_prompt
@@ -30,7 +30,7 @@ MIN_STEPS, MAX_STEPS = 3, 8
 
 
 def _lang(code: str) -> str:
-    return LANGUAGE_NAMES.get(code, code)
+    return language_name(code)
 
 
 def element_lines(elements: list[UiElement]) -> str:

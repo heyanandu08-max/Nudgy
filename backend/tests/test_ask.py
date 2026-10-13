@@ -197,3 +197,26 @@ def test_screenshot_bytes_never_logged(client, caplog):
         ask(client, {"elements": ELEMENTS}, screenshot=secret)
     assert "SECRET-PIXELS" not in caplog.text
     assert "screenshot_bytes=" in caplog.text  # metadata only
+
+
+def test_explain_error_mode_uses_its_own_prompt(client):
+    from app.schemas.ask import AskContext
+    from app.services.ask import system_prompt
+
+    ctx = AskContext(mode="explain_error", language="es")
+    prompt = system_prompt(ctx)
+    assert "explain this error" in prompt and "Spanish" in prompt
+    assert "start_lesson" not in prompt  # no lessons from the error key
+    events = ask(
+        client,
+        {"elements": ELEMENTS, "text": "Explain the error on my screen", "mode": "explain_error"},
+        audio=None,
+        screenshot=JPEG,
+    )
+    done = next(d for e, d in events if e == "done")
+    assert "Retry" in done["speech"]
+
+
+def test_unknown_mode_is_rejected(client):
+    r = client.post("/v1/ask", data={"context": json.dumps({"text": "hi", "mode": "agent"})})
+    assert r.status_code == 422

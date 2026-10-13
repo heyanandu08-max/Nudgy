@@ -257,6 +257,17 @@ pub async fn run<R: Runtime>(
     audio: Option<Vec<u8>>,
     text: Option<String>,
 ) {
+    run_mode(app, captured, audio, text, None).await
+}
+
+/// `run` with a backend mode, e.g. "explain_error" for the explain-this-error key.
+pub async fn run_mode<R: Runtime>(
+    app: AppHandle<R>,
+    captured: Captured,
+    audio: Option<Vec<u8>>,
+    text: Option<String>,
+    mode: Option<&'static str>,
+) {
     let state = app.state::<AskState>();
     let generation = state.generation.fetch_add(1, Ordering::SeqCst) + 1;
     let current = || app.state::<AskState>().generation.load(Ordering::SeqCst) == generation;
@@ -266,13 +277,16 @@ pub async fn run<R: Runtime>(
 
     let settings = app.state::<SettingsStore>().get();
     let lesson = state.lesson();
-    let prepared = prepare(
+    let mut prepared = prepare(
         &captured,
         &state.history(),
         &settings,
         text.as_deref(),
         lesson.as_ref(),
     );
+    if let Some(mode) = mode {
+        prepared.context["mode"] = json!(mode);
+    }
     if let Some(reason) = captured.withheld {
         emit(
             &app,

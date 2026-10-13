@@ -42,10 +42,13 @@ fn save_settings(
     settings: Settings,
 ) -> Result<Settings, String> {
     hotkey::validate(&settings.hotkey)?;
+    if !settings.explain_hotkey.trim().is_empty() {
+        hotkey::validate(&settings.explain_hotkey)?;
+    }
     let previous = store.get();
     let saved = store.set(settings)?;
-    if saved.hotkey != previous.hotkey {
-        hotkey::register(&app, &saved.hotkey)?;
+    if saved.hotkey != previous.hotkey || saved.explain_hotkey != previous.explain_hotkey {
+        hotkey::register(&app, &saved.hotkey, &saved.explain_hotkey)?;
     }
     tray::sync_pause(&app, saved.paused);
     let _ = app.emit("settings-changed", &saved);
@@ -165,9 +168,9 @@ pub fn run() {
                 }
             }
             account::rotate_on_start(app.handle());
-            let accelerator = app.state::<SettingsStore>().get().hotkey;
-            if let Err(e) = hotkey::register(app.handle(), &accelerator) {
-                log::error!("could not register hotkey {accelerator}: {e}");
+            let keys = app.state::<SettingsStore>().get();
+            if let Err(e) = hotkey::register(app.handle(), &keys.hotkey, &keys.explain_hotkey) {
+                log::error!("could not register hotkeys {}: {e}", keys.hotkey);
             }
 
             // First run: open the window so onboarding (permissions, first question) shows.

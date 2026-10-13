@@ -72,13 +72,48 @@ pub fn validate(accelerator: &str) -> Result<Shortcut, String> {
     Shortcut::from_str(accelerator).map_err(|e| format!("invalid hotkey {accelerator:?}: {e}"))
 }
 
-/// (Re)registers the push-to-talk shortcut from settings.
-pub fn register<R: Runtime>(app: &AppHandle<R>, accelerator: &str) -> Result<(), String> {
+/// (Re)registers the push-to-talk shortcut and the "explain this error" shortcut (if set).
+pub fn register<R: Runtime>(
+    app: &AppHandle<R>,
+    accelerator: &str,
+    explain: &str,
+) -> Result<(), String> {
     let shortcut = validate(accelerator)?;
     let gs = app.global_shortcut();
     gs.unregister_all().map_err(|e| e.to_string())?;
     gs.on_shortcut(shortcut, |app, _shortcut, event| on_event(app, event))
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    if !explain.trim().is_empty() {
+        let explain = validate(explain)?;
+        gs.on_shortcut(explain, |app, _shortcut, event| {
+            if event.state == ShortcutState::Pressed {
+                explain_error(app);
+            }
+        })
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// What the "explain this error" key asks (the backend's explain_error prompt does the rest).
+const EXPLAIN_TEXT: &str = "Explain the error or warning on my screen and how to fix it.";
+
+/// One press: look at the screen under the cursor and explain the error on it.
+pub fn explain_error<R: Runtime>(app: &AppHandle<R>) {
+    if app.state::<SettingsStore>().get().paused {
+        return;
+    }
+    let app = app.clone();
+    thread::spawn(move || {
+        let captured = ask::capture_context(&app);
+        tauri::async_runtime::spawn(ask::run_mode(
+            app,
+            captured,
+            None,
+            Some(EXPLAIN_TEXT.to_string()),
+            Some("explain_error"),
+        ));
+    });
 }
 
 /// While Nudgy is speaking, Esc stops it. Registered only for that moment so Esc keeps

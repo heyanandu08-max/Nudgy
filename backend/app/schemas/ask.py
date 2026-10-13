@@ -57,6 +57,8 @@ class AskContext(BaseModel):
     voice_id: str | None = Field(default=None, max_length=64)
     text: str | None = Field(default=None, max_length=2000)  # typed question (no audio)
     lesson: LessonContext | None = None  # set while a tutor-mode lesson is running
+    # "explain_error": the user pressed the explain-this-error key (no question asked)
+    mode: Literal["talk", "explain_error"] = "talk"
 
     @field_validator("history")
     @classmethod

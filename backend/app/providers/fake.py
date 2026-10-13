@@ -90,6 +90,15 @@ class FakeLLM:
             return self._locate(system, messages)
         if "reusable walkthrough" in system:
             return self._clean(messages)
+        if "explain this error" in system:
+            return json.dumps(
+                {
+                    "speech": "That message means the file is open somewhere else. "
+                    "Close the other copy, then press Retry.",
+                    "target": None,
+                    "action_hint": None,
+                }
+            )
         return self._answer(messages)
 
     @staticmethod

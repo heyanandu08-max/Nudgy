@@ -11,7 +11,9 @@ import logging
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from functools import lru_cache
 
+from app.config import load_yaml
 from app.providers.base import ImagePart, Message, ProviderError, Usage, collect
 from app.providers.registry import Providers
 from app.schemas.ask import TALK_SCHEMA, AskContext, ElementTarget, PointTarget, TalkResponse
@@ -21,7 +23,18 @@ from app.services.prompts import load_prompt
 
 log = logging.getLogger("nudgy.ask")
 
-LANGUAGE_NAMES = {"en": "English"}
+
+def language_name(code: str) -> str:
+    """'es' → 'Spanish' (config/languages.yaml), so prompts name the reply language."""
+    names = {lang["code"]: lang.get("english_name", lang["name"]) for lang in _languages()}
+    return names.get(code, code)
+
+
+@lru_cache
+def _languages() -> list[dict]:
+    return load_yaml("languages.yaml")["languages"]
+
+
 LENGTH = {
     "brief": "2 to 4 short sentences unless the user explicitly asks for detail.",
     "detailed": "up to 8 sentences; explain the why as well as the how.",
@@ -64,9 +77,14 @@ def lesson_context(ctx: AskContext) -> str:
 
 
 def system_prompt(ctx: AskContext) -> str:
+    if ctx.mode == "explain_error":
+        return load_prompt("explain_error").render(
+            length_instruction=LENGTH[ctx.response_length],
+            language=language_name(ctx.language),
+        )
     return load_prompt("talk").render(
         length_instruction=LENGTH[ctx.response_length],
-        language=LANGUAGE_NAMES.get(ctx.language, ctx.language),
+        language=language_name(ctx.language),
         lesson_context=lesson_context(ctx),
     )
 

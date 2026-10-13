@@ -24,6 +24,8 @@ pub struct Settings {
     pub voice_id: Option<String>,
     /// Accelerator string for tauri-plugin-global-shortcut; Alt maps to Option on macOS.
     pub hotkey: String,
+    /// "Explain this error" shortcut; empty turns it off.
+    pub explain_hotkey: String,
     pub response_length: ResponseLength,
     pub language: String,
     pub paused: bool,
@@ -46,6 +48,7 @@ impl Default for Settings {
             voice_enabled: true,
             voice_id: None,
             hotkey: "Ctrl+Alt+Space".into(),
+            explain_hotkey: "Ctrl+Alt+E".into(),
             response_length: ResponseLength::Brief,
             language: "en".into(),
             paused: false,
@@ -69,6 +72,13 @@ impl Settings {
         }
         if self.hotkey.trim().is_empty() {
             return Err("hotkey must not be empty".into());
+        }
+        if self
+            .explain_hotkey
+            .trim()
+            .eq_ignore_ascii_case(self.hotkey.trim())
+        {
+            return Err("the two hotkeys must be different".into());
         }
         if self.language.trim().is_empty() {
             return Err("language must not be empty".into());
