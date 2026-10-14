@@ -123,6 +123,9 @@ Every variable is documented in [`.env.example`](.env.example) with a blank or s
 | Launch | `NUDGY_LAUNCH_DATE` (free year starts; blank in dev), `NUDGY_FREE_UNTIL_OVERRIDE`, `NUDGY_FREE_TIER_LESSONS_PER_MONTH` (initial value only), `NUDGY_ADMIN_TOKEN` |
 | Billing (PayPal) | `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_PLAN_PRO` ($20/month), `PAYPAL_PLAN_PRO_YEARLY` ($40/year), `PAYPAL_PLAN_TEAM` |
 
+PayPal setup, step by step: [`docs/PAYPAL_SETUP.md`](docs/PAYPAL_SETUP.md) (`python -m app.paypal_setup`
+creates the product, plans and webhook).
+
 Outside `NUDGY_ENV=dev` the server refuses to start with fake providers, a weak JWT secret,
 sign-in turned off, console email, or a public URL that isn't `https://`.
 
