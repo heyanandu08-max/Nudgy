@@ -123,7 +123,8 @@
     "billing_error": "La facturation ne répond pas. Réessayez dans une minute.",
     "config": "Ce n'est pas encore configuré sur le serveur.",
     "no_team": "Il faut la formule Équipe.",
-    "no_screen_permission": "Je ne vois pas encore votre écran. Autorisez l'enregistrement de l'écran pour Nudgy dans Réglages Système, puis rouvrez-le."
+    "no_screen_permission": "Je ne vois pas encore votre écran. Autorisez l'enregistrement de l'écran pour Nudgy dans Réglages Système, puis rouvrez-le.",
+    "consent_required": "Cochez la case pour confirmer votre âge et accepter les conditions."
   },
   "askBox": {
     "placeholder": "Posez une question · Entrée pour envoyer · Échap pour fermer",
@@ -216,7 +217,8 @@
       "why": "Pourquoi :",
       "note": "Note :",
       "footer": "Fait avec Nudgy"
-    }
+    },
+    "screenshotAlt": "Capture de l'étape {{n}} : {{instruction}}"
   },
   "account": {
     "title": "Compte",
@@ -334,7 +336,7 @@
     "titleEm": "confidentialité",
     "sub": "Ce que Nudgy envoie, où cela va et comment le reprendre. Votre serveur : {{host}}.",
     "askTitle": "Quand vous posez une question",
-    "askBody": "Seulement pendant que vous maintenez le raccourci : une capture de l'écran où se trouve votre curseur, le nom des boutons de l'app au premier plan et votre question. Cela part vers {{host}}, qui le transmet au fournisseur d'IA configuré sur ce serveur, puis le supprime. Les captures et les enregistrements ne sont jamais conservés ni journalisés.",
+    "askBody": "Seulement pendant que vous maintenez le raccourci : une capture de l'écran où se trouve votre curseur, le nom des boutons de l'app au premier plan et votre question. Cela part vers {{host}}, qui le transmet au fournisseur d'IA configuré sur ce serveur, puis le supprime. Cette capture et l'enregistrement de votre voix ne sont jamais conservés ni journalisés.",
     "lessonTitle": "Pendant une leçon",
     "lessonBody": "La même chose, à chaque pause, pour que Nudgy vérifie l'étape. Entre deux vérifications, rien n'est envoyé.",
     "walkTitle": "Tutoriels",
@@ -366,7 +368,7 @@
     "welcomeBefore": "Un tuteur qui ",
     "welcomeEm": "montre",
     "welcomeAfter": " le bouton.",
-    "welcomeBody": "Maintenez le raccourci n'importe où, demandez comment faire quelque chose, et Nudgy vous donne l'étape suivante en déplaçant son curseur sur le bon bouton. Demandez-lui de vous apprendre, et il vous guide pas à pas, dans votre propre app.",
+    "welcomeBody": "Maintenez le raccourci n'importe où, demandez comment faire quelque chose, et Nudgy vous donne l'étape suivante en déplaçant son curseur vers le bouton. Demandez-lui de vous apprendre, et il vous guide pas à pas, dans votre propre app.",
     "welcomePrivacy": "Il ne regarde votre écran que pendant que vous maintenez les touches ou pendant une leçon que vous avez lancée.",
     "start": "Commencer",
     "skip": "Passer la configuration",
@@ -452,7 +454,8 @@
     },
     "endsOn": "Pro jusqu'au {{date}} · ne sera pas renouvelé",
     "signInFirst": "Connectez-vous pour vous abonner",
-    "compare": "Comparer les formules"
+    "compare": "Comparer les formules",
+    "taxNote": "prix en dollars américains · PayPal affiche les taxes de votre pays avant que vous confirmiez"
   },
   "week": {
     "streak_one": "{{count}} jour d'affilée",
@@ -549,5 +552,16 @@
     "namePlaceholder": "ex. Première semaine chez Acme",
     "order": "ordre coché = ordre des leçons",
     "create": "Créer le cours"
+  },
+  "legal": {
+    "title": "Mentions légales",
+    "consent": "J'ai 13 ans ou plus et j'accepte les <terms>Conditions d'utilisation</terms> et la <privacy>Politique de confidentialité</privacy>.",
+    "pages": {
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "cookies": "Cookies",
+      "licenses": "Licences",
+      "delete-account": "Supprimer le compte"
+    }
   }
 }

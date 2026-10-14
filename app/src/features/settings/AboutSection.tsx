@@ -5,6 +5,7 @@ import { Card, Row, SettingsHeading } from "./parts";
 import { TimingsCard } from "./Timings";
 import { UpdateControl } from "./UpdateControl";
 import { useHealth } from "./useHealth";
+import { LegalLink, useLegalInfo, type LegalPage } from "../legal/LegalLinks";
 import { useSave } from "./useSave";
 
 export function AboutSection() {
@@ -12,13 +13,15 @@ export function AboutSection() {
   const { settings, update, error } = useSave();
   const [url, setUrl] = useState(settings.backendUrl);
   const { health, check } = useHealth(settings.backendUrl);
+  const legal = useLegalInfo();
+  const pages: LegalPage[] = ["privacy", "terms", "cookies", "licenses", "delete-account"];
   useEffect(() => setUrl(settings.backendUrl), [settings.backendUrl]);
 
   const text = health.state === "ok" ? t("health.ok", { version: health.version }) : health.state === "down" ? t("health.down") : t("health.checking");
   return (
     <>
       <SettingsHeading before={t("settings.aboutTitle")} em={t("settings.aboutEm")} sub={t("settings.aboutSub")} />
-      {error && <p className="mt-4 font-mono text-xs text-accent">{t("settings.saveFailed", { error })}</p>}
+      {error && <p className="mt-4 font-mono text-xs text-accent-ink">{t("settings.saveFailed", { error })}</p>}
       <Card>
         <Row title={t("settings.server")} help={t("settings.serverHelp")} htmlFor="server">
           <input
@@ -42,6 +45,18 @@ export function AboutSection() {
         </Row>
         <Row title={t("settings.updates")}>
           <UpdateControl />
+        </Row>
+        <Row title={t("legal.title")} help={legal ? [legal.company, legal.address].filter(Boolean).join(" · ") : undefined}>
+          <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-2">
+            {pages.map((p) => (
+              <LegalLink key={p} page={p} />
+            ))}
+            {legal?.contact_email && (
+              <a className="underline underline-offset-2 hover:text-ink" href={`mailto:${legal.contact_email}`}>
+                {legal.contact_email}
+              </a>
+            )}
+          </span>
         </Row>
         <Row title={t("settings.intro")} help={t("settings.introHelp")}>
           <Button onClick={() => void update({ onboarded: false })}>{t("settings.introButton")}</Button>

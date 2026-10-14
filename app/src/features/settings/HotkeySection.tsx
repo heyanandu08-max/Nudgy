@@ -45,7 +45,7 @@ export function HotkeySection() {
   return (
     <>
       <SettingsHeading before={t("settings.hotkeyTitle")} em={t("settings.hotkeyTitleEm")} sub={t("settings.hotkeySub")} />
-      {error && <p className="mt-4 font-mono text-xs text-accent">{t("settings.saveFailed", { error })}</p>}
+      {error && <p className="mt-4 font-mono text-xs text-accent-ink">{t("settings.saveFailed", { error })}</p>}
       <Card>
         <Row title={t("settings.hotkey")} help={t("settings.hotkeyHelp")}>
           {recording === "hotkey" ? <span className="font-mono text-xs text-ink-3">{t("settings.hotkeyRecording")}</span> : <Hotkey accelerator={settings.hotkey} />}

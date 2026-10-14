@@ -11,6 +11,7 @@
   --line: var(--color-line);
   --line-2: var(--color-line-2);
   --accent: var(--color-accent);
+  --accent-ink: var(--color-accent-ink);
   --good: var(--color-good);
   --sans: var(--font-sans);
   --serif: var(--font-serif);
@@ -358,7 +359,7 @@ button:focus-visible {
   align-items: center;
   gap: 6px;
   font: 11px var(--mono);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .nudge__title i {
   width: 6px;

@@ -40,6 +40,15 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
 
+    # Business details shown on every legal page, the site footer and in the app (required
+    # outside dev). Contact email = where privacy, deletion and legal requests go.
+    company_name: str = ""
+    company_address: str = ""
+    company_country: str = ""  # governing law in the Terms, e.g. "India"
+    contact_email: str = ""
+    # Optional site analytics script URL. Only loaded after a visitor accepts cookies.
+    analytics_src: str = ""
+
     google_client_id: str = ""
     google_client_secret: str = ""
     apple_client_id: str = ""  # Services ID
@@ -109,6 +118,11 @@ class Settings(BaseSettings):
             problems.append("PAYPAL_ENV must be 'live' in production (it is the test sandbox)")
         if self.admin_token is not None and len(self.admin_token) < 32:
             problems.append("NUDGY_ADMIN_TOKEN must be at least 32 characters")
+        if not (self.company_name and self.contact_email and self.company_country):
+            problems.append(
+                "NUDGY_COMPANY_NAME, NUDGY_COMPANY_COUNTRY and NUDGY_CONTACT_EMAIL are required "
+                "(they appear on the legal pages)"
+            )
         if not self.public_url.startswith("https://"):
             problems.append("NUDGY_PUBLIC_URL must be the server's https:// address")
         if problems:

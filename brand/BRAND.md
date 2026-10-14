@@ -21,7 +21,7 @@ The logo is "nudgy" with the **y knocked over**, as if the g just nudged it. Two
 | White | `#FFFFFF` | Main background |
 | Paper | `#FAFAF7` | Title bars, footers, chips, empty states |
 | Ink 2 | `#55544F` | Secondary text |
-| Ink 3 | `#9A988F` | Meta text, placeholders |
+| Ink 3 | `#706E67` | Meta text, placeholders (4.9:1 on paper, WCAG AA) |
 | Line | `#ECEAE4` / `#DAD7CF` | Dividers / borders |
 | Red | `#FF4A1C` | Accent. Use rarely: "review due", recording dot, listening dot, speaking wave |
 | Green | `#1F9D55` | "Ready" dot, completed ✓ |

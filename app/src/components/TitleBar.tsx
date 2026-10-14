@@ -38,12 +38,27 @@ export function TitleBar({ tabs, active, onChange, onAccount }: { tabs: Tab[]; a
   return (
     <header className="flex h-[46px] shrink-0 items-center border-b border-line bg-paper px-4">
       <img src={logo} alt={t("app.name")} className="h-[22px]" />
-      <nav className="ml-7 flex gap-1" role="tablist">
+      <nav
+        className="ml-7 flex gap-1"
+        role="tablist"
+        onKeyDown={(e) => {
+          // Arrow keys move between tabs (the ARIA tabs pattern); Tab leaves the bar.
+          if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+          const i = Math.max(0, tabs.findIndex((x) => x.id === active));
+          const next = tabs.at((i + (e.key === "ArrowRight" ? 1 : -1)) % tabs.length);
+          if (!next) return;
+          e.preventDefault();
+          onChange(next.id);
+          requestAnimationFrame(() => document.getElementById(`tab-${next.id}`)?.focus());
+        }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            id={`tab-${tab.id}`}
             role="tab"
             aria-selected={tab.id === active}
+            tabIndex={tab.id === active || !tabs.some((x) => x.id === active) ? 0 : -1}
             onClick={() => onChange(tab.id)}
             className={`rounded-lg px-3 py-1.5 text-[13px] ${
               tab.id === active ? "border border-line-2 bg-white text-ink shadow-[0_1px_0_rgba(0,0,0,.04)]" : "border border-transparent text-ink-2 hover:text-ink"

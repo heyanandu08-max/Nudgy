@@ -16,7 +16,7 @@ from app.providers.fake import FakeLLM, FakeSTT, FakeTTS
 from app.providers.registry import Providers, get_providers
 from app.routers.auth import get_apple, get_google, get_mailer, get_oauth_http
 from app.routers.billing import get_paypal, optional_paypal
-from app.services import auth
+from app.services import auth, legal
 from app.services.email import ConsoleEmail
 from app.services.paypal_api import PayPalClient
 
@@ -98,6 +98,10 @@ def env(monkeypatch):
         google_client_id="gid",
         google_client_secret="gsecret",
         apple_client_id="app.nudgy.signin",
+        company_name="Acme Learning Ltd",
+        company_address="1 Main St, Pune",
+        company_country="India",
+        contact_email="legal@acme.test",
     )
     settings.paypal_webhook_id = WEBHOOK_ID
     mailer = ConsoleEmail()
@@ -136,7 +140,8 @@ def env(monkeypatch):
 
 def magic_sign_in(env, email="ada@example.com") -> str:
     c = env["client"]
-    assert c.post("/v1/auth/magic", json={"email": email}).json() == {"sent": True}
+    body = {"email": email, "accept_terms": True}
+    assert c.post("/v1/auth/magic", json=body).json() == {"sent": True}
     to, _subject, body = env["mailer"].sent[-1]
     assert to == email
     link = re.search(r"https://nudgy\.test/auth/magic\?token=\S+", body).group(0)
@@ -234,12 +239,15 @@ def test_google_sign_in(env):
 
 
 def test_google_start_redirects_with_state(env):
-    r = env["client"].get("/v1/auth/google/start", follow_redirects=False)
+    refused = env["client"].get("/v1/auth/google/start", follow_redirects=False)
+    assert refused.json()["detail"]["code"] == "consent_required"
+    r = env["client"].get("/v1/auth/google/start?accept_terms=true", follow_redirects=False)
     q = parse_qs(urlparse(r.headers["location"]).query)
+    assert q["scope"] == ["openid email"]  # no name or profile
     assert q["client_id"] == ["gid"] and q["redirect_uri"] == [
         "https://nudgy.test/v1/auth/google/callback"
     ]
-    auth.check_state(env["settings"], q["state"][0], "google")
+    assert auth.check_state(env["settings"], q["state"][0], "google") == legal.TERMS_VERSION
 
 
 def test_apple_sign_in_form_post(env):
@@ -769,3 +777,66 @@ def test_plans_screen_data(env, monkeypatch):
     webhook(env, sub_event("WH-pl", "BILLING.SUBSCRIPTION.ACTIVATED", env["paypal"].approve(sid)))
     mine = env["client"].get("/v1/plans", headers=bearer(token)).json()
     assert mine["current"] == "pro" and mine["subscription"]["status"] == "active"
+
+
+# --- legal & consent ---
+
+
+def test_sign_in_needs_and_records_consent(env):
+    c = env["client"]
+    r = c.post("/v1/auth/magic", json={"email": "kid@example.com"})
+    assert r.status_code == 400 and r.json()["detail"]["code"] == "consent_required"
+    token = magic_sign_in(env, "ok@example.com")
+    assert c.get("/v1/me", headers=bearer(token)).json()["name"] == ""  # name never collected
+    data = c.get("/v1/me/export", headers=bearer(token)).json()["account"]
+    assert data["terms_version"] == legal.TERMS_VERSION and data["consented_at"]
+
+
+def test_legal_pages_show_business_details(env):
+    c = env["client"]
+    for path in ("/privacy", "/terms", "/cookies", "/delete-account", "/licenses"):
+        r = c.get(path)
+        assert r.status_code == 200, path
+        assert "Acme Learning Ltd" in r.text and "legal@acme.test" in r.text, path  # footer
+        assert "{{" not in r.text, path
+    assert "<table>" in c.get("/privacy").text
+    assert "refund" not in c.get("/terms").text.lower()
+    info = c.get("/v1/legal").json()
+    assert info["company"] == "Acme Learning Ltd" and info["links"]["terms"].endswith("/terms")
+
+
+def test_no_cookie_banner_without_analytics(env):
+    assert 'id="consent"' not in env["client"].get("/privacy").text
+
+
+def test_invites_carry_unsubscribe_and_respect_it(env):
+    owner = magic_sign_in(env, "boss@acme.com")
+    uid = env["client"].get("/v1/me", headers=bearer(owner)).json()["id"]
+    webhook(
+        env,
+        sub_event(
+            "WH-u",
+            "BILLING.SUBSCRIPTION.ACTIVATED",
+            {
+                "id": "I-U",
+                "plan_id": "P-TEAM",
+                "custom_id": str(uid),
+                "status": "ACTIVE",
+                "quantity": "5",
+            },
+        ),
+    )
+    c = env["client"]
+    c.post("/v1/team/invites", json={"email": "no@acme.com"}, headers=bearer(owner))
+    _to, _subject, body = env["mailer"].sent[-1]
+    link = re.search(r"https://nudgy\.test(/email/unsubscribe\?token=\S+)", body).group(1)
+    assert "You're unsubscribed" in c.get(link).text
+    again = c.post("/v1/team/invites", json={"email": "no@acme.com"}, headers=bearer(owner))
+    assert again.json() == {"invited": False, "reason": "unsubscribed"}
+    assert c.get("/email/unsubscribe?token=forged").status_code == 400
+
+
+def test_markdown_is_escaped():
+    html = legal.to_html("# T\n\nHi <script>x</script> **b** [a](javascript:alert(1)) [ok](/terms)")
+    assert "<script>" not in html and "&lt;script&gt;" in html
+    assert 'href="javascript' not in html and '<a href="/terms">ok</a>' in html

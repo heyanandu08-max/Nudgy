@@ -34,8 +34,13 @@ def test_production_refuses_unsafe_defaults():
         "stt_provider": "deepgram",
         "tts_provider": "elevenlabs",
         "public_url": "https://api.nudgy.test",
+        "company_name": "Acme Learning Ltd",
+        "company_country": "India",
+        "contact_email": "legal@acme.test",
     }
     Settings(**safe).check_production_safety()
+    with pytest.raises(RuntimeError, match="COMPANY_NAME"):
+        Settings(**{**safe, "company_name": ""}).check_production_safety()
     with pytest.raises(RuntimeError, match="LLM_PROVIDER"):
         Settings(**{**safe, "llm_provider": "fake"}).check_production_safety()
     with pytest.raises(RuntimeError, match="PUBLIC_URL"):

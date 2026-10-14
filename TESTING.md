@@ -160,6 +160,15 @@ Run on **Windows and Mac**.
 | Beginner mode on: answers use plain words and one action, voice a little slower, largest cursor, bigger captions; off restores everything | | |
 | Language → Español / Deutsch / हिन्दी: every window switches without restart, Courses titles too; long German strings don't overflow | | |
 
+## Legal and accessibility
+| Check | Win | Mac |
+|-------|-----|-----|
+| Signed out → Account: the age/terms box is unticked and all sign-in buttons are disabled until it is ticked; Terms and Privacy links open the browser | | |
+| /privacy, /terms, /cookies, /delete-account, /licenses show your business details in the text and footer | | |
+| Settings → About → Legal shows the company, address, contact email and all five links | | |
+| Keyboard only: Tab through Home, Courses, Walkthroughs, Settings; focus always visible; arrow keys switch title-bar tabs; Esc closes the upgrade screen | | |
+| A team invite email has a working unsubscribe link; inviting that address again says it unsubscribed | | |
+
 ## Billing — free year and capped tier
 Backend with `NUDGY_ADMIN_TOKEN` set. Move time with `PUT /v1/admin/access {"free_until": "…"}`
 instead of changing clocks. Run every row on **Windows and Mac side by side** and note any

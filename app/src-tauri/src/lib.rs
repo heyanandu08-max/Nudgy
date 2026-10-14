@@ -270,6 +270,8 @@ pub fn run() {
             account::team_remove,
             account::team_walkthroughs,
             account::team_report,
+            account::legal_info,
+            account::open_legal,
             account::team_courses,
             account::team_course_save,
             account::team_course_delete,

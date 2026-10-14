@@ -10,14 +10,20 @@ export function UpgradePrompt({ onClose, onPlans }: { onClose: () => void; onPla
   const { t, i18n } = useTranslation();
   const { access, refresh } = useAccess();
   useEffect(() => void refresh(), [refresh]);
+  // Esc always backs out, like "Not now".
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const q = access.lessons;
   const subscribe = useSubscribe(access.offer);
 
   return (
-    <div className="flex min-h-full items-center justify-center px-14 py-10">
+    <div className="flex min-h-full items-center justify-center px-14 py-10" role="dialog" aria-modal="false" aria-labelledby="upgrade-title">
       <div className="w-full max-w-[520px]">
         <p className="font-mono text-[11px] text-ink-3 uppercase">{t("billing.meta")}</p>
-        <h1 className="mt-2 text-[30px] leading-[1.15] font-semibold tracking-[-.02em]">
+        <h1 id="upgrade-title" className="mt-2 text-[30px] leading-[1.15] font-semibold tracking-[-.02em]">
           {t("billing.titleBefore")}
           <em className="font-serif font-medium">{t("billing.titleEm")}</em>
           {t("billing.titleAfter")}
@@ -32,6 +38,7 @@ export function UpgradePrompt({ onClose, onPlans }: { onClose: () => void; onPla
             {t("plans.compare")}
           </Button>
         </div>
+        <p className="mt-3 font-mono text-[11px] text-ink-3">{t("plans.taxNote")}</p>
         {subscribe.status && <div className="mt-3">{subscribe.status}</div>}
       </div>
     </div>

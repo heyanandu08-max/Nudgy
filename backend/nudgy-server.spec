@@ -8,6 +8,7 @@ a = Analysis(
     datas=[
         ("prompts", "prompts"),
         ("config", "config"),
+        ("legal", "legal"),
         ("../.env.example", "."),
     ],
     # Routers and providers import each other lazily; collect the whole app package.

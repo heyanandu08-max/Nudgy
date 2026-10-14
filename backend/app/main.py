@@ -14,6 +14,7 @@ from app.routers import (
     billing,
     client_config,
     health,
+    legal,
     lessons,
     packs,
     teams,
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(client_config.router)
     app.include_router(packs.router)
+    app.include_router(legal.router)
     app.include_router(ask.router)
     app.include_router(lessons.router)
     app.include_router(walkthroughs.router)

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { LegalLink } from "../legal/LegalLinks";
 import { errorCode, errorKey } from "../../lib/errors";
 import { formatDay, type Access } from "../billing/access";
 import { useSubscribe } from "../billing/SubscribeButton";
@@ -72,29 +73,38 @@ export function AccountPage() {
 function SignIn({ onStatus, onError }: { onStatus: (s: string) => void; onError: (e: unknown) => void }) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  // Never pre-ticked: sign-in records this consent (age + Terms + Privacy) on the server.
+  const [agreed, setAgreed] = useState(false);
   return (
     <section className="space-y-4 rounded-card border border-line-2 p-4">
       <h2 className="text-[15px] font-semibold">{t("account.signInTitle")}</h2>
       <p className="text-sm text-ink-3">{t("account.signInHelp")}</p>
+      <label className="flex items-start gap-2 text-sm text-ink-2">
+        <input type="checkbox" className="mt-1" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+        <span>
+          <Trans i18nKey="legal.consent" components={{ terms: <LegalLink page="terms" />, privacy: <LegalLink page="privacy" /> }} />
+        </span>
+      </label>
       <form
         className="flex gap-2"
         onSubmit={(e) => {
           e.preventDefault();
-          invoke("auth_send_magic", { email })
+          if (!agreed) return;
+          invoke("auth_send_magic", { email, acceptTerms: agreed })
             .then(() => onStatus(t("account.linkSent")))
             .catch(onError);
         }}
       >
         <input className={input} type="email" required placeholder={t("account.email")} value={email} onChange={(e) => setEmail(e.target.value)} />
-        <button type="submit" className={`${primary} shrink-0`}>
+        <button type="submit" className={`${primary} shrink-0 disabled:opacity-40`} disabled={!agreed}>
           {t("account.sendLink")}
         </button>
       </form>
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={btn} onClick={() => invoke("auth_open_provider", { provider: "google" }).catch(onError)}>
+        <button type="button" className={`${btn} disabled:opacity-40`} disabled={!agreed} onClick={() => invoke("auth_open_provider", { provider: "google", acceptTerms: agreed }).catch(onError)}>
           {t("account.google")}
         </button>
-        <button type="button" className={btn} onClick={() => invoke("auth_open_provider", { provider: "apple" }).catch(onError)}>
+        <button type="button" className={`${btn} disabled:opacity-40`} disabled={!agreed} onClick={() => invoke("auth_open_provider", { provider: "apple", acceptTerms: agreed }).catch(onError)}>
           {t("account.apple")}
         </button>
       </div>
@@ -170,7 +180,7 @@ function TeamSection({ onStatus, onError }: { onStatus: (s: string) => void; onE
           <li key={m.id} className="flex items-center justify-between">
             <span>{m.email}</span>
             {team.owner && !m.owner && (
-              <button type="button" className="text-xs text-accent underline" onClick={() => invoke("team_remove", { memberId: m.id }).then(load).catch(onError)}>
+              <button type="button" className="text-xs text-accent-ink underline" onClick={() => invoke("team_remove", { memberId: m.id }).then(load).catch(onError)}>
                 {t("account.remove")}
               </button>
             )}
@@ -262,7 +272,7 @@ function CourseBuilder({ library, onError }: { library: { slug: string; title: s
               <span>
                 {c.title} <span className="font-mono text-[11px] text-ink-3">{t("teamCourses.count", { count: c.items.length })}</span>
               </span>
-              <button type="button" className="text-xs text-accent underline" onClick={() => invoke("team_course_delete", { id: c.id }).then(load).catch(onError)}>
+              <button type="button" className="text-xs text-accent-ink underline" onClick={() => invoke("team_course_delete", { id: c.id }).then(load).catch(onError)}>
                 {t("account.remove")}
               </button>
             </li>
@@ -333,7 +343,7 @@ function OnboardingReport() {
               {w.members.map((m) => (
                 <li key={m.email} className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate">{m.email}</span>
-                  <span className={`font-mono text-[11px] ${m.status === "completed" ? "text-ink" : m.status === "abandoned" ? "text-accent" : "text-ink-3"}`}>
+                  <span className={`font-mono text-[11px] ${m.status === "completed" ? "text-ink" : m.status === "abandoned" ? "text-accent-ink" : "text-ink-3"}`}>
                     {t(`report.status.${m.status}`)}
                   </span>
                 </li>

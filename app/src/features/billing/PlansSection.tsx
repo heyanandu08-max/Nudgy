@@ -78,6 +78,7 @@ export function PlansSection({ onSignIn }: { onSignIn: () => void }) {
             <span className="ml-1 text-[13px] font-normal text-ink-2">{t("plans.perMonth")}</span>
           </p>
           {info?.pro_offer?.year && <p className="mt-1 font-mono text-[11px] text-ink-3">{t("plans.orYear", { price: info.pro_offer.year })}</p>}
+          <p className="mt-1 font-mono text-[11px] text-ink-3">{t("plans.taxNote")}</p>
           <ul className="mt-4 space-y-1.5 text-[13px] text-ink-2">
             <li>{t("plans.p.everything")}</li>
             <li>{t("plans.p.lessons")}</li>

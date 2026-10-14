@@ -123,7 +123,8 @@
     "billing_error": "Billing isn't responding. Try again in a minute.",
     "config": "This isn't set up on the server yet.",
     "no_team": "That needs the Team plan.",
-    "no_screen_permission": "I can't see your screen yet. Allow screen recording for Nudgy in System Settings, then reopen it."
+    "no_screen_permission": "I can't see your screen yet. Allow screen recording for Nudgy in System Settings, then reopen it.",
+    "consent_required": "Tick the box to confirm your age and agree to the terms first."
   },
   "askBox": {
     "placeholder": "Ask anything · Enter to send · Esc to close",
@@ -216,7 +217,8 @@
       "why": "Why:",
       "note": "Note:",
       "footer": "Made with Nudgy"
-    }
+    },
+    "screenshotAlt": "Screenshot of step {{n}}: {{instruction}}"
   },
   "account": {
     "title": "Account",
@@ -334,7 +336,7 @@
     "titleEm": "privacy",
     "sub": "What Nudgy sends, where it goes, and how to take it back. Your server: {{host}}.",
     "askTitle": "When you ask",
-    "askBody": "Only while you hold the hotkey: a screenshot of the screen your cursor is on, the names of buttons in the app in front, and your question. It goes to {{host}}, which passes it to the AI provider that server is set up with, then throws it away. Screenshots and recordings are never saved or logged.",
+    "askBody": "Only while you hold the hotkey: a screenshot of the screen your cursor is on, the names of buttons in the app in front, and your question. It goes to {{host}}, which passes it to the AI provider that server is set up with, then throws it away. That screenshot and your voice recording are never saved or logged.",
     "lessonTitle": "During a lesson",
     "lessonBody": "The same, each time you pause so Nudgy can check the step. Between checks, nothing is sent.",
     "walkTitle": "Walkthroughs",
@@ -366,7 +368,7 @@
     "welcomeBefore": "A tutor that ",
     "welcomeEm": "points",
     "welcomeAfter": " at the button.",
-    "welcomeBody": "Hold the hotkey anywhere, ask how to do something, and Nudgy tells you the next step and moves its cursor to the exact button. Ask it to teach you, and it walks you through step by step, in your own app.",
+    "welcomeBody": "Hold the hotkey anywhere, ask how to do something, and Nudgy tells you the next step and moves its cursor to the button. Ask it to teach you, and it walks you through step by step, in your own app.",
     "welcomePrivacy": "It only looks at your screen while you hold the keys or during a lesson you started.",
     "start": "Get started",
     "skip": "Skip setup",
@@ -452,7 +454,8 @@
     },
     "endsOn": "Pro until {{date}} · it won't renew",
     "signInFirst": "Sign in to subscribe",
-    "compare": "Compare plans"
+    "compare": "Compare plans",
+    "taxNote": "prices in US dollars · PayPal shows any tax for your country before you confirm"
   },
   "week": {
     "streak_one": "{{count}} day in a row",
@@ -549,5 +552,16 @@
     "namePlaceholder": "e.g. First week at Acme",
     "order": "ticked order = lesson order",
     "create": "Create course"
+  },
+  "legal": {
+    "title": "Legal",
+    "consent": "I'm 13 or older and agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>.",
+    "pages": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies",
+      "licenses": "Licenses",
+      "delete-account": "Delete account"
+    }
   }
 }

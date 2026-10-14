@@ -12,7 +12,15 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db import get_db
 from app.deps import signed_in
-from app.models import SharedWalkthrough, Team, TeamCourse, TeamInvite, User, WalkthroughRun
+from app.models import (
+    EmailOptOut,
+    SharedWalkthrough,
+    Team,
+    TeamCourse,
+    TeamInvite,
+    User,
+    WalkthroughRun,
+)
 from app.routers.auth import get_mailer
 from app.services.email import EmailSender
 
@@ -74,6 +82,8 @@ def invite(
         raise HTTPException(
             409, {"code": "no_seats", "message": "All seats are taken. Add seats in billing."}
         )
+    if db.get(EmailOptOut, email) is not None:
+        return {"invited": False, "reason": "unsubscribed"}
     existing = db.scalar(select(User).where(User.email == email))
     if existing and existing.team_id == team.id:
         return {"invited": False, "reason": "already a member"}
@@ -85,11 +95,21 @@ def invite(
     ):
         db.add(TeamInvite(team_id=team.id, email=email))
         db.commit()
+    from app.routers.legal import unsubscribe_link
+
+    stop = unsubscribe_link(settings, email)
     mailer.send(
         email,
         f"You're invited to {team.name} on Nudgy",
         f"{user.email} invited you to their Nudgy team. Install Nudgy and sign in with this email "
-        f"address to join: {settings.public_url.rstrip('/')}",
+        f"address to join: {settings.public_url.rstrip('/')}\n\n"
+        f"Don't want team invitations from Nudgy? Unsubscribe: {stop}\n"
+        f"{settings.company_name or 'Nudgy'}"
+        + (f", {settings.company_address}" if settings.company_address else ""),
+        headers={
+            "List-Unsubscribe": f"<{stop}>",
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
     )
     return {"invited": True}
 

@@ -211,7 +211,7 @@ export function WalkthroughsPage() {
                   <button type="button" onClick={() => void share(r)} className={btn}>
                     {t("walkthroughs.share")}
                   </button>
-                  <button type="button" onClick={() => void remove(r)} className={`${btn} text-accent`}>
+                  <button type="button" onClick={() => void remove(r)} className={`${btn} text-accent-ink`}>
                     {t("walkthroughs.delete")}
                   </button>
                 </div>
@@ -228,7 +228,7 @@ export function WalkthroughsPage() {
                       <div className="min-w-0 flex-1">
                         <p>{s.instruction}</p>
                         {s.note && <p className="text-xs text-ink-3">“{s.note}”</p>}
-                        {s.screenshot && <img src={s.screenshot} alt="" className="mt-2 max-h-40 rounded border border-line-2" />}
+                        {s.screenshot && <img src={s.screenshot} alt={t("walkthroughs.screenshotAlt", { n: i + 1, instruction: s.instruction })} className="mt-2 max-h-40 rounded border border-line-2" />}
                       </div>
                     </li>
                   ))}

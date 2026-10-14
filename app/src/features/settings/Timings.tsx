@@ -48,7 +48,7 @@ export function TimingsCard() {
         ) : (
           <>
             {typeof firstAudio === "number" && (
-              <p className={`mt-1 font-mono text-xs ${firstAudio <= FIRST_AUDIO_TARGET_MS ? "text-good" : "text-accent"}`}>
+              <p className={`mt-1 font-mono text-xs ${firstAudio <= FIRST_AUDIO_TARGET_MS ? "text-good" : "text-accent-ink"}`}>
                 {t("settings.timingsFirstAudio", { ms: Math.round(firstAudio), target: FIRST_AUDIO_TARGET_MS })}
               </p>
             )}

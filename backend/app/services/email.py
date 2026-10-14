@@ -1,4 +1,4 @@
-"""Outgoing email (magic links). Swappable like the AI providers."""
+"""Outgoing email (sign-in links, team invites). Swappable like the AI providers."""
 
 from __future__ import annotations
 
@@ -13,7 +13,9 @@ log = logging.getLogger("nudgy.email")
 
 
 class EmailSender(Protocol):
-    def send(self, to: str, subject: str, text: str) -> None: ...
+    def send(
+        self, to: str, subject: str, text: str, headers: dict[str, str] | None = None
+    ) -> None: ...
 
 
 class ConsoleEmail:
@@ -22,7 +24,7 @@ class ConsoleEmail:
     def __init__(self):
         self.sent: list[tuple[str, str, str]] = []
 
-    def send(self, to: str, subject: str, text: str) -> None:
+    def send(self, to: str, subject: str, text: str, headers: dict[str, str] | None = None) -> None:
         self.sent.append((to, subject, text))
         log.info("EMAIL to=%s subject=%s\n%s", to, subject, text)
 
@@ -31,9 +33,11 @@ class SmtpEmail:
     def __init__(self, s: Settings):
         self.s = s
 
-    def send(self, to: str, subject: str, text: str) -> None:
+    def send(self, to: str, subject: str, text: str, headers: dict[str, str] | None = None) -> None:
         msg = EmailMessage()
         msg["From"], msg["To"], msg["Subject"] = self.s.email_from, to, subject
+        for name, value in (headers or {}).items():  # e.g. List-Unsubscribe
+            msg[name] = value
         msg.set_content(text)
         with smtplib.SMTP(self.s.smtp_host, self.s.smtp_port, timeout=15) as smtp:
             smtp.starttls()

@@ -51,6 +51,8 @@ def export(db: Session, user: User) -> dict:
             "subscription_status": user.subscription_status,
             "has_subscription": user.billing_subscription_id is not None,
             "paid_until": _iso(user.paid_until),
+            "terms_version": user.terms_version,
+            "consented_at": user.consented_at,
             "created_at": _iso(user.created_at),
         },
         "team": {"id": team.id, "name": team.name, "owner": team.owner_id == user.id}

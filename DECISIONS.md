@@ -289,3 +289,21 @@ requests), pace (audio at 0.9x, pitch kept) and size (largest cursor, bigger cap
 files are unchanged: the instruction rides along with the length instruction and the plan
 request.
 
+## D53 — Legal pages live with the server, filled from settings
+Privacy, Terms, Cookies, account deletion and licenses are Markdown in `backend/legal/`,
+rendered by the server with the business details from env, so the text has one source and the
+app, the web pages and app-store listings all link to the same URLs. The renderer escapes
+everything and supports only headings, lists, tables, bold, code and links. A Terms version
+is recorded with each sign-in's consent (13+, Terms, Privacy); bumping it is how changes are
+re-agreed. There is no refund policy, by decision.
+
+## D54 — Consent before sign-in, enforced on the server
+The sign-in box starts unticked and the app sends its value; the server refuses magic links
+and Google/Apple sign-in without it and records the version and time on the account. Google
+and Apple are asked for the email only.
+
+## D55 — Accessible by default
+Text colours meet WCAG AA (4.5:1): grey and green were darkened and the brand orange is kept
+for fills while orange text uses a darker shade. Focus is always visible, title-bar tabs follow
+the ARIA arrow-key pattern, and dismissable screens close with Esc.
+

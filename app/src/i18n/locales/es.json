@@ -123,7 +123,8 @@
     "billing_error": "La facturación no responde. Inténtalo en un minuto.",
     "config": "Esto aún no está configurado en el servidor.",
     "no_team": "Para eso hace falta el plan Equipo.",
-    "no_screen_permission": "Todavía no veo tu pantalla. Permite la grabación de pantalla para Nudgy en Ajustes del Sistema y vuelve a abrirlo."
+    "no_screen_permission": "Todavía no veo tu pantalla. Permite la grabación de pantalla para Nudgy en Ajustes del Sistema y vuelve a abrirlo.",
+    "consent_required": "Marca la casilla para confirmar tu edad y aceptar los términos."
   },
   "askBox": {
     "placeholder": "Pregunta lo que sea · Enter para enviar · Esc para cerrar",
@@ -216,7 +217,8 @@
       "why": "Por qué:",
       "note": "Nota:",
       "footer": "Hecho con Nudgy"
-    }
+    },
+    "screenshotAlt": "Captura del paso {{n}}: {{instruction}}"
   },
   "account": {
     "title": "Cuenta",
@@ -334,7 +336,7 @@
     "titleEm": "privacidad",
     "sub": "Qué envía Nudgy, adónde va y cómo recuperarlo. Tu servidor: {{host}}.",
     "askTitle": "Cuando preguntas",
-    "askBody": "Solo mientras mantienes el atajo: una captura de la pantalla donde está tu cursor, los nombres de los botones de la app que tienes delante y tu pregunta. Va a {{host}}, que lo pasa al proveedor de IA configurado en ese servidor y luego lo descarta. Las capturas y grabaciones nunca se guardan ni se registran.",
+    "askBody": "Solo mientras mantienes el atajo: una captura de la pantalla donde está tu cursor, los nombres de los botones de la app que tienes delante y tu pregunta. Va a {{host}}, que lo pasa al proveedor de IA configurado en ese servidor y luego lo descarta. Esa captura y tu grabación de voz nunca se guardan ni se registran.",
     "lessonTitle": "Durante una lección",
     "lessonBody": "Lo mismo, cada vez que haces una pausa para que Nudgy compruebe el paso. Entre comprobaciones no se envía nada.",
     "walkTitle": "Guías",
@@ -366,7 +368,7 @@
     "welcomeBefore": "Un tutor que ",
     "welcomeEm": "señala",
     "welcomeAfter": " el botón.",
-    "welcomeBody": "Mantén pulsado el atajo en cualquier sitio, pregunta cómo hacer algo y Nudgy te dice el siguiente paso y mueve su cursor al botón exacto. Pídele que te enseñe y te guía paso a paso, en tu propia app.",
+    "welcomeBody": "Mantén pulsado el atajo en cualquier sitio, pregunta cómo hacer algo y Nudgy te dice el siguiente paso y mueve su cursor hasta el botón. Pídele que te enseñe y te guía paso a paso, en tu propia app.",
     "welcomePrivacy": "Solo mira tu pantalla mientras mantienes las teclas o durante una lección que empezaste tú.",
     "start": "Empezar",
     "skip": "Omitir configuración",
@@ -452,7 +454,8 @@
     },
     "endsOn": "Pro hasta el {{date}} · no se renovará",
     "signInFirst": "Inicia sesión para suscribirte",
-    "compare": "Comparar planes"
+    "compare": "Comparar planes",
+    "taxNote": "precios en dólares estadounidenses · PayPal muestra los impuestos de tu país antes de confirmar"
   },
   "week": {
     "streak_one": "{{count}} día seguido",
@@ -549,5 +552,16 @@
     "namePlaceholder": "p. ej. Primera semana en Acme",
     "order": "orden de marcado = orden de las lecciones",
     "create": "Crear curso"
+  },
+  "legal": {
+    "title": "Legal",
+    "consent": "Tengo 13 años o más y acepto los <terms>Términos del servicio</terms> y la <privacy>Política de privacidad</privacy>.",
+    "pages": {
+      "privacy": "Privacidad",
+      "terms": "Términos",
+      "cookies": "Cookies",
+      "licenses": "Licencias",
+      "delete-account": "Eliminar cuenta"
+    }
   }
 }

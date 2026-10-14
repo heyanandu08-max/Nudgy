@@ -4,11 +4,12 @@
   --color-paper: #fafaf7;
   --color-ink: #0a0a0a;
   --color-ink-2: #55544f;
-  --color-ink-3: #9a988f;
+  --color-ink-3: #706e67; /* 4.9:1 on paper (WCAG AA) */
   --color-line: #eceae4;
   --color-line-2: #dad7cf;
-  --color-accent: #ff4a1c;
-  --color-good: #1f9d55;
+  --color-accent: #ff4a1c; /* fills only: 3.2:1 as text */
+  --color-accent-ink: #c2380f; /* accent for text: 5.2:1 on paper */
+  --color-good: #17834a; /* 4.6:1 on paper */
 
   --font-sans: "Poppins", system-ui, sans-serif;
   --font-serif: "Lora", Georgia, serif;

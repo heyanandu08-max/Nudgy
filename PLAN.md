@@ -114,7 +114,8 @@ nudgy/
     config/   plans.yaml languages.yaml
     tests/
     pyproject.toml
-  docs/        privacy-policy.md, architecture.md
+  docs/        architecture.md, COMPLIANCE.md
+  backend/legal/ privacy, terms, cookies, delete-account, licenses (served as web pages)
   scripts/     smoke_test.py, fixtures/
   PLAN.md DECISIONS.md TESTING.md README.md .env.example
 ```
@@ -232,7 +233,7 @@ Windows/macOS hardware (developed on Linux) · `[ ]` not started.
 - [x] App/window blocklist + password-field auto-skip (`privacy.rs`, editable in Settings)
 - [x] Visible capture indicator (overlay "looking at your screen" tag + tray tooltip, via `CaptureGuard`)
 - [x] Privacy page in settings; export; "Delete my data"; `/v1/me/export`, `DELETE /v1/me` (cancels subscription, dissolves owned team)
-- [x] `docs/privacy-policy.md` draft (needs legal review)
+- [x] Privacy policy draft, now `backend/legal/privacy.md` (needs legal review)
 
 ### Phase 9 — Polish & release
 - [x] First-run onboarding + permission walkthrough (macOS: screen recording, accessibility, microphone; `permissions.rs`)

@@ -88,7 +88,7 @@ export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgr
       </h1>
 
       <form
-        className="mt-6.5 flex items-center rounded-card border-[1.5px] border-ink bg-white py-1.5 pr-1.5 pl-[18px] shadow-[4px_4px_0_#0a0a0a]"
+        className="mt-6.5 flex items-center rounded-card border-[1.5px] border-ink bg-white py-1.5 pr-1.5 pl-[18px] shadow-[4px_4px_0_#0a0a0a] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink"
         onSubmit={(e) => {
           e.preventDefault();
           start(goal);
@@ -220,7 +220,7 @@ function Skill({ skill, disabled }: { skill: SkillCard; disabled: boolean }) {
     >
       <p className="font-mono text-[11px] tracking-[.06em] text-ink-3 uppercase">{skill.app}</p>
       {skill.due && (
-        <span className="absolute top-4 right-4 flex items-center gap-1.5 text-[11px] text-accent">
+        <span className="absolute top-4 right-4 flex items-center gap-1.5 text-[11px] text-accent-ink">
           <i className="block h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
           {t("home.reviewDue")}
         </span>

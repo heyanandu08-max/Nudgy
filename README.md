@@ -2,7 +2,7 @@
 
 A desktop tutor that lives next to your cursor (Windows 10/11, macOS 13+). Hold a hotkey, ask
 how to do something, and Nudgy tells you the next step out loud and moves its cursor to the
-exact button. Ask it to teach you and it runs a step-by-step lesson in your own app, checking
+button. Ask it to teach you and it runs a step-by-step lesson in your own app, checking
 each step, tracking your skills with spaced repetition. Record a task once and it becomes a
 guided walkthrough anyone can follow.
 
@@ -14,7 +14,7 @@ English, Spanish, Portuguese, French, German and Hindi.
 
 Privacy first: the screen is only captured while you hold the hotkey (or during a lesson you
 started), password fields and blocklisted apps are never captured, and screenshots are never
-stored. See [`docs/privacy-policy.md`](docs/privacy-policy.md).
+stored. See [`backend/legal/privacy.md`](backend/legal/privacy.md) (served at `/privacy`).
 
 | Doc | What |
 |-----|------|

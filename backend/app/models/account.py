@@ -34,7 +34,21 @@ class User(Base):
     )
     subscription_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     paid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Consent at sign-in: the Terms/Privacy version agreed to (with the 13+ age confirmation)
+    # and when, as an ISO timestamp. Empty = signed up before consent was recorded.
+    terms_version: Mapped[str] = mapped_column(String(32), default="", server_default="''")
+    consented_at: Mapped[str] = mapped_column(String(40), default="", server_default="''")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class EmailOptOut(Base):
+    """Addresses that unsubscribed from invite emails (sign-in links still go out: they are
+    only sent when the person asks for one)."""
+
+    __tablename__ = "email_opt_outs"
+
+    email: Mapped[str] = mapped_column(String(320), primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class TeamInvite(Base):

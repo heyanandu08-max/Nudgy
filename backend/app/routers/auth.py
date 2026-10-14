@@ -18,7 +18,7 @@ from app.db import get_db
 from app.deps import get_clock, optional_user, signed_in
 from app.models import Team, User
 from app.routers.billing import optional_paypal
-from app.services import access, account_data, auth
+from app.services import access, account_data, auth, legal
 from app.services.email import EmailSender, get_email_sender
 from app.services.pages import page
 from app.services.paypal_api import PayPalClient, PayPalError
@@ -66,9 +66,18 @@ def _error_page(message: str, status: int = 400) -> HTMLResponse:
     )
 
 
-def _sign_in(db: Session, settings: Settings, email: str, name: str = "") -> HTMLResponse:
-    user = auth.get_or_create_user(db, email, name)
+def _sign_in(db: Session, settings: Settings, email: str, consent: str) -> HTMLResponse:
+    user = auth.get_or_create_user(db, email, consent)
     return _handoff(auth.issue_session(settings, user), user.email)
+
+
+CONSENT_REQUIRED = HTTPException(
+    400,
+    {
+        "code": "consent_required",
+        "message": "Confirm you're 13 or older and agree to the Terms and Privacy Policy.",
+    },
+)
 
 
 # --- magic link ---
@@ -76,6 +85,8 @@ def _sign_in(db: Session, settings: Settings, email: str, name: str = "") -> HTM
 
 class MagicRequest(BaseModel):
     email: EmailStr
+    # The sign-in form's unticked box: 13 or older + agrees to the Terms and Privacy Policy.
+    accept_terms: bool = False
 
 
 @router.post("/v1/auth/magic")
@@ -84,7 +95,9 @@ def send_magic_link(
     settings: Annotated[Settings, Depends(get_settings)],
     mailer: Annotated[EmailSender, Depends(get_mailer)],
 ) -> dict:
-    token = auth.issue_magic(settings, req.email.lower())
+    if not req.accept_terms:
+        raise CONSENT_REQUIRED
+    token = auth.issue_magic(settings, req.email.lower(), legal.TERMS_VERSION)
     link = f"{settings.public_url.rstrip('/')}/auth/magic?{urlencode({'token': token})}"
     mailer.send(
         req.email,
@@ -102,7 +115,7 @@ def redeem_magic_link(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> HTMLResponse:
     try:
-        email = auth.redeem_magic(settings, db, token)
+        email, consent = auth.redeem_magic(settings, db, token)
     except auth.AuthError as e:
         msg = {
             "expired": "This sign-in link has expired.",
@@ -111,22 +124,26 @@ def redeem_magic_link(
         return _error_page(
             msg.get(str(e), "This sign-in link isn't valid.") + " Request a new one from Nudgy."
         )
-    return _sign_in(db, settings, email)
+    return _sign_in(db, settings, email, consent)
 
 
 # --- Google ---
 
 
 @router.get("/v1/auth/google/start", include_in_schema=False)
-def google_start(settings: Annotated[Settings, Depends(get_settings)]) -> RedirectResponse:
+def google_start(
+    settings: Annotated[Settings, Depends(get_settings)], accept_terms: bool = False
+) -> RedirectResponse:
     if not settings.google_client_id:
         raise HTTPException(503, {"code": "config", "message": "Google sign-in is not configured"})
+    if not accept_terms:
+        raise CONSENT_REQUIRED
     q = {
         "client_id": settings.google_client_id,
         "redirect_uri": f"{settings.public_url.rstrip('/')}/v1/auth/google/callback",
         "response_type": "code",
-        "scope": "openid email profile",
-        "state": auth.issue_state(settings, "google"),
+        "scope": "openid email",  # email only: no name or profile picture
+        "state": auth.issue_state(settings, "google", legal.TERMS_VERSION),
         "prompt": "select_account",
     }
     return RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(q))
@@ -142,7 +159,7 @@ def google_callback(
     http: Annotated[httpx.Client, Depends(get_oauth_http)],
 ) -> HTMLResponse:
     try:
-        auth.check_state(settings, state, "google")
+        consent = auth.check_state(settings, state, "google")
         r = http.post(
             "https://oauth2.googleapis.com/token",
             data={
@@ -158,23 +175,27 @@ def google_callback(
         who = verifier.verify(r.json()["id_token"])
     except (auth.AuthError, httpx.HTTPError):
         return _error_page("Google sign-in didn't work. Please try again.")
-    return _sign_in(db, settings, who.email, who.name)
+    return _sign_in(db, settings, who.email, consent)
 
 
 # --- Apple ---
 
 
 @router.get("/v1/auth/apple/start", include_in_schema=False)
-def apple_start(settings: Annotated[Settings, Depends(get_settings)]) -> RedirectResponse:
+def apple_start(
+    settings: Annotated[Settings, Depends(get_settings)], accept_terms: bool = False
+) -> RedirectResponse:
     if not settings.apple_client_id:
         raise HTTPException(503, {"code": "config", "message": "Apple sign-in is not configured"})
+    if not accept_terms:
+        raise CONSENT_REQUIRED
     q = {
         "client_id": settings.apple_client_id,
         "redirect_uri": f"{settings.public_url.rstrip('/')}/v1/auth/apple/callback",
         "response_type": "code id_token",
         "response_mode": "form_post",
-        "scope": "name email",
-        "state": auth.issue_state(settings, "apple"),
+        "scope": "email",  # email only: no name
+        "state": auth.issue_state(settings, "apple", legal.TERMS_VERSION),
     }
     return RedirectResponse("https://appleid.apple.com/auth/authorize?" + urlencode(q))
 
@@ -190,11 +211,11 @@ def apple_callback(
     # The id_token posted by Apple is signed by Apple and bound to our client id — enough to
     # identify the user; we don't need Apple's refresh tokens.
     try:
-        auth.check_state(settings, state, "apple")
+        consent = auth.check_state(settings, state, "apple")
         who = verifier.verify(id_token)
     except auth.AuthError:
         return _error_page("Apple sign-in didn't work. Please try again.")
-    return _sign_in(db, settings, who.email, who.name)
+    return _sign_in(db, settings, who.email, consent)
 
 
 # --- me ---

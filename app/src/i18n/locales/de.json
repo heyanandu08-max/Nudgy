@@ -123,7 +123,8 @@
     "billing_error": "Die Abrechnung antwortet nicht. Versuch es in einer Minute.",
     "config": "Das ist auf dem Server noch nicht eingerichtet.",
     "no_team": "Dafür brauchst du den Team-Tarif.",
-    "no_screen_permission": "Ich sehe deinen Bildschirm noch nicht. Erlaube Nudgy die Bildschirmaufnahme in den Systemeinstellungen und öffne es dann neu."
+    "no_screen_permission": "Ich sehe deinen Bildschirm noch nicht. Erlaube Nudgy die Bildschirmaufnahme in den Systemeinstellungen und öffne es dann neu.",
+    "consent_required": "Setze das Häkchen, um dein Alter zu bestätigen und den Bedingungen zuzustimmen."
   },
   "askBox": {
     "placeholder": "Frag irgendwas · Enter zum Senden · Esc zum Schließen",
@@ -216,7 +217,8 @@
       "why": "Warum:",
       "note": "Notiz:",
       "footer": "Erstellt mit Nudgy"
-    }
+    },
+    "screenshotAlt": "Screenshot von Schritt {{n}}: {{instruction}}"
   },
   "account": {
     "title": "Konto",
@@ -334,7 +336,7 @@
     "titleEm": "Datenschutz",
     "sub": "Was Nudgy sendet, wohin es geht und wie du es zurückholst. Dein Server: {{host}}.",
     "askTitle": "Wenn du fragst",
-    "askBody": "Nur während du das Tastenkürzel hältst: ein Screenshot des Bildschirms, auf dem dein Cursor ist, die Namen der Buttons in der App im Vordergrund und deine Frage. Das geht an {{host}}, der es an den dort eingerichteten KI-Anbieter weitergibt und dann verwirft. Screenshots und Aufnahmen werden nie gespeichert oder protokolliert.",
+    "askBody": "Nur während du das Tastenkürzel hältst: ein Screenshot des Bildschirms, auf dem dein Cursor ist, die Namen der Buttons in der App im Vordergrund und deine Frage. Das geht an {{host}}, der es an den dort eingerichteten KI-Anbieter weitergibt und dann verwirft. Dieser Screenshot und deine Sprachaufnahme werden nie gespeichert oder protokolliert.",
     "lessonTitle": "Während einer Lektion",
     "lessonBody": "Dasselbe, jedes Mal wenn du eine Pause machst, damit Nudgy den Schritt prüfen kann. Zwischen den Prüfungen wird nichts gesendet.",
     "walkTitle": "Anleitungen",
@@ -366,7 +368,7 @@
     "welcomeBefore": "Ein Tutor, der ",
     "welcomeEm": "auf den Button zeigt",
     "welcomeAfter": ".",
-    "welcomeBody": "Halte das Tastenkürzel irgendwo gedrückt, frag, wie etwas geht, und Nudgy sagt dir den nächsten Schritt und bewegt seinen Cursor genau auf den Button. Bitte es, dir etwas beizubringen, und es führt dich Schritt für Schritt durch, in deiner eigenen App.",
+    "welcomeBody": "Halte das Tastenkürzel irgendwo gedrückt, frag, wie etwas geht, und Nudgy sagt dir den nächsten Schritt und bewegt seinen Cursor zum Button. Bitte es, dir etwas beizubringen, und es führt dich Schritt für Schritt durch, in deiner eigenen App.",
     "welcomePrivacy": "Es sieht deinen Bildschirm nur, während du die Tasten hältst oder in einer Lektion, die du gestartet hast.",
     "start": "Los geht's",
     "skip": "Einrichtung überspringen",
@@ -452,7 +454,8 @@
     },
     "endsOn": "Pro bis {{date}} · wird nicht verlängert",
     "signInFirst": "Zum Abonnieren anmelden",
-    "compare": "Tarife vergleichen"
+    "compare": "Tarife vergleichen",
+    "taxNote": "Preise in US-Dollar · PayPal zeigt Steuern für dein Land vor der Bestätigung"
   },
   "week": {
     "streak_one": "{{count}} Tag in Folge",
@@ -549,5 +552,16 @@
     "namePlaceholder": "z. B. Erste Woche bei Acme",
     "order": "Reihenfolge der Häkchen = Reihenfolge der Lektionen",
     "create": "Kurs erstellen"
+  },
+  "legal": {
+    "title": "Rechtliches",
+    "consent": "Ich bin mindestens 13 Jahre alt und stimme den <terms>Nutzungsbedingungen</terms> und der <privacy>Datenschutzerklärung</privacy> zu.",
+    "pages": {
+      "privacy": "Datenschutz",
+      "terms": "Bedingungen",
+      "cookies": "Cookies",
+      "licenses": "Lizenzen",
+      "delete-account": "Konto löschen"
+    }
   }
 }

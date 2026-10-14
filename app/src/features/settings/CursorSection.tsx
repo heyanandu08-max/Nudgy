@@ -58,7 +58,7 @@ export function CursorSection() {
         <p className="mt-4 text-[13px] text-ink-2">{t("settings.paused")}</p>
       )}
       {error && (
-        <p className="mt-4 font-mono text-xs text-accent">
+        <p className="mt-4 font-mono text-xs text-accent-ink">
           {t("settings.saveFailed", { error })}
         </p>
       )}

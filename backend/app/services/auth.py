@@ -5,6 +5,7 @@ from __future__ import annotations
 import secrets
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Protocol
 
 import jwt
@@ -56,34 +57,66 @@ def user_id_from_session(s: Settings, token: str) -> int:
 # --- magic links ---
 
 
-def issue_magic(s: Settings, email: str) -> str:
-    return _encode(s, {"purpose": "magic", "email": email, "jti": secrets.token_hex(16)}, MAGIC_TTL)
+def issue_magic(s: Settings, email: str, consent: str = "") -> str:
+    return _encode(
+        s,
+        {"purpose": "magic", "email": email, "jti": secrets.token_hex(16), "consent": consent},
+        MAGIC_TTL,
+    )
 
 
-def redeem_magic(s: Settings, db: Session, token: str) -> str:
-    """Returns the email; each link works once."""
+def redeem_magic(s: Settings, db: Session, token: str) -> tuple[str, str]:
+    """Returns (email, consent version); each link works once."""
     claims = _decode(s, token, "magic")
     if db.get(UsedToken, claims["jti"]) is not None:
         raise AuthError("used")
     db.add(UsedToken(jti=claims["jti"]))
     db.flush()
-    return claims["email"]
+    return claims["email"], str(claims.get("consent") or "")
 
 
 # --- OAuth state (CSRF) ---
 
 
-def issue_state(s: Settings, provider: str) -> str:
+def issue_state(s: Settings, provider: str, consent: str = "") -> str:
+    """`consent` = the Terms version agreed to before leaving for the provider."""
     return _encode(
         s,
-        {"purpose": "oauth_state", "provider": provider, "nonce": secrets.token_hex(8)},
+        {
+            "purpose": "oauth_state",
+            "provider": provider,
+            "nonce": secrets.token_hex(8),
+            "consent": consent,
+        },
         STATE_TTL,
     )
 
 
-def check_state(s: Settings, state: str, provider: str) -> None:
-    if _decode(s, state, "oauth_state").get("provider") != provider:
+def check_state(s: Settings, state: str, provider: str) -> str:
+    """Returns the consent the state carried."""
+    claims = _decode(s, state, "oauth_state")
+    if claims.get("provider") != provider:
         raise AuthError("invalid")
+    return str(claims.get("consent") or "")
+
+
+# --- unsubscribe links (no expiry: they must keep working in old emails) ---
+
+
+def issue_unsubscribe(s: Settings, email: str) -> str:
+    return jwt.encode(
+        {"purpose": "unsubscribe", "email": email.strip().lower()}, s.jwt_secret, algorithm=ALG
+    )
+
+
+def check_unsubscribe(s: Settings, token: str) -> str:
+    try:
+        claims = jwt.decode(token, s.jwt_secret, algorithms=[ALG])
+    except jwt.PyJWTError as e:
+        raise AuthError("invalid") from e
+    if claims.get("purpose") != "unsubscribe" or not claims.get("email"):
+        raise AuthError("invalid")
+    return str(claims["email"])
 
 
 # --- id_token verification (Google / Apple) ---
@@ -158,15 +191,18 @@ def apple_client_secret(s: Settings) -> str:
 # --- users ---
 
 
-def get_or_create_user(db: Session, email: str, name: str = "") -> User:
+def get_or_create_user(db: Session, email: str, consent: str = "") -> User:
+    """Only the email is kept (no name or profile: not needed to run Nudgy). `consent` = the
+    Terms version agreed to at this sign-in, with the 13+ age confirmation."""
     email = email.strip().lower()
     user = db.scalar(select(User).where(User.email == email))
     if user is None:
-        user = User(email=email, name=name)
+        user = User(email=email)
         db.add(user)
         db.flush()
-    elif name and not user.name:
-        user.name = name
+    if consent:
+        user.terms_version = consent
+        user.consented_at = datetime.now(UTC).isoformat(timespec="seconds")
     # Accept a pending team invite on first sign-in with that address.
     if user.team_id is None:
         invite = db.scalar(select(TeamInvite).where(TeamInvite.email == email))

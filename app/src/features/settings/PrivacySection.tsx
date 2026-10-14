@@ -99,7 +99,7 @@ export function PrivacySection() {
         )}
       </Card>
       {result && (
-        <p role="status" className={`mt-4 font-mono text-xs ${result.kind === "ok" ? "text-good" : "text-accent"}`}>
+        <p role="status" className={`mt-4 font-mono text-xs ${result.kind === "ok" ? "text-good" : "text-accent-ink"}`}>
           {t(result.key)}
         </p>
       )}

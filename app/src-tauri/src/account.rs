@@ -173,23 +173,60 @@ pub fn auth_state(store: tauri::State<'_, AuthStore>) -> Option<Value> {
         .map(|s| json!({"email": s.email, "plan": s.plan}))
 }
 
+/// `accept_terms`: the sign-in form's box (13 or older + agrees to the Terms and Privacy Policy).
 #[tauri::command]
-pub async fn auth_send_magic(app: AppHandle, email: String) -> Result<(), ApiError> {
-    backend::post_json(&app, "/v1/auth/magic", &json!({"email": email.trim()}))
+pub async fn auth_send_magic(
+    app: AppHandle,
+    email: String,
+    accept_terms: bool,
+) -> Result<(), ApiError> {
+    let body = json!({"email": email.trim(), "accept_terms": accept_terms});
+    backend::post_json(&app, "/v1/auth/magic", &body)
         .await
         .map(|_| ())
 }
 
 /// Opens Google/Apple sign-in in the browser; it comes back through nudgy://auth.
 #[tauri::command]
-pub fn auth_open_provider(app: AppHandle, provider: String) -> Result<(), ApiError> {
+pub fn auth_open_provider(
+    app: AppHandle,
+    provider: String,
+    accept_terms: bool,
+) -> Result<(), ApiError> {
     if !matches!(provider.as_str(), "google" | "apple") {
         return Err(ApiError::new("bad_request", "unknown provider"));
     }
+    if !accept_terms {
+        return Err(ApiError::new(
+            "consent_required",
+            "Confirm your age and agree to the terms first",
+        ));
+    }
     open(
         &app,
-        &backend::url(&app, &format!("/v1/auth/{provider}/start")),
+        &backend::url(
+            &app,
+            &format!("/v1/auth/{provider}/start?accept_terms=true"),
+        ),
     )
+}
+
+/// Business details and legal links for Settings → About and the sign-in form.
+#[tauri::command]
+pub async fn legal_info(app: AppHandle) -> Result<Value, ApiError> {
+    backend::get_json(&app, "/v1/legal").await
+}
+
+/// Opens one of the server's legal pages in the browser.
+#[tauri::command]
+pub fn open_legal(app: AppHandle, page: String) -> Result<(), ApiError> {
+    if !matches!(
+        page.as_str(),
+        "privacy" | "terms" | "cookies" | "delete-account" | "licenses"
+    ) {
+        return Err(ApiError::new("bad_request", "unknown page"));
+    }
+    open(&app, &backend::url(&app, &format!("/{page}")))
 }
 
 #[tauri::command]
