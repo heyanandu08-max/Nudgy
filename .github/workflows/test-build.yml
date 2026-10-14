@@ -1,7 +1,8 @@
 name: Test build (Windows)
 
-# Unsigned Windows test build: the Nudgy installer plus the one-file server
-# (nudgy-server.exe). Runs for a pushed `test-*` tag, a commit whose message contains
+# Unsigned Windows test build: an all-in-one Nudgy installer (the server is bundled inside and
+# starts with the app, in practice mode until keys are added) plus the standalone server
+# (nudgy-server.exe) for hosting it separately. Runs for a pushed `test-*` tag, a commit whose message contains
 # "[build windows]", or a manual run. The files land in a DRAFT release (only visible to people
 # with access to this repository) and as a workflow artifact.
 # Windows will warn about an unknown publisher: More info → Run anyway.
@@ -36,10 +37,6 @@ jobs:
         with:
           workspaces: app/src-tauri
 
-      - name: Build the app (NSIS installer)
-        working-directory: app
-        run: npm run tauri build -- --bundles nsis
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -48,6 +45,18 @@ jobs:
         run: |
           pip install . pyinstaller
           pyinstaller --noconfirm nudgy-server.spec
+
+      # Tauri bundles "binaries/nudgy-server" by its target-triple name and installs it next to
+      # Nudgy.exe as nudgy-server.exe; local_server.rs starts it with the app.
+      - name: Put the server inside the app
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force app/src-tauri/binaries | Out-Null
+          Copy-Item backend/dist/nudgy-server.exe app/src-tauri/binaries/nudgy-server-x86_64-pc-windows-msvc.exe
+
+      - name: Build the all-in-one app (NSIS installer)
+        working-directory: app
+        run: npm run tauri build -- --bundles nsis --config "${{ github.workspace }}/app/src-tauri/tauri.bundle-server.conf.json"
 
       - name: Collect files
         shell: pwsh
@@ -72,7 +81,10 @@ jobs:
           name: Nudgy test build ${{ github.run_number }}
           files: out/*
           body: |
-            Unsigned test build for Windows.
-            1. Run `nudgy-server.exe` (keep its window open). First run creates a `.env` next to it: put your keys there, then restart it.
-            2. Install Nudgy with the setup file (Windows may say "unknown publisher": More info → Run anyway).
-            3. Open Nudgy, hold Ctrl+Alt+Space and ask.
+            Unsigned test build for Windows. Just install the setup file and open Nudgy: the server
+            is inside it and starts by itself, in practice mode (sample answers, no keys needed).
+            1. Run the setup file (Windows may say "unknown publisher": More info → Run anyway).
+            2. Open Nudgy, hold Ctrl+Alt+Space and ask (tap twice to type).
+            3. Real AI: Settings → About → Built-in server → Open settings file, add the keys, save,
+               then Restart server.
+            `nudgy-server.exe` alone is only needed to host the server on another machine.

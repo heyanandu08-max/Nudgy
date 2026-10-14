@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { Button, StatusDot } from "../../components/ui";
 import { Card, Row, SettingsHeading } from "./parts";
@@ -14,6 +15,19 @@ export function AboutSection() {
   const [url, setUrl] = useState(settings.backendUrl);
   const { health, check } = useHealth(settings.backendUrl);
   const legal = useLegalInfo();
+  // Set when this install bundles the server (the all-in-one installer): where its keys go.
+  const [serverEnv, setServerEnv] = useState<string | null>(null);
+  const [serverNote, setServerNote] = useState<string | null>(null);
+  useEffect(() => {
+    if (isTauri())
+      invoke<string | null>("local_server_info")
+        .then(setServerEnv)
+        .catch(() => setServerEnv(null));
+  }, []);
+  const serverAction = (cmd: string, done: string) =>
+    invoke(cmd)
+      .then(() => setServerNote(done))
+      .catch((e) => setServerNote(String(e)));
   const pages: LegalPage[] = ["privacy", "terms", "cookies", "licenses", "delete-account"];
   useEffect(() => setUrl(settings.backendUrl), [settings.backendUrl]);
 
@@ -40,6 +54,17 @@ export function AboutSection() {
           </span>
           {health.state === "down" && <Button onClick={check}>{t("health.retry")}</Button>}
         </Row>
+        {serverEnv && (
+          <Row title={t("settings.localServer")} help={t("settings.localServerHelp")}>
+            <Button onClick={() => serverAction("local_server_open_settings", t("settings.localServerOpened"))}>{t("settings.localServerOpen")}</Button>
+            <Button onClick={() => serverAction("local_server_restart", t("settings.localServerRestarted"))}>{t("settings.localServerRestart")}</Button>
+            {serverNote && (
+              <span className="font-mono text-[11px] text-ink-3" role="status">
+                {serverNote}
+              </span>
+            )}
+          </Row>
+        )}
         <Row title={t("settings.version")}>
           <span className="font-mono text-xs text-ink-2">{__APP_VERSION__}</span>
         </Row>

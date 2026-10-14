@@ -88,7 +88,13 @@
     "update_failed": "Prüfung fehlgeschlagen. Versuch es später.",
     "update_disabled": "in dieser Version aus",
     "beginner": "Einsteigermodus",
-    "beginnerHelp": "Für alle, die neu am Computer sind: einfache Worte, ein kleiner Schritt nach dem anderen, langsamere Stimme, größerer Cursor und größere Untertitel"
+    "beginnerHelp": "Für alle, die neu am Computer sind: einfache Worte, ein kleiner Schritt nach dem anderen, langsamere Stimme, größerer Cursor und größere Untertitel",
+    "localServer": "Eingebauter Server",
+    "localServerHelp": "Nudgy betreibt seinen eigenen Server. Ohne KI-Schlüssel läuft er im Übungsmodus (Beispielantworten). Für echte KI die Schlüssel in seine Einstellungsdatei eintragen, speichern und neu starten",
+    "localServerOpen": "Einstellungsdatei öffnen",
+    "localServerRestart": "Server neu starten",
+    "localServerOpened": "geöffnet · Schlüssel eintragen, speichern, neu starten",
+    "localServerRestarted": "neu gestartet · in ein paar Sekunden bereit"
   },
   "health": {
     "checking": "verbinde",

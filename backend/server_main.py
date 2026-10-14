@@ -3,6 +3,9 @@
 Double-click it: it serves Nudgy on http://127.0.0.1:8787 (NUDGY_HOST / NUDGY_PORT to change).
 Settings and keys are read from the `.env` next to the program; on first run a starter `.env`
 is written there from the bundled .env.example so there is something to fill in.
+
+The desktop installer bundles this program and starts it in the background with NUDGY_HOME set
+to a folder in the user's app data: the `.env` and the database then live there instead.
 """
 
 import os
@@ -14,7 +17,11 @@ from pathlib import Path
 def _first_run_env() -> Path | None:
     if not getattr(sys, "frozen", False):
         return None
-    env = Path(sys.executable).resolve().parent / ".env"
+    home = os.environ.get("NUDGY_HOME")
+    folder = Path(home) if home else Path(sys.executable).resolve().parent
+    folder.mkdir(parents=True, exist_ok=True)
+    os.chdir(folder)  # the default SQLite database (./nudgy.db) goes here too
+    env = folder / ".env"
     template = Path(getattr(sys, "_MEIPASS", ".")) / ".env.example"
     if not env.exists() and template.exists():
         shutil.copyfile(template, env)

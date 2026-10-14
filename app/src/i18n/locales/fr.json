@@ -88,7 +88,13 @@
     "update_failed": "vérification impossible. Réessayez plus tard.",
     "update_disabled": "désactivé dans cette version",
     "beginner": "Mode débutant",
-    "beginnerHelp": "Pour les personnes qui débutent sur ordinateur : des mots simples, une petite étape à la fois, une voix plus lente, un curseur et des sous-titres plus grands"
+    "beginnerHelp": "Pour les personnes qui débutent sur ordinateur : des mots simples, une petite étape à la fois, une voix plus lente, un curseur et des sous-titres plus grands",
+    "localServer": "Serveur intégré",
+    "localServerHelp": "Nudgy fait tourner son propre serveur. Sans clés d'IA, il est en mode entraînement (réponses d'exemple). Pour une vraie IA, ajoutez les clés dans son fichier de réglages, enregistrez, puis redémarrez-le",
+    "localServerOpen": "Ouvrir le fichier de réglages",
+    "localServerRestart": "Redémarrer le serveur",
+    "localServerOpened": "ouvert · ajoutez vos clés, enregistrez puis redémarrez",
+    "localServerRestarted": "redémarré · prêt dans quelques secondes"
   },
   "health": {
     "checking": "connexion",

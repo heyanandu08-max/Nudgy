@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import date
 from functools import lru_cache
@@ -11,8 +12,12 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = BACKEND_DIR / "config"
 PROMPTS_DIR = BACKEND_DIR / "prompts"
 # Packaged as one program (nudgy-server.exe): the .env sits next to the program.
+# The packaged server reads the .env next to the program, or in NUDGY_HOME when the desktop app
+# starts it (the install folder isn't writable, so the app gives it a folder of its own).
 FROZEN_ENV = (
-    (Path(sys.executable).resolve().parent / ".env",) if getattr(sys, "frozen", False) else ()
+    (Path(os.environ.get("NUDGY_HOME") or Path(sys.executable).resolve().parent) / ".env",)
+    if getattr(sys, "frozen", False)
+    else ()
 )
 
 

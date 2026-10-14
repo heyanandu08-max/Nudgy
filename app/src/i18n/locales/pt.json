@@ -88,7 +88,13 @@
     "update_failed": "não foi possível verificar. Tente mais tarde.",
     "update_disabled": "desligado nesta versão",
     "beginner": "Modo iniciante",
-    "beginnerHelp": "Para quem está começando no computador: palavras simples, um passo pequeno por vez, voz mais lenta, cursor e legendas maiores"
+    "beginnerHelp": "Para quem está começando no computador: palavras simples, um passo pequeno por vez, voz mais lenta, cursor e legendas maiores",
+    "localServer": "Servidor integrado",
+    "localServerHelp": "O Nudgy tem seu próprio servidor. Sem chaves de IA ele fica no modo prática (respostas de exemplo). Para usar IA real, adicione as chaves ao arquivo de configurações, salve e reinicie",
+    "localServerOpen": "Abrir arquivo de configurações",
+    "localServerRestart": "Reiniciar servidor",
+    "localServerOpened": "aberto · adicione suas chaves, salve e reinicie",
+    "localServerRestarted": "reiniciado · pronto em alguns segundos"
   },
   "health": {
     "checking": "conectando",
