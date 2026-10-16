@@ -68,10 +68,15 @@ def pick(repo: str, pattern: str) -> tuple[dict, dict]:
 def unpack(name: str, raw: bytes) -> dict[str, bytes]:
     """Every file in the archive, by path."""
     if name.endswith(".tar.gz"):
-        tar = tarfile.open(fileobj=io.BytesIO(raw))
-        return {m.name: tar.extractfile(m).read() for m in tar.getmembers() if m.isfile()}
-    z = zipfile.ZipFile(io.BytesIO(raw))
-    return {n: z.read(n) for n in z.namelist() if not n.endswith("/")}
+        with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
+            # Libraries often come as symlinks (libx.so.0 -> libx.so.0.1): keep them as copies.
+            return {
+                m.name: tar.extractfile(m).read()
+                for m in tar.getmembers()
+                if m.isfile() or m.issym() or m.islnk()
+            }
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        return {n: z.read(n) for n in z.namelist() if not n.endswith("/")}
 
 
 def fetch(folder: str, platform: str) -> None:
