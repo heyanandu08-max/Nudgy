@@ -48,8 +48,17 @@ async def llm_json(
     effort: str | None = None,
 ) -> M | None:
     """Returns the parsed model, or None if two attempts both failed to validate."""
+    # Engines that can enforce a JSON schema (the built-in AI) get the model's schema, so the
+    # answer always has the right shape and no repair round is needed.
+    extra = {"json_schema": model.model_json_schema()} if getattr(llm, "json_schema", False) else {}
     raw = await collect(
-        llm, system=system, messages=messages, max_tokens=max_tokens, usage=usage, effort=effort
+        llm,
+        system=system,
+        messages=messages,
+        max_tokens=max_tokens,
+        usage=usage,
+        effort=effort,
+        **extra,
     )
     if (parsed := parse_model(raw, model)) is not None:
         return parsed
@@ -61,5 +70,6 @@ async def llm_json(
         max_tokens=max_tokens,
         usage=usage,
         effort=effort,
+        **extra,
     )
     return parse_model(raw2, model)

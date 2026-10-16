@@ -129,3 +129,20 @@ def test_trim_keeps_clickable_elements_and_ids():
     assert len(kept) == 30 and all(e.role == "button" for e in kept)
     assert [e.id for e in kept] == [e.id for e in many if e in kept]  # screen order kept
     assert elements.trim(many[:10], 30) == many[:10]
+
+
+@pytest.mark.anyio
+async def test_structured_answers_get_their_schema():
+    from pydantic import BaseModel
+
+    from app.services.llm_json import llm_json
+
+    class Plan(BaseModel):
+        speech: str
+
+    seen: list = []
+    llm = LocalLLM("http://127.0.0.1:8790", transport=llama_server(seen))
+    out = await llm_json(llm, system="s", messages=[], model=Plan, schema="{}", usage=Usage())
+    assert out is not None and out.speech == ANSWER["speech"]
+    fmt = seen[0]["response_format"]
+    assert fmt["type"] == "json_schema" and fmt["json_schema"]["schema"]["required"] == ["speech"]

@@ -40,6 +40,7 @@ class LocalLLM:
     server's JSON grammar guarantees it parses)."""
 
     name = "local"
+    json_schema = True  # llm_json passes the answer's schema; the server enforces it
 
     def __init__(
         self,
@@ -60,14 +61,21 @@ class LocalLLM:
         max_tokens: int,
         usage: Usage,
         effort: str | None = None,
+        json_schema: dict | None = None,
     ) -> AsyncIterator[str]:
+        response_format: dict = {"type": "json_object"}
+        if json_schema:
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {"name": "answer", "schema": json_schema},
+            }
         body = {
             "messages": _to_openai(system, messages),
             "max_tokens": min(max_tokens, 1024),
             "temperature": 0.2,
             "stream": True,
             "stream_options": {"include_usage": True},
-            "response_format": {"type": "json_object"},
+            "response_format": response_format,
             "cache_prompt": True,  # reuse the system prompt across questions: much faster
         }
         try:
