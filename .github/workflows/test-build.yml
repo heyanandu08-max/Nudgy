@@ -46,6 +46,11 @@ jobs:
           pip install . pyinstaller
           pyinstaller --noconfirm nudgy-server.spec
 
+      - name: Fetch the built-in AI engines (llama.cpp, whisper.cpp)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/fetch_engines.py windows
+
       # Tauri bundles "binaries/nudgy-server" by its target-triple name and installs it next to
       # Nudgy.exe as nudgy-server.exe; local_server.rs starts it with the app.
       - name: Put the server inside the app
@@ -82,7 +87,8 @@ jobs:
           files: out/*
           body: |
             Unsigned test build for Windows. Just install the setup file and open Nudgy: the server
-            is inside it and starts by itself, in practice mode (sample answers, no keys needed).
+            is inside it and starts by itself. On Home, "Set up built-in AI" downloads Nudgy's free
+            AI once (about 3.5 GB); after that it answers any question, offline, with no keys.
             1. Run the setup file (Windows may say "unknown publisher": More info → Run anyway).
             2. Open Nudgy, hold Ctrl+Alt+Space and ask (tap twice to type).
             3. Real AI: Settings → About → Built-in server → Open settings file, add the keys, save,

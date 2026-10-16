@@ -10,6 +10,7 @@ mod coach;
 mod geometry;
 mod hotkey;
 mod lesson;
+mod local_ai;
 mod local_server;
 mod matcher;
 mod nudges;
@@ -144,6 +145,7 @@ pub fn run() {
             let db = app.path().app_data_dir()?.join("nudgy.db");
             app.manage(store::Store::open(&db).map_err(|e| format!("open {}: {e}", db.display()))?);
             local_server::start(app.handle());
+            local_ai::init(app.handle());
             activity::init(app.handle());
             nudges::init(app.handle());
             coach::init(app.handle());
@@ -280,11 +282,14 @@ pub fn run() {
             local_server::local_server_info,
             local_server::local_server_open_settings,
             local_server::local_server_restart,
+            local_ai::ai_setup,
+            local_ai::ai_status,
         ])
         .build(tauri::generate_context!())
         .expect("error while building Nudgy")
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
+                local_ai::stop_engines(app);
                 local_server::stop(app);
             }
         });

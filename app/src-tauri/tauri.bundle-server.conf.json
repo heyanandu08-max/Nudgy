@@ -1,5 +1,6 @@
 {
   "bundle": {
-    "externalBin": ["binaries/nudgy-server"]
+    "externalBin": ["binaries/nudgy-server"],
+    "resources": { "engines/": "engines/" }
   }
 }

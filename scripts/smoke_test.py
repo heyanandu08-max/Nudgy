@@ -37,7 +37,9 @@ def parse_sse_lines(lines):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--url", help="backend base URL; default runs the app in-process")
     ap.add_argument("--screenshot", type=Path, default=FIXTURES / "notepad.jpg")
     ap.add_argument("--audio", type=Path, default=FIXTURES / "question.wav")
@@ -70,7 +72,9 @@ def main() -> int:
     elapsed = lambda: f"{(time.perf_counter() - start) * 1000:7.0f} ms"  # noqa: E731
     ok = False
     clips = []
-    with client.stream("POST", "/v1/ask", data={"context": json.dumps(context)}, files=files, headers=headers) as resp:
+    with client.stream(
+        "POST", "/v1/ask", data={"context": json.dumps(context)}, files=files, headers=headers
+    ) as resp:
         if resp.status_code != 200:
             print(f"HTTP {resp.status_code}: {resp.read().decode(errors='replace')}")
             return 1
@@ -81,7 +85,9 @@ def main() -> int:
                 continue
             if event == "audio":
                 clips.append(base64.b64decode(data["b64"]))
-                print(f"{elapsed()}  audio #{data['seq']}: {len(clips[-1])} bytes — {data['text']!r}")
+                print(
+                    f"{elapsed()}  audio #{data['seq']}: {len(clips[-1])} bytes — {data['text']!r}"
+                )
                 continue
             print(f"{elapsed()}  {event}: {json.dumps(data)[:300]}")
             if event == "error" and data.get("fatal") is not False:

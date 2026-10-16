@@ -569,5 +569,26 @@
       "licenses": "Licences",
       "delete-account": "Supprimer le compte"
     }
+  },
+  "ai": {
+    "meta": "gratuit · sans compte · fonctionne hors ligne",
+    "title": "Activez l'IA intégrée de Nudgy",
+    "body": "L'IA de Nudgy tourne sur cet ordinateur : elle répond à toute question sur votre écran, prépare des leçons sur n'importe quoi et explique les erreurs. Sans compte, sans clé, sans frais.",
+    "needs": "téléchargement unique d'environ {{size}} Go · idéal avec 16 Go de mémoire",
+    "setup": "Installer l'IA intégrée",
+    "downloading": "Téléchargement de l'IA de Nudgy. Vous pouvez continuer à utiliser l'app.",
+    "progress": "{{file}} · {{done}} sur {{total}} Go · {{pct}} %",
+    "starting": "Démarrage de l'IA intégrée…",
+    "failed": "Installation interrompue : {{error}}",
+    "retry": "Réessayer",
+    "settingTitle": "IA intégrée",
+    "settingHelp": "IA gratuite qui tourne sur cet ordinateur",
+    "state": {
+      "not_set_up": "non installée (voir Accueil)",
+      "downloading": "téléchargement",
+      "starting": "démarrage",
+      "ready": "activée",
+      "failed": "arrêtée · voir Accueil"
+    }
   }
 }

@@ -24,7 +24,7 @@ from app.schemas.lessons import (
     VerifyContext,
     VerifyResult,
 )
-from app.services import access, lessons
+from app.services import access, elements, lessons
 from app.services.usage import finish, record, refund
 
 router = APIRouter(prefix="/v1")
@@ -34,7 +34,7 @@ M = TypeVar("M", bound=BaseModel)
 
 def _context(raw: str, model: type[M]) -> M:
     try:
-        return model.model_validate_json(raw)
+        return elements.apply(model.model_validate_json(raw))
     except ValidationError as e:
         raise HTTPException(422, e.errors(include_input=False)) from e
 

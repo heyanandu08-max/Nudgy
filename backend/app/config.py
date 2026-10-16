@@ -79,12 +79,17 @@ class Settings(BaseSettings):
     paypal_webhook_id: str | None = Field(default=None, validation_alias="PAYPAL_WEBHOOK_ID")
     paypal_env: str = Field(default="sandbox", validation_alias="PAYPAL_ENV")  # sandbox | live
 
-    llm_provider: str = "fake"
+    llm_provider: str = "fake"  # anthropic | local (built-in, no key) | fake
     stt_provider: str = "fake"
     tts_provider: str = "fake"
     llm_model: str = "claude-sonnet-5"
     llm_thinking: str = "disabled"  # disabled | adaptive
     llm_effort: str = "low"  # low | medium | high | "" (provider default)
+    # Built-in AI (no keys): llama.cpp and whisper.cpp servers the desktop app starts.
+    local_llm_url: str = "http://127.0.0.1:8790"
+    local_stt_url: str = "http://127.0.0.1:8791"
+    # How many on-screen elements go to the model: a small local model needs a short list.
+    max_elements: int = Field(default=400, ge=20, le=400)
 
     # Vendor keys use their conventional names (no NUDGY_ prefix).
     anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")

@@ -569,5 +569,26 @@
       "licenses": "Licenses",
       "delete-account": "Delete account"
     }
+  },
+  "ai": {
+    "meta": "free · no account · works offline",
+    "title": "Turn on Nudgy's built-in AI",
+    "body": "Nudgy's own AI runs on this computer: it answers any question about your screen, plans lessons for anything and explains errors. No account, no key, no cost.",
+    "needs": "one-time download about {{size}} GB · works best with 16 GB of memory",
+    "setup": "Set up built-in AI",
+    "downloading": "Downloading Nudgy's AI. You can keep using the app.",
+    "progress": "{{file}} · {{done}} of {{total}} GB · {{pct}}%",
+    "starting": "Starting the built-in AI…",
+    "failed": "Setup stopped: {{error}}",
+    "retry": "Try again",
+    "settingTitle": "Built-in AI",
+    "settingHelp": "Free AI running on this computer",
+    "state": {
+      "not_set_up": "not set up (see Home)",
+      "downloading": "downloading",
+      "starting": "starting",
+      "ready": "on",
+      "failed": "stopped · see Home"
+    }
   }
 }

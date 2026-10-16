@@ -569,5 +569,26 @@
       "licenses": "Licencias",
       "delete-account": "Eliminar cuenta"
     }
+  },
+  "ai": {
+    "meta": "gratis · sin cuenta · funciona sin conexión",
+    "title": "Activa la IA integrada de Nudgy",
+    "body": "La IA propia de Nudgy funciona en este ordenador: responde cualquier pregunta sobre tu pantalla, planifica lecciones de lo que sea y explica errores. Sin cuenta, sin clave, sin coste.",
+    "needs": "descarga única de unos {{size}} GB · funciona mejor con 16 GB de memoria",
+    "setup": "Configurar la IA integrada",
+    "downloading": "Descargando la IA de Nudgy. Puedes seguir usando la app.",
+    "progress": "{{file}} · {{done}} de {{total}} GB · {{pct}} %",
+    "starting": "Iniciando la IA integrada…",
+    "failed": "La configuración se detuvo: {{error}}",
+    "retry": "Reintentar",
+    "settingTitle": "IA integrada",
+    "settingHelp": "IA gratuita que funciona en este ordenador",
+    "state": {
+      "not_set_up": "sin configurar (ver Inicio)",
+      "downloading": "descargando",
+      "starting": "iniciando",
+      "ready": "activada",
+      "failed": "detenida · ver Inicio"
+    }
   }
 }

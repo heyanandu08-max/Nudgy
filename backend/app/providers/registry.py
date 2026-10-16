@@ -27,6 +27,10 @@ def build_llm(s: Settings) -> LLMProvider:
                 thinking=s.llm_thinking,
                 effort=s.llm_effort or None,
             )
+        case "local":
+            from app.providers.local import LocalLLM
+
+            return LocalLLM(s.local_llm_url)
         case "fake":
             from app.providers.fake import FakeLLM
 
@@ -44,6 +48,10 @@ def build_stt(s: Settings) -> STTProvider:
             from app.providers.http_stt import OpenAIWhisperSTT
 
             return OpenAIWhisperSTT(s.openai_api_key)
+        case "local_whisper":
+            from app.providers.local import LocalWhisperSTT
+
+            return LocalWhisperSTT(s.local_stt_url)
         case "fake":
             from app.providers.fake import FakeSTT
 
@@ -61,6 +69,10 @@ def build_tts(s: Settings) -> TTSProvider:
             from app.providers.http_tts import OpenAITTS
 
             return OpenAITTS(s.openai_api_key)
+        case "system":
+            from app.providers.local import SystemTTS
+
+            return SystemTTS()
         case "fake":
             from app.providers.fake import FakeTTS
 

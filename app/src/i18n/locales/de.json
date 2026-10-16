@@ -569,5 +569,26 @@
       "licenses": "Lizenzen",
       "delete-account": "Konto löschen"
     }
+  },
+  "ai": {
+    "meta": "kostenlos · ohne Konto · funktioniert offline",
+    "title": "Nudgys eingebaute KI einschalten",
+    "body": "Nudgys eigene KI läuft auf diesem Computer: Sie beantwortet jede Frage zu deinem Bildschirm, plant Lektionen zu allem und erklärt Fehler. Ohne Konto, ohne Schlüssel, ohne Kosten.",
+    "needs": "einmaliger Download von etwa {{size}} GB · am besten mit 16 GB Arbeitsspeicher",
+    "setup": "Eingebaute KI einrichten",
+    "downloading": "Nudgys KI wird heruntergeladen. Du kannst die App weiter nutzen.",
+    "progress": "{{file}} · {{done}} von {{total}} GB · {{pct}} %",
+    "starting": "Eingebaute KI startet…",
+    "failed": "Einrichtung abgebrochen: {{error}}",
+    "retry": "Erneut versuchen",
+    "settingTitle": "Eingebaute KI",
+    "settingHelp": "Kostenlose KI, die auf diesem Computer läuft",
+    "state": {
+      "not_set_up": "nicht eingerichtet (siehe Start)",
+      "downloading": "lädt herunter",
+      "starting": "startet",
+      "ready": "an",
+      "failed": "gestoppt · siehe Start"
+    }
   }
 }

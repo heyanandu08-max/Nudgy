@@ -301,6 +301,8 @@ async def _tts_worker(
             while await sentences.get() is not None:
                 pass
             return
+        if not clip:  # system voice: the app speaks the text itself
+            continue
         t.mark("first_audio_ms")
         put(
             (

@@ -50,7 +50,7 @@ pub fn should_start(bundled: bool, backend_url: &str, port_busy: bool) -> bool {
     bundled && backend_url.trim_end_matches('/') == LOCAL_URL && !port_busy
 }
 
-fn spawn(exe: &PathBuf, home: &PathBuf) -> std::io::Result<Child> {
+pub(crate) fn spawn(exe: &PathBuf, home: &PathBuf) -> std::io::Result<Child> {
     std::fs::create_dir_all(home)?;
     let mut cmd = Command::new(exe);
     cmd.current_dir(home)
@@ -58,13 +58,20 @@ fn spawn(exe: &PathBuf, home: &PathBuf) -> std::io::Result<Child> {
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
+    hide_window(&mut cmd);
+    cmd.spawn()
+}
+
+/// Background processes get no console window on Windows.
+pub(crate) fn hide_window(cmd: &mut Command) {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x0800_0000;
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
-    cmd.spawn()
+    #[cfg(not(target_os = "windows"))]
+    let _ = cmd;
 }
 
 /// Starts the bundled server if it should run. Called once at startup.
@@ -121,8 +128,12 @@ pub fn local_server_open_settings(app: AppHandle) -> Result<(), String> {
 /// Restarts the bundled server so edited settings (keys) take effect.
 #[tauri::command]
 pub fn local_server_restart(app: AppHandle) -> Result<(), String> {
+    restart(&app)
+}
+
+pub fn restart<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     let exe = program().ok_or("This install has no bundled server")?;
-    stop(&app);
+    stop(app);
     // Give the port a moment to free up.
     for _ in 0..20 {
         if !port_in_use() {
@@ -130,7 +141,7 @@ pub fn local_server_restart(app: AppHandle) -> Result<(), String> {
         }
         std::thread::sleep(Duration::from_millis(150));
     }
-    let home = home(&app).ok_or("no data folder")?;
+    let home = home(app).ok_or("no data folder")?;
     let child = spawn(&exe, &home).map_err(|e| e.to_string())?;
     *app.state::<LocalServer>().child.lock().unwrap() = Some(child);
     Ok(())

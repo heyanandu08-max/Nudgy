@@ -4,6 +4,8 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { useTranslation } from "react-i18next";
 import type { TutorView } from "../features/tutor/types";
 import { AudioQueue, htmlAudioPlayer, type Clip } from "../lib/audioQueue";
+import { fetchClientConfig } from "../lib/api";
+import { speakText, stopSpeaking } from "../lib/systemVoice";
 import { errorKey } from "../lib/errors";
 import { follow, type Vec } from "../lib/motion";
 import { DEFAULT_SETTINGS, type Settings } from "../lib/settings";
@@ -50,6 +52,12 @@ export function OverlayApp() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const beginner = useRef(false);
   beginner.current = settings.beginnerMode;
+  // Built-in AI: the server sends text only and the computer's own voice reads it.
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  const systemVoice = useRef(false);
+  const voicePlaying = useRef(false);
+  const spoken = useRef("");
   // Beginner mode: the largest cursor, whatever the size setting says.
   const cursorSize = settings.beginnerMode ? "l" : settings.cursorSize;
   const [speaking, setSpeaking] = useState(false);
@@ -76,9 +84,15 @@ export function OverlayApp() {
       st().setPaused(v.paused);
     });
 
+    const refreshVoiceMode = () =>
+      void fetchClientConfig(settingsRef.current.backendUrl)
+        .then((c) => (systemVoice.current = c.tts_provider === "system"))
+        .catch(() => {});
+    refreshVoiceMode();
+
     const scheduleHide = () => {
       clearTimeout(hideTimer.current);
-      if (!answerDone.current || audio.current?.isPlaying) return;
+      if (!answerDone.current || audio.current?.isPlaying || voicePlaying.current) return;
       st().finishCaption();
       if (st().mode === "talking" || st().mode === "thinking") st().setMode("idle");
       hideTimer.current = setTimeout(() => st().clearCaption(), CAPTION_LINGER_MS);
@@ -89,7 +103,31 @@ export function OverlayApp() {
       if (playing) st().setMode("talking");
       else scheduleHide();
     });
+    const sayWithSystemVoice = (text: string) => {
+      const s = settingsRef.current;
+      if (!systemVoice.current || !s.voiceEnabled || !text.trim()) return false;
+      speakText(
+        text,
+        s.language,
+        s.beginnerMode ? 0.85 : 1,
+        () => {
+          voicePlaying.current = true;
+          setSpeaking(true);
+          st().setMode("talking");
+          void invoke("escape_listen", { on: true }).catch(() => {});
+        },
+        () => {
+          voicePlaying.current = false;
+          setSpeaking(false);
+          void invoke("escape_listen", { on: false }).catch(() => {});
+          scheduleHide();
+        },
+      );
+      return true;
+    };
     const stopTalking = () => {
+      stopSpeaking();
+      voicePlaying.current = false;
       audio.current?.reset();
       answerDone.current = true;
       st().clearCaption();
@@ -134,17 +172,22 @@ export function OverlayApp() {
       }),
       listen<{ text: string }>("ask-transcript", (e) => {
         answerDone.current = false;
+        spoken.current = "";
+        stopSpeaking();
+        refreshVoiceMode();
         clearTimeout(hideTimer.current);
         audio.current?.reset();
         st().startCaption(e.payload.text);
       }),
       listen<{ delta: string }>("ask-speech", (e) => {
+        spoken.current += e.payload.delta;
         st().appendSpeech(e.payload.delta);
         if (st().mode === "thinking") st().setMode("talking");
       }),
       listen<Clip>("ask-audio", (e) => audio.current?.push(e.payload)),
       listen("ask-done", () => {
         answerDone.current = true;
+        sayWithSystemVoice(spoken.current);
         scheduleHide();
       }),
       listen<{ code?: string; message?: string; fatal?: boolean }>("ask-error", (e) => {
@@ -168,7 +211,7 @@ export function OverlayApp() {
         st().appendSpeech(e.payload.text);
         e.payload.clips.forEach((c) => audio.current?.push(c));
         answerDone.current = true;
-        if (!e.payload.clips.length) scheduleHide();
+        if (!e.payload.clips.length && !sayWithSystemVoice(e.payload.text)) scheduleHide();
       }),
       listen<Nudge>("review-nudge", (e) => setNudge(e.payload)),
       listen<Tip>("shortcut-tip", (e) => setTip(e.payload)),

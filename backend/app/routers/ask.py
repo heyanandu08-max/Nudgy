@@ -8,6 +8,7 @@ from app.deps import metered
 from app.models import UsageEvent
 from app.providers.registry import Providers, get_providers
 from app.schemas.ask import AskContext
+from app.services import elements
 from app.services.ask import AskInput, run_ask
 from app.services.usage import finish, wav_ms
 from app.sse import sse
@@ -36,7 +37,7 @@ async def ask(
     screenshot: Annotated[UploadFile | None, File()] = None,
 ) -> StreamingResponse:
     try:
-        ctx = AskContext.model_validate_json(context)
+        ctx = elements.apply(AskContext.model_validate_json(context))
     except ValidationError as e:
         raise HTTPException(422, e.errors(include_input=False)) from e
     inp = AskInput(

@@ -8,6 +8,7 @@ import type { TutorView } from "../tutor/types";
 import { useDashboard, type RecentAsk, type RecentLesson, type SkillCard } from "./useDashboard";
 import { useWeek } from "./useWeek";
 import { WeekCard } from "./WeekCard";
+import { AiSetupCard, useAiStatus } from "../ai/AiSetupCard";
 import { outOfLessons, useAccess } from "../billing/access";
 import { QuotaNote } from "../billing/QuotaNote";
 
@@ -51,6 +52,7 @@ export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgr
   const { settings } = useSettings();
   const data = useDashboard();
   const week = useWeek();
+  const ai = useAiStatus();
   const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
   const [allSkills, setAllSkills] = useState(false);
@@ -128,6 +130,7 @@ export function HomePage({ onRecord, onUpgrade }: { onRecord: () => void; onUpgr
         ))}
       </div>
 
+      <AiSetupCard status={ai} />
       {week && <WeekCard week={week} />}
 
       <div className="mt-12 grid gap-7 min-[900px]:grid-cols-[1.35fr_1fr]">

@@ -7,6 +7,7 @@ import { TimingsCard } from "./Timings";
 import { UpdateControl } from "./UpdateControl";
 import { useHealth } from "./useHealth";
 import { LegalLink, useLegalInfo, type LegalPage } from "../legal/LegalLinks";
+import { useAiStatus } from "../ai/AiSetupCard";
 import { useSave } from "./useSave";
 
 export function AboutSection() {
@@ -15,6 +16,7 @@ export function AboutSection() {
   const [url, setUrl] = useState(settings.backendUrl);
   const { health, check } = useHealth(settings.backendUrl);
   const legal = useLegalInfo();
+  const ai = useAiStatus();
   // Set when this install bundles the server (the all-in-one installer): where its keys go.
   const [serverEnv, setServerEnv] = useState<string | null>(null);
   const [serverNote, setServerNote] = useState<string | null>(null);
@@ -54,6 +56,13 @@ export function AboutSection() {
           </span>
           {health.state === "down" && <Button onClick={check}>{t("health.retry")}</Button>}
         </Row>
+        {ai.state !== "unavailable" && (
+          <Row title={t("ai.settingTitle")} help={t("ai.settingHelp")}>
+            <span className="font-mono text-xs text-ink-2" role="status">
+              {t(`ai.state.${ai.state}`)}
+            </span>
+          </Row>
+        )}
         {serverEnv && (
           <Row title={t("settings.localServer")} help={t("settings.localServerHelp")}>
             <Button onClick={() => serverAction("local_server_open_settings", t("settings.localServerOpened"))}>{t("settings.localServerOpen")}</Button>

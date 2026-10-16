@@ -1,0 +1,65 @@
+name: Built-in AI check
+
+# Runs the real built-in AI (llama.cpp + Gemma 3 4B) on a Linux runner and asks it questions
+# through Nudgy's server code (scripts/check_local_ai.py). Manual, or when the built-in AI code
+# or the prompts change.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - backend/app/providers/local.py
+      - backend/app/services/ask.py
+      - backend/app/services/lessons.py
+      - backend/prompts/**
+      - scripts/check_local_ai.py
+      - scripts/fetch_engines.py
+      - .github/workflows/local-ai-check.yml
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install the server
+        run: pip install ./backend
+
+      - name: Fetch llama.cpp
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/fetch_engines.py linux
+
+      - name: Cache the model
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: gemma-3-4b-it-Q4_K_M-v1
+      - name: Download the model (first run only)
+        run: |
+          mkdir -p models && cd models
+          base=https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF/resolve/main
+          [ -f gemma-3-4b-it-Q4_K_M.gguf ] || curl -fL --retry 3 -o gemma-3-4b-it-Q4_K_M.gguf $base/gemma-3-4b-it-Q4_K_M.gguf
+          [ -f mmproj-model-f16.gguf ] || curl -fL --retry 3 -o mmproj-model-f16.gguf $base/mmproj-model-f16.gguf
+          ls -la
+
+      - name: Start llama-server (same settings as the app)
+        run: |
+          cd app/src-tauri/engines/llama
+          LD_LIBRARY_PATH=. nohup ./llama-server -m ../../../../models/gemma-3-4b-it-Q4_K_M.gguf \
+            --mmproj ../../../../models/mmproj-model-f16.gguf --host 127.0.0.1 --port 8790 \
+            -c 8192 --jinja > ../../../../llama.log 2>&1 &
+          for i in $(seq 1 120); do curl -sf http://127.0.0.1:8790/health && break; sleep 2; done
+          curl -sf http://127.0.0.1:8790/health
+
+      - name: Ask it questions through Nudgy
+        env:
+          NUDGY_LOCAL_LLM_URL: http://127.0.0.1:8790
+        run: python scripts/check_local_ai.py
+
+      - name: llama-server log
+        if: always()
+        run: tail -n 60 llama.log || true

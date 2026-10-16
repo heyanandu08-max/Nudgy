@@ -35,3 +35,4 @@ backend/build/
 
 # The bundled server, copied in by the Windows build (test-build.yml)
 app/src-tauri/binaries/
+app/src-tauri/engines/

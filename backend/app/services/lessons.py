@@ -165,6 +165,8 @@ async def speak(text: str, tts: TTSProvider, voice_id: str | None, language: str
     clips = []
     for seq, sentence in enumerate(sentences):
         audio = await tts.synthesize(sentence, voice_id=voice_id, language=language)
+        if not audio:  # system voice: the app speaks the text itself
+            continue
         clips.append(
             {
                 "seq": seq,
